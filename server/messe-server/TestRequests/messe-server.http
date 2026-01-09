@@ -1,0 +1,4 @@
+GET {{HostAddress}}/Articles
+Accept: application/json
+
+###

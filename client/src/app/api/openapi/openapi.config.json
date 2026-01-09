@@ -1,0 +1,8 @@
+{
+	"serviceSuffix": "OpenApi",
+	"serviceFileSuffix": ".openapi.service",
+	"typeMappings": {
+		"-----date": "Date, fails on converting client->server",
+		"-----DateTime": "Date, date is an UTC object, really useful only for timestamps"
+	}	
+}
