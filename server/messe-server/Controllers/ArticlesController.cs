@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Herrmann.MesseApp.Server.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ArticlesController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetArticles")]
     public IEnumerable<DtoArticle> Get()
     {
         return [

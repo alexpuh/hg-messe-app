@@ -1,0 +1,7 @@
+<p>home works!</p>
+
+<div style="display: flex; flex-direction: column; gap: 10px;">
+@for(art of articles(); track art.id) {
+  <div>{{art.name}}</div>
+}
+</div>
