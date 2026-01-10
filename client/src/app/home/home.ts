@@ -6,6 +6,7 @@ import {Inventory} from '../components/inventory/inventory';
 import {RequiredStockSetup} from '../components/required-stock-setup/required-stock-setup';
 import {Select, SelectChangeEvent} from 'primeng/select';
 import {FormsModule} from '@angular/forms';
+import {Button} from 'primeng/button';
 
 @Component({
   selector: 'app-home',
@@ -18,7 +19,8 @@ import {FormsModule} from '@angular/forms';
     Inventory,
     RequiredStockSetup,
     Select,
-    FormsModule
+    FormsModule,
+    Button
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',

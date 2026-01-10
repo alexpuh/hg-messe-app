@@ -6,6 +6,7 @@
         <h1>Bestandsaufnahme</h1>
         <div class="ml-auto mr-1"><label>Messe:</label></div>
         <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
+        <p-button icon="pi pi-cog" [rounded]="true" [text]="true"></p-button>
       </div>
       <p-tabs value="inventory">
         <p-tablist>
