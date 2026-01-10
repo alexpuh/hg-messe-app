@@ -1,7 +1,6 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {ArticlesService} from '../api/articles.service';
 import {DtoArticle} from '../api/openapi/backend';
-import {Button} from 'primeng/button';
 import {Tab, TabList, TabPanel, TabPanels, Tabs} from 'primeng/tabs';
 import {Inventory} from '../components/inventory/inventory';
 import {RequiredStockSetup} from '../components/required-stock-setup/required-stock-setup';
@@ -11,7 +10,6 @@ import {FormsModule} from '@angular/forms';
 @Component({
   selector: 'app-home',
   imports: [
-    Button,
     Tabs,
     TabList,
     Tab,

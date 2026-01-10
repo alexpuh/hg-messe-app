@@ -39,7 +39,7 @@ export const appConfig: ApplicationConfig = {
         options: {
           cssLayer: {
             name: 'primeng',
-            order: 'primeng, app'
+            order: 'theme, base, primeng, app'
           }
         }
       }

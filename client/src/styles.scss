@@ -1,6 +1,30 @@
+@use "./tailwind.css";
+
 html {
   font-size: 14px;
   font-family: "Inter var", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   font-feature-settings: "cv02","cv03","cv04","cv11";
   line-height: normal;
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  background: var(--p-surface-100);
+}
+
+.workplace-unusedspace-column {
+  flex-grow: 1 !important;
+}
+
+.workplace-content-column {
+  margin-top: 0.1rem;
+  padding: 1rem;
+  min-width: 1200px;
+  max-width: 1900px;
+  border-width: 1px !important;
+  border-style: solid;
+  border-radius: 0.7rem !important;
+  border-color: var(--p-surface-300) !important;
+  background: var(--p-content-background);
 }

@@ -1,19 +1,27 @@
-<div style="display: flex; align-items: center;padding: 0">
-  <h1>Bestandsaufnahme</h1>
-  <div style="margin-left: auto; margin-right: 2rem;"><label>Messe:</label></div>
-  <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
+<div class="h-full p-2">
+  <div class="flex h-full">
+    <div class="workplace-unusedspace-column"></div>
+    <div class="workplace-content-column flex flex-col">
+      <div class="flex items-center p-1">
+        <h1>Bestandsaufnahme</h1>
+        <div class="ml-auto mr-1"><label>Messe:</label></div>
+        <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
+      </div>
+      <p-tabs value="inventory">
+        <p-tablist>
+          <p-tab value="inventory">Bestandsaufnahme</p-tab>
+          <p-tab value="required-stock-setup">Soll-Stand</p-tab>
+        </p-tablist>
+        <p-tabpanels>
+          <p-tabpanel value="inventory">
+            <app-inventory></app-inventory>
+          </p-tabpanel>
+          <p-tabpanel value="required-stock-setup">
+            <app-required-stock-setup></app-required-stock-setup>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+    </div>
+    <div class="workplace-unusedspace-column"></div>
+  </div>
 </div>
-<p-tabs value="inventory">
-  <p-tablist>
-    <p-tab value="inventory">Bestandsaufnahme</p-tab>
-    <p-tab value="required-stock-setup">Soll-Stand</p-tab>
-  </p-tablist>
-  <p-tabpanels>
-    <p-tabpanel value="inventory">
-      <app-inventory></app-inventory>
-    </p-tabpanel>
-    <p-tabpanel value="required-stock-setup">
-      <app-required-stock-setup></app-required-stock-setup>
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
