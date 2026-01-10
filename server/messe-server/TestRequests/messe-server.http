@@ -1,4 +1,30 @@
-GET {{HostAddress}}/Articles
+GET {{HostAddress}}/api/Articles
+Accept: application/json
+
+###
+GET {{HostAddress}}/api/EventInventories
+Accept: application/json
+
+###
+GET {{HostAddress}}/api/EventInventories/current
+Accept: application/json
+
+###
+POST {{HostAddress}}/api/EventInventories
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "tradeEventId": 1
+}
+###
+POST {{HostAddress}}/api/EventInventories/test
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+###
+GET {{HostAddress}}/api/EventInventories/stock/4
+Content-Type: application/json; charset=utf-8
 Accept: application/json
 
 ###

@@ -1,3 +1,5 @@
+using Herrmann.MesseApp.Server;
+using Herrmann.MesseApp.Server.Services;
 using Microsoft.Net.Http.Headers;
 using Serilog;
 
@@ -24,6 +26,12 @@ try
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
+    builder.Services
+        .AddSingleton<TradeEventsService>()
+        .AddSingleton<EventInventoriesService>()
+        .AddSingleton<ArticlesService>()
+        ;
+    
 // Add Swagger services
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
