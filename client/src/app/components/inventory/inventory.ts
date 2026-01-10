@@ -36,8 +36,8 @@ export class Inventory implements OnInit {
 
     this.signalr.startConnection();
 
-    this.signalr.onMessage(msg => {
-      console.log('Message:', msg);
+    this.signalr.onStockChanged(msg => {
+      console.log('StockChanged:', msg);
     });
   }
 

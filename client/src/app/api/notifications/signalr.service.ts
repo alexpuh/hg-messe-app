@@ -16,8 +16,8 @@ export class SignalrService {
       .catch(err => console.error(err));
   }
 
-  onMessage(callback: (msg: string) => void) {
-    this.hubConnection.on('ReceiveMessage', callback);
+  onStockChanged(callback: (msg: string) => void) {
+    this.hubConnection.on('StockChanged', callback);
   }
 
   onOrderCreated(callback: (msg: string) => void) {

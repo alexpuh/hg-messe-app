@@ -63,8 +63,17 @@ public class EventInventoriesService(ArticlesService articlesService, IHubContex
         stockItem.QuantityUnits += box ? 0 : 1;
         stockItem.QuantityBox += box ? 1 : 0;
         stockItem.updatedAt = DateTime.Now;
-        logger.LogDebug("Before sending stock changed notification");
-        await hub.Clients.All.SendAsync("StockChanged");
+        
+        logger.LogInformation("Sending StockChanged notification for UnitId: {UnitId}, Box: {Box}", unitId, box);
+        try
+        {
+            await hub.Clients.All.SendAsync("StockChanged");
+            logger.LogInformation("StockChanged notification sent successfully");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to send StockChanged notification");
+        }
         return true;
     }
 
