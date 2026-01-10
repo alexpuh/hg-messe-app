@@ -1,10 +1,13 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {ArticlesService} from '../api/articles.service';
 import {DtoArticle} from '../api/openapi/backend';
+import {Button} from 'primeng/button';
 
 @Component({
   selector: 'app-home',
-  imports: [],
+  imports: [
+    Button
+  ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
