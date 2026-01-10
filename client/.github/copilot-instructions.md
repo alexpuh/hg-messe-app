@@ -54,3 +54,9 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Project guide lines
+- API classes in openapi are generated
+  - Do not use OpenAPI services directly in components, they should be wrapped in the service class
+  - Models may be used directly
+  
