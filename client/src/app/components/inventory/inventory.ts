@@ -61,4 +61,10 @@ export class Inventory implements OnInit {
   protected onMesseChange(_event: SelectChangeEvent) {
 
   }
+
+  protected doTest() {
+    this.eventInventoriesService.test().subscribe(_ => {
+      console.log('Test successful');
+    });
+  }
 }

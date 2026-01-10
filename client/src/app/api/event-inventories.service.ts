@@ -31,5 +31,9 @@ export class EventInventoriesService {
   getEventInventories(count?: number): Observable<Array<DtoEventInventory>> {
     return this.api.getEventInventories(count);
   }
+
+  test(): Observable<void> {
+    return this.api.test();
+  }
 }
 
