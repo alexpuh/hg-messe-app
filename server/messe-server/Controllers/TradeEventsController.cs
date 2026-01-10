@@ -14,7 +14,7 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
         return tradeEventsService.GetTradeEvents().ToArray();
     }
     
-    [HttpGet(Name = "AddTradeEvent")]
+    [HttpPost(Name = "AddTradeEvent")]
     public IActionResult Add(DtoTradeEvent tradeEvent)
     {
         if (tradeEvent.Id != null)
