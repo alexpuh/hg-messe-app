@@ -1,1 +1,16 @@
-<p>inventory works!</p>
+<div class="workplace-header">
+  <h1>Bestandsaufnahme</h1>
+  <p-button class="ml-auto mr-1" icon="pi pi-barcode"
+            label="Bestandsaufnahme fortsetzen"
+            ></p-button>
+  <p-button class="mr-1" icon="pi pi-barcode"
+            label="Neue Bestandsaufnahme starten"
+            severity="danger"></p-button>
+  <div class="mr-1"><label>Messe:</label></div>
+  <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
+  <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
+  <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true"></p-button>
+</div>
+<div class="flex gap-2 items-center">
+  <div>Gestartet: {{startedAt | germanDate}}</div>
+</div>

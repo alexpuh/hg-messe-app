@@ -2,11 +2,17 @@ import {ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListene
 import { provideRouter } from '@angular/router';
 import * as BackendService from './api/openapi/backend';
 import { providePrimeNG } from 'primeng/config';
+import localeDe from '@angular/common/locales/de';
 
 import { routes } from './app.routes';
 
 import Aura from '@primeuix/themes/aura';
 import {definePreset} from '@primeuix/themes';
+import {registerLocaleData} from '@angular/common';
+
+// Register German locale
+registerLocaleData(localeDe, 'de');
+
 
 const MyPreset = definePreset(Aura, {
   semantic: {
