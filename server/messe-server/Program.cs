@@ -20,6 +20,10 @@ try
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
 
+    
+    builder.Services.AddSignalR();
+
+    
     // Add services to the container.
 
     builder.Services.AddControllers();
@@ -80,6 +84,8 @@ try
 
     app.MapControllers();
 
+    app.MapHub<NotificationHub>("/hubs/notification");
+    
     Log.Information("Messe Server gestartet");
     app.Run();
 }

@@ -1,15 +1,15 @@
 GET {{HostAddress}}/api/Articles
 Accept: application/json
 
-###
+### List all EventInventories
 GET {{HostAddress}}/api/EventInventories
 Accept: application/json
 
-###
+### Get current EventInventory
 GET {{HostAddress}}/api/EventInventories/current
 Accept: application/json
 
-###
+### Create new EventInventory
 POST {{HostAddress}}/api/EventInventories
 Content-Type: application/json; charset=utf-8
 Accept: application/json
@@ -17,13 +17,13 @@ Accept: application/json
 {
   "tradeEventId": 1
 }
-###
+### Test add stock to EventInventory
 POST {{HostAddress}}/api/EventInventories/test
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
-###
-GET {{HostAddress}}/api/EventInventories/stock/4
+### Get stock of EventInventory
+GET {{HostAddress}}/api/EventInventories/stock/1
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 

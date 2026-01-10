@@ -7,8 +7,7 @@ import {Select} from 'primeng/select';
   selector: 'app-required-stock-setup',
   imports: [
     Button,
-    RouterLink,
-    Select
+    RouterLink
   ],
   templateUrl: './required-stock-setup.html',
   styleUrl: './required-stock-setup.scss',

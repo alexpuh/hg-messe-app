@@ -4,6 +4,13 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/hubs": {
+    "target": "http://localhost:5227",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "ws": true
   }
 }
 

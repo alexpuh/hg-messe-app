@@ -46,10 +46,14 @@ public class EventInventoriesController(EventInventoriesService eventInventories
 
     private readonly Random r = new();
     [HttpPost("test", Name = "Test")]
-    public ActionResult Test()
+    public async Task<ActionResult> Test()
     {
         var id = r.Next(0, 4) + 1;
-        eventInventoriesService.TryAddStockItem(id, r.Next(0, 3) == 0);
+        var ret = await eventInventoriesService.TryAddStockItem(id, r.Next(0, 3) == 0);
+        if (!ret)
+        {
+            return BadRequest();
+        }
         return Ok();
     }
     

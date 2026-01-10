@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { GermanDatePipe } from '../../pipes/german-date.pipe';
 import { EventInventoriesService } from '../../api/event-inventories.service';
 import { DtoEventInventory, DtoStockItem } from '../../api/openapi/backend';
+import {SignalrService} from '../../api/notifications/signalr.service';
 
 @Component({
   selector: 'app-inventory',
@@ -19,6 +20,7 @@ import { DtoEventInventory, DtoStockItem } from '../../api/openapi/backend';
 })
 export class Inventory implements OnInit {
   private readonly eventInventoriesService = inject(EventInventoriesService);
+  private readonly signalr = inject(SignalrService);
 
   protected messeList: string[] = ['Frankfurt', 'Berlin'];
   protected currentInventory = signal<DtoEventInventory | null>(null);
@@ -31,6 +33,12 @@ export class Inventory implements OnInit {
 
   ngOnInit(): void {
     this.loadCurrentInventory();
+
+    this.signalr.startConnection();
+
+    this.signalr.onMessage(msg => {
+      console.log('Message:', msg);
+    });
   }
 
   private loadCurrentInventory(): void {

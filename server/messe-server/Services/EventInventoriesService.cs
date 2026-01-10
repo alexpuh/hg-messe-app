@@ -1,10 +1,10 @@
 ﻿using Herrmann.MesseApp.Server.Dto;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class EventInventoriesService(ArticlesService articlesService)
+public class EventInventoriesService(ArticlesService articlesService, IHubContext<NotificationHub> hub, ILogger<EventInventoriesService> logger)
 {
-    private readonly ArticlesService articlesService = articlesService;
     private DtoEventInventory? currentEventInventory;
     private readonly List<DtoEventInventory> eventInventories = [];
     private readonly Dictionary<int, Dictionary<int, DtoStockItem>> eventInventoryStock = new();
@@ -31,7 +31,7 @@ public class EventInventoriesService(ArticlesService articlesService)
         return currentEventInventory;
     }
     
-    public bool TryAddStockItem(int unitId, bool box)
+    public async Task<bool> TryAddStockItem(int unitId, bool box)
     {
         if (currentEventInventory == null)
         {
@@ -53,7 +53,7 @@ public class EventInventoriesService(ArticlesService articlesService)
             stockItem = new DtoStockItem
             {
                 UnitId = unitId,
-                ArticleNr = articleUnit.ArticleNr,
+                ArticleNr = articleUnit!.ArticleNr,
                 ArticleDisplayName = articleUnit.ArticleName,
                 QuantityPerBox = articleUnit.UnitsPerBox ?? 0,
                 Required = 7
@@ -63,6 +63,8 @@ public class EventInventoriesService(ArticlesService articlesService)
         stockItem.QuantityUnits += box ? 0 : 1;
         stockItem.QuantityBox += box ? 1 : 0;
         stockItem.updatedAt = DateTime.Now;
+        logger.LogDebug("Before sending stock changed notification");
+        await hub.Clients.All.SendAsync("StockChanged");
         return true;
     }
 
