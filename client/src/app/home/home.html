@@ -1,8 +1,19 @@
-<p-button label="Check" />
-
-
-<div style="display: flex; flex-direction: column; gap: 10px;">
-@for(art of articles(); track art.id) {
-  <div>{{art.name}}</div>
-}
+<div style="display: flex; align-items: center;padding: 0">
+  <h1>Bestandsaufnahme</h1>
+  <div style="margin-left: auto; margin-right: 2rem;"><label>Messe:</label></div>
+  <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
 </div>
+<p-tabs value="inventory">
+  <p-tablist>
+    <p-tab value="inventory">Bestandsaufnahme</p-tab>
+    <p-tab value="required-stock-setup">Soll-Stand</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel value="inventory">
+      <app-inventory></app-inventory>
+    </p-tabpanel>
+    <p-tabpanel value="required-stock-setup">
+      <app-required-stock-setup></app-required-stock-setup>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
