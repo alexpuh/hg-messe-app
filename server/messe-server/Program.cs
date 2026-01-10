@@ -1,41 +1,87 @@
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Net.Http.Headers;
+using Serilog;
 
-// Add services to the container.
+// Configure Serilog - initially with bootstrap logger
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+try
+{
+    Log.Information("Starte Messe Server...");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Configure Serilog from appsettings.json
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddOpenApi();
 
 // Add Swagger services
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(options =>
     {
-        Title = "Messe Server API",
-        Version = "v1",
-        Description = "API für die Messe-Anwendung"
+        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "Messe Server API",
+            Version = "v1",
+            Description = "API für die Messe-Anwendung"
+        });
     });
-});
 
-var app = builder.Build();
+    var app = builder.Build();
+
+// Add Serilog request logging
+    app.UseSerilogRequestLogging();
+
+    app.UseDefaultFiles();
+    var staticFilesOptions = new StaticFileOptions
+    {
+        OnPrepareResponse = ctx =>
+        {
+            if (string.Equals(ctx.File.Name, "index.html", StringComparison.OrdinalIgnoreCase))
+            {
+                ctx.Context.Response.Headers[HeaderNames.CacheControl] = "no-store";
+            }
+        }
+    };
+    app.UseStaticFiles(staticFilesOptions);
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    if (app.Environment.IsDevelopment())
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Messe Server API v1");
-        options.RoutePrefix = "swagger"; // Swagger UI wird unter /swagger verfügbar sein
-    });
+        app.MapOpenApi();
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Messe Server API v1");
+            options.RoutePrefix = "swagger"; // Swagger UI wird unter /swagger verfügbar sein
+        });
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    Log.Information("Messe Server gestartet");
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Messe Server wurde unerwartet beendet");
+    throw;
+}
+finally
+{
+    Log.Information("Messe Server wird beendet...");
+    await Log.CloseAndFlushAsync();
+}
