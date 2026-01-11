@@ -1,4 +1,5 @@
 using Herrmann.MesseApp.Server.Data;
+using Herrmann.MesseApp.Server.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Herrmann.MesseApp.Server.Services;
@@ -126,5 +127,68 @@ public class InventoryService(
             .OrderByDescending(b => b.ScannedAt)
             .ToListAsync();
     }
-}
 
+    /// <summary>
+    /// Holt Inventory-Ergebnisse als DTO mit RequiredCount aus TradeEvent
+    /// </summary>
+    /// <param name="inventoryId">ID des Inventars</param>
+    /// <returns>Null if inventoryId not found or collection</returns>
+    public async Task<DtoInventoryStockItem[]?> GetInventoryResultsAsync(int inventoryId)
+    {
+        // Lade Inventory mit StockItems
+        var inventory = await dbContext.Inventories
+            .Include(i => i.StockItems)
+            .FirstOrDefaultAsync(i => i.Id == inventoryId);
+
+        if (inventory == null)
+        {
+            return null;
+        }
+
+        if (!inventory.StockItems.Any())
+        {
+            return [];
+        }
+
+        // Lade ArticleUnits für alle StockItems
+        var unitIds = inventory.StockItems.Select(s => s.UnitId).Distinct().ToArray();
+        var articleUnits = await dbContext.ArticleUnits
+            .Where(a => unitIds.Contains(a.UnitId))
+            .ToDictionaryAsync(a => a.UnitId);
+
+        // Lade RequiredUnits für das TradeEvent (falls vorhanden)
+        Dictionary<int, int>? requiredUnits = null;
+        if (inventory.TradeEventId.HasValue)
+        {
+            requiredUnits = await dbContext.TradeEventRequiredUnits
+                .Where(r => r.TradeEventId == inventory.TradeEventId.Value)
+                .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
+        }
+
+        // Erstelle DTOs
+        var results = inventory.StockItems.Select(stockItem =>
+        {
+            articleUnits.TryGetValue(stockItem.UnitId, out var articleUnit);
+            
+            int? requiredCount = null;
+            if (requiredUnits != null && requiredUnits.TryGetValue(stockItem.UnitId, out var required))
+            {
+                requiredCount = required;
+            }
+
+            return new DtoInventoryStockItem
+            {
+                Id = stockItem.Id,
+                UnitId = stockItem.UnitId,
+                ArticleNr = articleUnit?.ArtNr,
+                ArticleDisplayName = articleUnit?.DisplayName,
+                UpdatedAt = stockItem.UpdatedAt,
+                Ean = articleUnit?.EanUnit ?? string.Empty,
+                Count = stockItem.QuantityUnits,
+                RequiredCount = requiredCount
+            };
+        }).ToArray();
+
+        return results;
+    }
+}
