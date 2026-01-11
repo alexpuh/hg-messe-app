@@ -27,4 +27,9 @@ GET {{HostAddress}}/api/EventInventories/stock/1
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
+### Get BarcodeScanner status
+GET {{HostAddress}}/api/BarcodeScanner/status
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
 ###

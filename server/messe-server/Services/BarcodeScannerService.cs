@@ -1,0 +1,172 @@
+﻿using System.IO.Ports;
+
+namespace Herrmann.MesseApp.Server.Services;
+
+public class BarcodeScannerService : IDisposable
+{
+    private SerialPort? serialPort;
+    private readonly ILogger<BarcodeScannerService> logger;
+    
+    public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
+
+    public BarcodeScannerService(ILogger<BarcodeScannerService> logger)
+    {
+        this.logger = logger;
+    }
+
+    public void Connect()
+    {
+        var ports = SerialPort.GetPortNames();
+        var firstComPort = ports.FirstOrDefault();
+        
+        if (firstComPort == null)
+        {
+            throw new ApplicationException("Kein COM-Port gefunden");
+        }
+
+        logger.LogInformation("Verbinde mit COM-Port: {Port}", firstComPort);
+        
+        var sp = new SerialPort(firstComPort)
+        {
+            BaudRate = 9600,
+            Parity = Parity.None,
+            DataBits = 8,
+            StopBits = StopBits.One,
+            Handshake = Handshake.None,
+            ReadTimeout = 500,
+            WriteTimeout = 500
+        };
+        
+        sp.Open();
+        
+        if (!sp.IsOpen)
+        {
+            sp.Dispose();
+            throw new ApplicationException($"COM-Port {firstComPort} kann nicht geöffnet werden");
+        }
+        
+        serialPort = sp;
+        logger.LogInformation("Barcode-Scanner erfolgreich verbunden");
+    }
+
+    public bool IsConnected()
+    {
+        return serialPort != null && serialPort.IsOpen;
+    }
+
+    public void StartScan()
+    {
+        if (serialPort == null)
+        {
+            throw new InvalidOperationException("Scanner ist nicht verbunden");
+        }
+
+        logger.LogInformation("Starte Barcode-Scan-Prozess");
+        
+        while (IsConnected())
+        {
+            try
+            {
+                var line = serialPort.ReadLine();
+                var barcode = string.Concat(line.Where(char.IsLetterOrDigit));
+                
+                if (string.IsNullOrWhiteSpace(barcode))
+                {
+                    continue;
+                }
+
+                logger.LogInformation("Barcode gescannt: {Barcode}", barcode);
+                
+                if (BarcodeScanned == null)
+                {
+                    SendError();
+                }
+                else
+                {
+                    var eventArgs = new BarcodeScannedEventArgs(barcode);
+                    BarcodeScanned(this, eventArgs);
+                    
+                    if (eventArgs.IsProcessed)
+                    {
+                        SendOk();
+                    }
+                    else
+                    {
+                        SendError();
+                    }
+                }
+            }
+            catch (TimeoutException)
+            {
+                // Normal - keine Daten empfangen
+            }
+            catch (IOException ioException)
+            {
+                logger.LogWarning(ioException, "Scan-Prozess gestoppt");
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Fehler beim Scannen");
+                SendError();
+            }
+        }
+        
+        logger.LogInformation("Scan-Prozess beendet");
+    }
+
+    private void SendError()
+    {
+        try
+        {
+            serialPort?.Write(new byte[] { 0x07 }, 0, 1); // BEL (Fehler-Piep)
+            logger.LogDebug("Fehler-Signal an Scanner gesendet");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Fehler beim Senden des Fehler-Signals");
+        }
+    }
+
+    private void SendOk()
+    {
+        try
+        {
+            serialPort?.Write(new byte[] { 0x06 }, 0, 1); // ACK (OK-Signal)
+            logger.LogDebug("OK-Signal an Scanner gesendet");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Fehler beim Senden des OK-Signals");
+        }
+    }
+
+    public void Disconnect()
+    {
+        if (serialPort != null)
+        {
+            serialPort.Close();
+            serialPort.Dispose();
+            serialPort = null;
+            logger.LogInformation("Scanner getrennt");
+        }
+    }
+
+    public void Dispose()
+    {
+        Disconnect();
+    }
+}
+
+public class BarcodeScannedEventArgs : EventArgs
+{
+    public string Barcode { get; }
+    public bool IsProcessed { get; set; }
+
+    public BarcodeScannedEventArgs(string barcode)
+    {
+        Barcode = barcode;
+        IsProcessed = false;
+    }
+}
+

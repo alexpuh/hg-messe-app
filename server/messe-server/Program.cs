@@ -1,4 +1,3 @@
-using Herrmann.MesseApp.Server;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.Net.Http.Headers;
 using Serilog;
@@ -34,6 +33,8 @@ try
         .AddSingleton<TradeEventsService>()
         .AddSingleton<EventInventoriesService>()
         .AddSingleton<ArticlesService>()
+        .AddSingleton<BarcodeScannerService>()
+        .AddHostedService<BarcodeScannerBackgroundService>()
         ;
     
 // Add Swagger services
