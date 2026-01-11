@@ -2,17 +2,11 @@
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class BarcodeScannerService : IDisposable
+public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDisposable
 {
     private SerialPort? serialPort;
-    private readonly ILogger<BarcodeScannerService> logger;
-    
-    public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
 
-    public BarcodeScannerService(ILogger<BarcodeScannerService> logger)
-    {
-        this.logger = logger;
-    }
+    public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
 
     public void Connect()
     {
@@ -51,7 +45,7 @@ public class BarcodeScannerService : IDisposable
 
     public bool IsConnected()
     {
-        return serialPort != null && serialPort.IsOpen;
+        return serialPort is { IsOpen: true };
     }
 
     public void StartScan()
@@ -119,7 +113,7 @@ public class BarcodeScannerService : IDisposable
     {
         try
         {
-            serialPort?.Write(new byte[] { 0x07 }, 0, 1); // BEL (Fehler-Piep)
+            serialPort?.Write([0x07], 0, 1); // BEL (Fehler-Piep)
             logger.LogDebug("Fehler-Signal an Scanner gesendet");
         }
         catch (Exception ex)
@@ -132,7 +126,7 @@ public class BarcodeScannerService : IDisposable
     {
         try
         {
-            serialPort?.Write(new byte[] { 0x06 }, 0, 1); // ACK (OK-Signal)
+            serialPort?.Write([0x06], 0, 1); // ACK (OK-Signal)
             logger.LogDebug("OK-Signal an Scanner gesendet");
         }
         catch (Exception ex)
@@ -158,15 +152,9 @@ public class BarcodeScannerService : IDisposable
     }
 }
 
-public class BarcodeScannedEventArgs : EventArgs
+public class BarcodeScannedEventArgs(string barcode) : EventArgs
 {
-    public string Barcode { get; }
+    public string Barcode { get; } = barcode;
     public bool IsProcessed { get; set; }
-
-    public BarcodeScannedEventArgs(string barcode)
-    {
-        Barcode = barcode;
-        IsProcessed = false;
-    }
 }
 

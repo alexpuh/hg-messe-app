@@ -36,7 +36,7 @@ try
     builder.Services.AddOpenApi();
 
     builder.Services
-        .AddSingleton<TradeEventsService>()
+        .AddScoped<TradeEventsService>()
         .AddSingleton<EventInventoriesService>()
         .AddScoped<ArticlesService>()
         .AddSingleton<BarcodeScannerService>()

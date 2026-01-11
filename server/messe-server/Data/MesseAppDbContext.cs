@@ -5,6 +5,7 @@ namespace Herrmann.MesseApp.Server.Data;
 public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : DbContext(options)
 {
     public DbSet<ArticleUnit> ArticleUnits => Set<ArticleUnit>();
+    public DbSet<TradeEvent> TradeEvents => Set<TradeEvent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

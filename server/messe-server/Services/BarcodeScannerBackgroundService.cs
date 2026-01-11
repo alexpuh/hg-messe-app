@@ -1,24 +1,12 @@
-﻿﻿namespace Herrmann.MesseApp.Server.Services;
+﻿namespace Herrmann.MesseApp.Server.Services;
 
-public class BarcodeScannerBackgroundService : BackgroundService
+public class BarcodeScannerBackgroundService(
+    ILogger<BarcodeScannerBackgroundService> logger,
+    BarcodeScannerService scannerService,
+    IServiceProvider serviceProvider,
+    EventInventoriesService inventoriesService)
+    : BackgroundService
 {
-    private readonly ILogger<BarcodeScannerBackgroundService> logger;
-    private readonly BarcodeScannerService scannerService;
-    private readonly IServiceProvider serviceProvider;
-    private readonly EventInventoriesService inventoriesService;
-
-    public BarcodeScannerBackgroundService(
-        ILogger<BarcodeScannerBackgroundService> logger,
-        BarcodeScannerService scannerService,
-        IServiceProvider serviceProvider,
-        EventInventoriesService inventoriesService)
-    {
-        this.logger = logger;
-        this.scannerService = scannerService;
-        this.serviceProvider = serviceProvider;
-        this.inventoriesService = inventoriesService;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Barcode Scanner Background Service wird gestartet");
@@ -98,7 +86,7 @@ public class BarcodeScannerBackgroundService : BackgroundService
             }
 
             // Bestimme ob Box oder Einheit gescannt wurde
-            bool isBox = articleUnit!.EanBox == e.Barcode;
+            var isBox = articleUnit!.EanBox == e.Barcode;
             
             logger.LogInformation(
                 "Artikel gefunden: UnitId={UnitId}, Artikel={Article}, Type={Type}",

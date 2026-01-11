@@ -8,6 +8,7 @@ Content-Type: application/json; charset=utf-8
 Accept: application/json
 
 "C:\\Work\\github-herrmann\\hg-messe-app\\server\\messe-server\\testdata\\articles-with-units-20260111-135224.json"
+
 ### Get article by EAN
 GET {{HostAddress}}/api/Articles/by-ean/4260011990035
 Accept: application/json
@@ -15,6 +16,40 @@ Accept: application/json
 ### Get article by UnitId
 GET {{HostAddress}}/api/Articles/1
 Accept: application/json
+
+### ===== Trade Events =====
+
+### Get all Trade Events
+GET {{HostAddress}}/api/TradeEvents
+Accept: application/json
+
+### Get Trade Event by ID
+GET {{HostAddress}}/api/TradeEvents/1
+Accept: application/json
+
+### Create new Trade Event
+POST {{HostAddress}}/api/TradeEvents
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "name": "München"
+}
+
+### Update Trade Event
+PUT {{HostAddress}}/api/TradeEvents/1
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "name": "Berlin 2026"
+}
+
+### Delete Trade Event
+DELETE {{HostAddress}}/api/TradeEvents/3
+Accept: application/json
+
+### ===== Event Inventories =====
 
 ### List all EventInventories
 GET {{HostAddress}}/api/EventInventories
