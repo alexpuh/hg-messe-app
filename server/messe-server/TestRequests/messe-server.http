@@ -83,6 +83,10 @@ Accept: application/json
   "count": 0
 }
 
+### Delete Required Unit (using DELETE endpoint)
+DELETE {{HostAddress}}/api/TradeEvents/1/required-units/2
+Accept: application/json
+
 ### ===== Event Inventories =====
 
 ### List all EventInventories

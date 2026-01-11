@@ -49,7 +49,7 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
         dbContext.TradeEvents.Add(entity);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Trade Event erstellt: Id={Id}, Name={Name}", entity.Id, entity.Name);
+        logger.LogDebug("Trade Event erstellt: Id={Id}, Name={Name}", entity.Id, entity.Name);
 
         return new DtoTradeEvent
         {
@@ -69,7 +69,7 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
         entity.Name = tradeEvent.Name;
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Trade Event aktualisiert: Id={Id}, Name={Name}", id, tradeEvent.Name);
+        logger.LogDebug("Trade Event aktualisiert: Id={Id}, Name={Name}", id, tradeEvent.Name);
         return true;
     }
 
@@ -84,38 +84,43 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
         dbContext.TradeEvents.Remove(entity);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Trade Event gelöscht: Id={Id}", id);
+        logger.LogDebug("Trade Event gelöscht: Id={Id}", id);
         return true;
     }
 
     /// <summary>
     /// Setzt die erforderliche Anzahl einer Artikeleinheit für ein Trade Event
     /// </summary>
-    /// <param name="unitId">ID der Artikeleinheit</param>
     /// <param name="tradeEventId">ID des Trade Events</param>
+    /// <param name="unitId">ID der Artikeleinheit</param>
     /// <param name="count">Erforderliche Anzahl (0 oder negativ zum Löschen)</param>
-    public async Task SetRequiredUnitsAsync(int unitId, int tradeEventId, int count)
+    /// <returns>true wenn erfolgreich, false wenn TradeEvent nicht gefunden wurde</returns>
+    public async Task<bool> SetRequiredUnitsAsync(int tradeEventId, int unitId, int count)
     {
+        if (count < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative");
+        }
+        
+        // Prüfe ob TradeEvent existiert
+        var tradeEventExists = await dbContext.TradeEvents.AnyAsync(t => t.Id == tradeEventId);
+        if (!tradeEventExists)
+        {
+            logger.LogWarning("TradeEvent {TradeEventId} nicht gefunden", tradeEventId);
+            return false;
+        }
+        
         var existing = await dbContext.TradeEventRequiredUnits
             .FirstOrDefaultAsync(t => t.TradeEventId == tradeEventId && t.UnitId == unitId);
         
         if (existing != null)
         {
-            if (count <= 0)
-            {
-                // Wenn count 0 oder negativ, lösche den Eintrag
-                dbContext.TradeEventRequiredUnits.Remove(existing);
-                logger.LogInformation("Entfernt: Required unit {UnitId} von TradeEvent {TradeEventId}", unitId, tradeEventId);
-            }
-            else
-            {
-                // Aktualisiere die Anzahl
-                existing.RequiredCount = count;
-                existing.UpdatedAt = DateTime.Now;
-                logger.LogInformation("Aktualisiert: Required unit {UnitId} für TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
-            }
+            // Aktualisiere die Anzahl
+            existing.RequiredCount = count;
+            existing.UpdatedAt = DateTime.Now;
+            logger.LogDebug("Aktualisiert: Required unit {UnitId} für TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
         }
-        else if (count > 0)
+        else
         {
             // Erstelle neuen Eintrag
             var newEntry = new TradeEventRequiredUnit
@@ -123,14 +128,14 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
                 TradeEventId = tradeEventId,
                 UnitId = unitId,
                 RequiredCount = count,
-                CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
             dbContext.TradeEventRequiredUnits.Add(newEntry);
-            logger.LogInformation("Hinzugefügt: Required unit {UnitId} zu TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
+            logger.LogDebug("Hinzugefügt: Required unit {UnitId} zu TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
         }
         
         await dbContext.SaveChangesAsync();
+        return true;
     }
 
     /// <summary>
@@ -145,9 +150,31 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
             .Where(t => t.TradeEventId == tradeEventId)
             .ToDictionaryAsync(t => t.UnitId, t => t.RequiredCount);
         
-        logger.LogInformation("Abgerufen: {Count} required units für TradeEvent {TradeEventId}", requiredUnits.Count, tradeEventId);
+        logger.LogDebug("Abgerufen: {Count} required units für TradeEvent {TradeEventId}", requiredUnits.Count, tradeEventId);
         
         return requiredUnits;
     }
-}
 
+    /// <summary>
+    /// Löscht eine erforderliche Artikeleinheit für ein Trade Event
+    /// </summary>
+    /// <param name="tradeEventId">ID des Trade Events</param>
+    /// <param name="unitId">ID der Artikeleinheit</param>
+    /// <returns>true wenn gelöscht wurde, false wenn nicht vorhanden (kein Fehler)</returns>
+    public async Task DeleteRequiredUnitAsync(int tradeEventId, int unitId)
+    {
+        var existing = await dbContext.TradeEventRequiredUnits
+            .FirstOrDefaultAsync(t => t.TradeEventId == tradeEventId && t.UnitId == unitId);
+        
+        if (existing == null)
+        {
+            logger.LogDebug("Required unit {UnitId} für TradeEvent {TradeEventId} nicht gefunden - keine Aktion", unitId, tradeEventId);
+            return;
+        }
+        
+        dbContext.TradeEventRequiredUnits.Remove(existing);
+        await dbContext.SaveChangesAsync();
+        
+        logger.LogDebug("Required unit {UnitId} für TradeEvent {TradeEventId} gelöscht", unitId, tradeEventId);
+    }
+}

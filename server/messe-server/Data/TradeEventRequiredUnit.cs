@@ -28,8 +28,6 @@ public class TradeEventRequiredUnit
     /// </summary>
     public int RequiredCount { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
     
     // Navigation Property

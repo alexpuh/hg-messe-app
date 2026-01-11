@@ -81,15 +81,12 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
     [HttpPost("{tradeEventId:int}/required-units", Name = "SetRequiredUnits")]
     public async Task<IActionResult> SetRequiredUnits(int tradeEventId, [FromBody] SetRequiredUnitsRequest request)
     {
-        try
+        var success = await tradeEventsService.SetRequiredUnitsAsync(tradeEventId, request.UnitId, request.Count);
+        if (!success)
         {
-            await tradeEventsService.SetRequiredUnitsAsync(request.UnitId, tradeEventId, request.Count);
-            return NoContent();
+            return NotFound(new { Message = "Trade Event nicht gefunden", TradeEventId = tradeEventId });
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Message = "Fehler beim Setzen der Required Units", Error = ex.Message });
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -100,6 +97,16 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
     {
         var requiredUnits = await tradeEventsService.GetRequiredUnitsAsync(tradeEventId);
         return Ok(requiredUnits);
+    }
+
+    /// <summary>
+    /// Löscht eine erforderliche Artikeleinheit für ein Trade Event
+    /// </summary>
+    [HttpDelete("{tradeEventId:int}/required-units/{unitId:int}", Name = "DeleteRequiredUnit")]
+    public async Task<IActionResult> DeleteRequiredUnit(int tradeEventId, int unitId)
+    {
+        await tradeEventsService.DeleteRequiredUnitAsync(tradeEventId, unitId);
+        return NoContent();
     }
 }
 
