@@ -49,6 +49,40 @@ Accept: application/json
 DELETE {{HostAddress}}/api/TradeEvents/3
 Accept: application/json
 
+### Set Required Units for Trade Event
+POST {{HostAddress}}/api/TradeEvents/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 1,
+  "count": 50
+}
+
+### Get Required Units for Trade Event
+GET {{HostAddress}}/api/TradeEvents/1/required-units
+Accept: application/json
+
+### Update Required Units (different unit)
+POST {{HostAddress}}/api/TradeEvents/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 2,
+  "count": 30
+}
+
+### Delete Required Unit (set count to 0)
+POST {{HostAddress}}/api/TradeEvents/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 1,
+  "count": 0
+}
+
 ### ===== Event Inventories =====
 
 ### List all EventInventories

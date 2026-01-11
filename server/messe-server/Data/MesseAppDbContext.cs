@@ -6,6 +6,7 @@ public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : Db
 {
     public DbSet<ArticleUnit> ArticleUnits => Set<ArticleUnit>();
     public DbSet<TradeEvent> TradeEvents => Set<TradeEvent>();
+    public DbSet<TradeEventRequiredUnit> TradeEventRequiredUnits => Set<TradeEventRequiredUnit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +20,21 @@ public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : Db
         
         modelBuilder.Entity<ArticleUnit>()
             .HasIndex(e => e.ArticleId);
+        
+        // TradeEventRequiredUnit Indizes
+        modelBuilder.Entity<TradeEventRequiredUnit>()
+            .HasIndex(e => e.TradeEventId);
+        
+        modelBuilder.Entity<TradeEventRequiredUnit>()
+            .HasIndex(e => new { e.TradeEventId, e.UnitId })
+            .IsUnique(); // Ein UnitId kann nur einmal pro TradeEvent vorkommen
+        
+        // Relation: TradeEvent -> TradeEventRequiredUnits (1:n)
+        modelBuilder.Entity<TradeEvent>()
+            .HasMany(t => t.RequiredUnits)
+            .WithOne(r => r.TradeEvent)
+            .HasForeignKey(r => r.TradeEventId)
+            .OnDelete(DeleteBehavior.Cascade); // Beim Löschen eines TradeEvents werden auch die RequiredUnits gelöscht
     }
 }
 

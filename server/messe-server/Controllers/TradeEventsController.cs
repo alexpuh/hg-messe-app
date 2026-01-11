@@ -74,5 +74,36 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
         }
         return NoContent();
     }
+    
+    /// <summary>
+    /// Setzt die erforderliche Anzahl einer Artikeleinheit für ein Trade Event
+    /// </summary>
+    [HttpPost("{tradeEventId:int}/required-units", Name = "SetRequiredUnits")]
+    public async Task<IActionResult> SetRequiredUnits(int tradeEventId, [FromBody] SetRequiredUnitsRequest request)
+    {
+        try
+        {
+            await tradeEventsService.SetRequiredUnitsAsync(request.UnitId, tradeEventId, request.Count);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Fehler beim Setzen der Required Units", Error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Holt alle erforderlichen Artikeleinheiten für ein Trade Event
+    /// </summary>
+    [HttpGet("{tradeEventId:int}/required-units", Name = "GetRequiredUnits")]
+    public async Task<ActionResult<IDictionary<int, int>>> GetRequiredUnits(int tradeEventId)
+    {
+        var requiredUnits = await tradeEventsService.GetRequiredUnitsAsync(tradeEventId);
+        return Ok(requiredUnits);
+    }
 }
 
+/// <summary>
+/// Request-Modell zum Setzen der erforderlichen Einheiten
+/// </summary>
+public record SetRequiredUnitsRequest(int UnitId, int Count);

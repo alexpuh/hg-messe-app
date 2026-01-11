@@ -4,20 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class TradeEventsService
+public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEventsService> logger)
 {
-    private readonly MesseAppDbContext _dbContext;
-    private readonly ILogger<TradeEventsService> _logger;
-
-    public TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEventsService> logger)
-    {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
-    
     public async Task<IEnumerable<DtoTradeEvent>> GetTradeEventsAsync()
     {
-        var events = await _dbContext.TradeEvents
+        var events = await dbContext.TradeEvents
             .AsNoTracking()
             .OrderBy(e => e.Name)
             .ToListAsync();
@@ -31,7 +22,7 @@ public class TradeEventsService
     
     public async Task<DtoTradeEvent?> GetTradeEventByIdAsync(int id)
     {
-        var tradeEvent = await _dbContext.TradeEvents
+        var tradeEvent = await dbContext.TradeEvents
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id);
 
@@ -55,10 +46,10 @@ public class TradeEventsService
             CreatedAt = DateTime.Now
         };
 
-        _dbContext.TradeEvents.Add(entity);
-        await _dbContext.SaveChangesAsync();
+        dbContext.TradeEvents.Add(entity);
+        await dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Trade Event erstellt: Id={Id}, Name={Name}", entity.Id, entity.Name);
+        logger.LogInformation("Trade Event erstellt: Id={Id}, Name={Name}", entity.Id, entity.Name);
 
         return new DtoTradeEvent
         {
@@ -69,32 +60,94 @@ public class TradeEventsService
 
     public async Task<bool> UpdateAsync(int id, DtoTradeEvent tradeEvent)
     {
-        var entity = await _dbContext.TradeEvents.FindAsync(id);
+        var entity = await dbContext.TradeEvents.FindAsync(id);
         if (entity == null)
         {
             return false;
         }
 
         entity.Name = tradeEvent.Name;
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Trade Event aktualisiert: Id={Id}, Name={Name}", id, tradeEvent.Name);
+        logger.LogInformation("Trade Event aktualisiert: Id={Id}, Name={Name}", id, tradeEvent.Name);
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var entity = await _dbContext.TradeEvents.FindAsync(id);
+        var entity = await dbContext.TradeEvents.FindAsync(id);
         if (entity == null)
         {
             return false;
         }
 
-        _dbContext.TradeEvents.Remove(entity);
-        await _dbContext.SaveChangesAsync();
+        dbContext.TradeEvents.Remove(entity);
+        await dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("Trade Event gelöscht: Id={Id}", id);
+        logger.LogInformation("Trade Event gelöscht: Id={Id}", id);
         return true;
+    }
+
+    /// <summary>
+    /// Setzt die erforderliche Anzahl einer Artikeleinheit für ein Trade Event
+    /// </summary>
+    /// <param name="unitId">ID der Artikeleinheit</param>
+    /// <param name="tradeEventId">ID des Trade Events</param>
+    /// <param name="count">Erforderliche Anzahl (0 oder negativ zum Löschen)</param>
+    public async Task SetRequiredUnitsAsync(int unitId, int tradeEventId, int count)
+    {
+        var existing = await dbContext.TradeEventRequiredUnits
+            .FirstOrDefaultAsync(t => t.TradeEventId == tradeEventId && t.UnitId == unitId);
+        
+        if (existing != null)
+        {
+            if (count <= 0)
+            {
+                // Wenn count 0 oder negativ, lösche den Eintrag
+                dbContext.TradeEventRequiredUnits.Remove(existing);
+                logger.LogInformation("Entfernt: Required unit {UnitId} von TradeEvent {TradeEventId}", unitId, tradeEventId);
+            }
+            else
+            {
+                // Aktualisiere die Anzahl
+                existing.RequiredCount = count;
+                existing.UpdatedAt = DateTime.Now;
+                logger.LogInformation("Aktualisiert: Required unit {UnitId} für TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
+            }
+        }
+        else if (count > 0)
+        {
+            // Erstelle neuen Eintrag
+            var newEntry = new TradeEventRequiredUnit
+            {
+                TradeEventId = tradeEventId,
+                UnitId = unitId,
+                RequiredCount = count,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            dbContext.TradeEventRequiredUnits.Add(newEntry);
+            logger.LogInformation("Hinzugefügt: Required unit {UnitId} zu TradeEvent {TradeEventId}: {Count}", unitId, tradeEventId, count);
+        }
+        
+        await dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Holt alle erforderlichen Artikeleinheiten für ein Trade Event
+    /// </summary>
+    /// <param name="tradeEventId">ID des Trade Events</param>
+    /// <returns>Dictionary mit UnitId als Key und erforderlicher Anzahl als Value</returns>
+    public async Task<IDictionary<int, int>> GetRequiredUnitsAsync(int tradeEventId)
+    {
+        var requiredUnits = await dbContext.TradeEventRequiredUnits
+            .AsNoTracking()
+            .Where(t => t.TradeEventId == tradeEventId)
+            .ToDictionaryAsync(t => t.UnitId, t => t.RequiredCount);
+        
+        logger.LogInformation("Abgerufen: {Count} required units für TradeEvent {TradeEventId}", requiredUnits.Count, tradeEventId);
+        
+        return requiredUnits;
     }
 }
 

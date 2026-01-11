@@ -15,5 +15,8 @@ public class TradeEvent
     public string Name { get; set; } = string.Empty;
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+    
+    // Navigation Property: Ein TradeEvent kann mehrere Required Units haben
+    public ICollection<TradeEventRequiredUnit> RequiredUnits { get; set; } = new List<TradeEventRequiredUnit>();
 }
 
