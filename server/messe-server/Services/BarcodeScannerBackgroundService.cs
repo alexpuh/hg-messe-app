@@ -1,21 +1,21 @@
-﻿namespace Herrmann.MesseApp.Server.Services;
+﻿﻿namespace Herrmann.MesseApp.Server.Services;
 
 public class BarcodeScannerBackgroundService : BackgroundService
 {
     private readonly ILogger<BarcodeScannerBackgroundService> logger;
     private readonly BarcodeScannerService scannerService;
-    private readonly ArticlesService articlesService;
+    private readonly IServiceProvider serviceProvider;
     private readonly EventInventoriesService inventoriesService;
 
     public BarcodeScannerBackgroundService(
         ILogger<BarcodeScannerBackgroundService> logger,
         BarcodeScannerService scannerService,
-        ArticlesService articlesService,
+        IServiceProvider serviceProvider,
         EventInventoriesService inventoriesService)
     {
         this.logger = logger;
         this.scannerService = scannerService;
-        this.articlesService = articlesService;
+        this.serviceProvider = serviceProvider;
         this.inventoriesService = inventoriesService;
     }
 
@@ -84,6 +84,10 @@ public class BarcodeScannerBackgroundService : BackgroundService
                 e.IsProcessed = false;
                 return;
             }
+
+            // Create a scope to get ArticlesService
+            using var scope = serviceProvider.CreateScope();
+            var articlesService = scope.ServiceProvider.GetRequiredService<ArticlesService>();
 
             // Suche Artikel anhand des EAN-Codes
             if (!articlesService.TryFindEan(e.Barcode, out var articleUnit))

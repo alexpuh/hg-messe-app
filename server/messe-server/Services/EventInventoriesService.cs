@@ -1,9 +1,10 @@
-﻿using Herrmann.MesseApp.Server.Dto;
+﻿﻿using Herrmann.MesseApp.Server.Dto;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class EventInventoriesService(ArticlesService articlesService, IHubContext<NotificationHub> hub, ILogger<EventInventoriesService> logger)
+public class EventInventoriesService(IServiceProvider serviceProvider, IHubContext<NotificationHub> hub, ILogger<EventInventoriesService> logger)
 {
     private DtoEventInventory? currentEventInventory;
     private readonly List<DtoEventInventory> eventInventories = [];
@@ -46,6 +47,10 @@ public class EventInventoriesService(ArticlesService articlesService, IHubContex
         
         if (!stock.TryGetValue(unitId, out var stockItem))
         {
+            // Create a scope to get ArticlesService
+            using var scope = serviceProvider.CreateScope();
+            var articlesService = scope.ServiceProvider.GetRequiredService<ArticlesService>();
+            
             if (!articlesService.TryGetArticleUnit(unitId, out var articleUnit))
             {
                 return false;
