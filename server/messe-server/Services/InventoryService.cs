@@ -7,6 +7,7 @@ namespace Herrmann.MesseApp.Server.Services;
 public class InventoryService(
     MesseAppDbContext dbContext,
     ArticlesService articlesService,
+    SignalNotificationService signalNotificationService,
     ILogger<InventoryService> logger)
 {
     /// <summary>
@@ -71,6 +72,9 @@ public class InventoryService(
         inventory.UpdatedAt = now;
 
         await dbContext.SaveChangesAsync();
+
+        // Sende SignalR-Benachrichtigung über NotificationHub
+        await signalNotificationService.SendBarcodeScanned(ean);
 
         logger.LogInformation(
             "Barcode gescannt: InventoryId={InventoryId}, EAN={Ean}, UnitId={UnitId}, Quantity={Quantity}", 

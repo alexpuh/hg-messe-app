@@ -335,7 +335,7 @@ export const InventoryStore = signalStore(
 
         // Setup SignalR listener for stock changes
         setupSignalRListener: () => {
-          signalrService.onStockChanged((msg) => {
+          signalrService.onBarcodeScanned((msg) => {
             console.log('StockChanged event received:', msg);
             const inventoryId = store.inventoryId();
             if (inventoryId) {
