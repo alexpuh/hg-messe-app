@@ -10,6 +10,12 @@ public class SignalNotificationService(ILogger<SignalNotificationService> logger
         await hubContext.Clients.All.SendAsync("BarcodeScanned", ean);
     }
 
+    public async Task SendBarcodeError(string ean, string errorMessage)
+    {
+        logger.LogDebug("Signal BarcodeError: {Ean}", ean);
+        await hubContext.Clients.All.SendAsync("BarcodeError", ean, errorMessage);
+    }
+
     public async Task SendScannerStatusChanged(bool status)
     {
         logger.LogDebug("Signal StatusChanged: {Ean}", status);

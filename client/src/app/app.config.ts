@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import * as BackendService from './api/openapi/backend';
 import { providePrimeNG } from 'primeng/config';
 import localeDe from '@angular/common/locales/de';
+import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
 
@@ -35,6 +36,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    MessageService,
     importProvidersFrom(
       BackendService.ApiModule.forRoot(() => new BackendService.Configuration({basePath: ''}))
     ),

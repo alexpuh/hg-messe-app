@@ -20,6 +20,10 @@ export class SignalrService {
     this.hubConnection.on('BarcodeScanned', callback);
   }
 
+  onBarcodeError(callback: (ean: string, errorMessage: string) => void) {
+    this.hubConnection.on('BarcodeError', callback);
+  }
+
   onScannerStatusChanged(callback: (msg: string) => void) {
     this.hubConnection.on('ScannerStatusChanged', callback);
   }

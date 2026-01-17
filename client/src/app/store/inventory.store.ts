@@ -19,6 +19,7 @@ import { InventoriesService } from '../api/inventories.service';
 import { TradeEventsService } from '../api/trade-events.service';
 import { BarcodeScannerService, BarcodeScannerStatus } from '../api/barcode-scanner.service';
 import { SignalrService } from '../api/notifications/signalr.service';
+import { MessageService } from 'primeng/api';
 
 export interface InventoryState {
   selectedInventory: DtoEventInventory | null;
@@ -56,7 +57,8 @@ export const InventoryStore = signalStore(
       inventoriesService = inject(InventoriesService),
       tradeEventsService = inject(TradeEventsService),
       barcodeScannerService = inject(BarcodeScannerService),
-      signalrService = inject(SignalrService)
+      signalrService = inject(SignalrService),
+      messageService = inject(MessageService)
     ) => {
       // Helper function to load stock items
       const loadStockItemsInternal = rxMethod<number>(
@@ -369,6 +371,19 @@ export const InventoryStore = signalStore(
             loadBarcodeScannerStatusInternal();
           });
         },
+
+        // Setup SignalR listener for barcode errors
+        setupBarcodeErrorListener: () => {
+          signalrService.onBarcodeError((ean, errorMessage) => {
+            console.error('Barcode error received:', { ean, errorMessage });
+            messageService.add({
+              severity: 'error',
+              summary: 'Barcode-Fehler',
+              detail: `EAN: ${ean} - ${errorMessage}`,
+              life: 5000
+            });
+          });
+        },
       };
     }
   ),
@@ -384,6 +399,7 @@ export const InventoryStore = signalStore(
       signalrService.startConnection();
       store.setupSignalRListener();
       store.setupScannerStatusListener();
+      store.setupBarcodeErrorListener();
     },
   })
 );

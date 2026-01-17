@@ -82,10 +82,12 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
                     
                     if (eventArgs.IsProcessed)
                     {
+                        logger.LogInformation("Scan: Success");
                         SendOk();
                     }
                     else
                     {
+                        logger.LogError("Scan: Error");
                         SendError();
                     }
                 }

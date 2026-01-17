@@ -66,26 +66,30 @@ public class BarcodeScannerBackgroundService(
             // Create a scope to get InventoryService
             using var scope = serviceProvider.CreateScope();
             var inventoriesService = scope.ServiceProvider.GetRequiredService<InventoryService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<SignalNotificationService>();
 
             // Prüfe ob aktuelles Event-Inventar existiert
             var currentInventory = await inventoriesService.GetCurrentInventoryAsync();
             if (currentInventory == null)
             {
                 logger.LogWarning("Kein aktives Event-Inventar gefunden");
+                await notificationService.SendBarcodeError(e.Barcode, "Kein aktives Event-Inventar gefunden");
                 e.IsProcessed = false;
                 return;
             }
             
             // Füge zum Inventar hinzu
-            var success = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
+            var (success, erromessage) = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
             
             if (success)
             {
+                await notificationService.SendBarcodeScanned(e.Barcode);
                 logger.LogDebug("Artikel erfolgreich zum Inventar hinzugefügt");
                 e.IsProcessed = true;
             }
             else
             {
+                await notificationService.SendBarcodeError(e.Barcode, erromessage);
                 logger.LogError("Fehler beim Hinzufügen des Artikels zum Inventar");
                 e.IsProcessed = false;
             }

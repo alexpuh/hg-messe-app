@@ -7,7 +7,6 @@ namespace Herrmann.MesseApp.Server.Services;
 public class InventoryService(
     MesseAppDbContext dbContext,
     ArticlesService articlesService,
-    SignalNotificationService signalNotificationService,
     ILogger<InventoryService> logger)
 {
     /// <summary>
@@ -16,7 +15,7 @@ public class InventoryService(
     /// <param name="inventoryId">ID des Inventars</param>
     /// <param name="ean">Gescannter EAN-Code</param>
     /// <returns>true wenn erfolgreich, false wenn Inventory nicht gefunden oder EAN unbekannt</returns>
-    public async Task<bool> AddBarcodeAsync(int inventoryId, string ean)
+    public async Task<(bool, string)> AddBarcodeAsync(int inventoryId, string ean)
     {
         // Prüfe ob Inventory existiert
         var inventory = await dbContext.Inventories
@@ -26,14 +25,14 @@ public class InventoryService(
         if (inventory == null)
         {
             logger.LogWarning("Inventory {InventoryId} nicht gefunden", inventoryId);
-            return false;
+            return (false, $"Inventory {inventoryId} nicht gefunden");
         }
 
         // Suche Artikel anhand des EAN-Codes
         if (!articlesService.TryFindEan(ean, out var articleUnit))
         {
             logger.LogWarning("Artikel mit EAN {Ean} nicht gefunden", ean);
-            return false;
+            return (false, $"Artikel mit EAN {ean} nicht gefunden");;
         }
 
         var unitId = articleUnit!.UnitId;
@@ -73,14 +72,11 @@ public class InventoryService(
 
         await dbContext.SaveChangesAsync();
 
-        // Sende SignalR-Benachrichtigung über NotificationHub
-        await signalNotificationService.SendBarcodeScanned(ean);
-
         logger.LogInformation(
             "Barcode gescannt: InventoryId={InventoryId}, EAN={Ean}, UnitId={UnitId}, Quantity={Quantity}", 
             inventoryId, ean, unitId, stockItem.QuantityUnits);
 
-        return true;
+        return (true, string.Empty);
     }
 
     /// <summary>
