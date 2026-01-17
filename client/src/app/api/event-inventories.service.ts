@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DtoEventInventory } from './openapi';
+import { DtoEventInventory } from './openapi/backend';
 import {EventInventoriesOpenApi} from './openapi/backend/api/eventInventories.openapi.service';
 import {DtoStockItem} from './openapi/backend/model/dtoStockItem';
 

@@ -4,7 +4,7 @@ import { Button } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { GermanDatePipe } from '../../pipes/german-date.pipe';
 import { EventInventoriesService } from '../../api/event-inventories.service';
-import { DtoEventInventory } from '../../api/openapi';
+import { DtoEventInventory } from '../../api/openapi/backend';
 import {SignalrService} from '../../api/notifications/signalr.service';
 import {DtoStockItem} from '../../api/openapi/backend/model/dtoStockItem';
 
