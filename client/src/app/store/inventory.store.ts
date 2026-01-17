@@ -84,6 +84,24 @@ export const InventoryStore = signalStore(
         )
       );
 
+      // Helper function to load barcode scanner status
+      const loadBarcodeScannerStatusInternal = () => {
+        barcodeScannerService.getStatus().subscribe({
+          next: (status) => {
+            patchState(store, { barcodeScannerStatus: status });
+          },
+          error: (error: Error) => {
+            console.error('Error loading barcode scanner status:', error);
+            patchState(store, {
+              barcodeScannerStatus: {
+                isConnected: false,
+                status: 'Error loading status',
+              },
+            });
+          },
+        });
+      };
+
       // Helper function to create a trade event and add it to the list
       const createTradeEventInternal = (name: string) => {
         return tradeEventsService.addTradeEvent({ name }).pipe(
@@ -343,6 +361,14 @@ export const InventoryStore = signalStore(
             }
           });
         },
+
+        // Setup SignalR listener for scanner status changes
+        setupScannerStatusListener: () => {
+          signalrService.onScannerStatusChanged(() => {
+            console.log('Scanner status changed, reloading...');
+            loadBarcodeScannerStatusInternal();
+          });
+        },
       };
     }
   ),
@@ -353,15 +379,11 @@ export const InventoryStore = signalStore(
       store.loadTradeEvents();
       store.loadBarcodeScannerStatus();
 
-      // Setup SignalR connection and listener
+      // Setup SignalR connection and listeners
       const signalrService = inject(SignalrService);
       signalrService.startConnection();
       store.setupSignalRListener();
-
-      // Poll barcode scanner status every 5 seconds
-      setInterval(() => {
-        store.loadBarcodeScannerStatus();
-      }, 5000);
+      store.setupScannerStatusListener();
     },
   })
 );
