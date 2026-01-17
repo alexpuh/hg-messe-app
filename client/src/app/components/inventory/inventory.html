@@ -17,13 +17,22 @@
   } @else {
     <div>Keine aktive Bestandsaufnahme</div>
   }
+  <div class="ml-auto">
+    <p-button
+      [label]="barcodeScannerStatusText()"
+      [severity]="barcodeScannerStatusSeverity()"
+      icon="pi pi-qrcode"
+      [outlined]="true"
+      size="small"
+    ></p-button>
+  </div>
 </div>
 
 <div class="stock-items">
   <h2>Artikel</h2>
-  @if (stockItems().length > 0) {
+  @if (store.stockItems().length > 0) {
     <div class="stock-list">
-      @for (item of stockItems(); track item.unitId) {
+      @for (item of store.stockItems(); track item.unitId) {
         <div class="stock-item">
           <div class="item-info">
             <strong>{{item.articleDisplayName}}</strong>
