@@ -6,6 +6,7 @@ import { Dialog } from 'primeng/dialog';
 import { GermanDatePipe } from '../../pipes/german-date.pipe';
 import { InventoryStore } from '../../store/inventory.store';
 import { InputText } from 'primeng/inputtext';
+import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
 
 // Special values for new options
 const NEW_TRADE_EVENT_VALUE = -1;
@@ -19,7 +20,8 @@ const NO_TRADE_EVENT_VALUE = -2;
     RouterLink,
     GermanDatePipe,
     Dialog,
-    InputText
+    InputText,
+    GermanDateTimePipe
   ],
   templateUrl: './inventory.html',
   styleUrl: './inventory.scss',
@@ -120,7 +122,7 @@ export class Inventory {
       }
     } else if (selectedId === NO_TRADE_EVENT_VALUE) {
       // Start inventory without trade event
-      this.store.startNewInventoryWithoutEvent();
+      this.store.startNewInventory(undefined);
       this.closeNewInventoryDialog();
     } else if (selectedId) {
       // Start inventory with existing trade event

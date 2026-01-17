@@ -24,6 +24,7 @@ export interface InventoryState {
   selectedInventory: DtoEventInventory | null;
   stockItems: DtoInventoryStockItem[];
   tradeEvents: DtoTradeEvent[];
+  tradeEventName: string | null;
   barcodeScannerStatus: BarcodeScannerStatus | null;
   isLoading: boolean;
   error: string | null;
@@ -33,6 +34,7 @@ const initialState: InventoryState = {
   selectedInventory: null,
   stockItems: [],
   tradeEvents: [],
+  tradeEventName: null,
   barcodeScannerStatus: null,
   isLoading: false,
   error: null,
@@ -91,8 +93,14 @@ export const InventoryStore = signalStore(
               inventoriesService.getCurrentInventory().pipe(
                 tapResponse({
                   next: (inventory) => {
+                    // Find the trade event name for this inventory
+                    const tradeEventName = inventory.tradeEventId
+                      ? store.tradeEvents().find(te => te.id === inventory.tradeEventId)?.name ?? null
+                      : null;
+
                     patchState(store, {
                       selectedInventory: inventory,
+                      tradeEventName,
                       isLoading: false,
                     });
                     // Load stock items if inventory exists
@@ -174,8 +182,14 @@ export const InventoryStore = signalStore(
               inventoriesService.getCurrentInventory().pipe(
                 tapResponse({
                   next: (inventory) => {
+                    // Find the trade event name for this inventory
+                    const tradeEventName = inventory.tradeEventId
+                      ? store.tradeEvents().find(te => te.id === inventory.tradeEventId)?.name ?? null
+                      : null;
+
                     patchState(store, {
                       selectedInventory: inventory,
+                      tradeEventName,
                       isLoading: false,
                     });
                     loadStockItemsInternal(inventoryId);
@@ -194,45 +208,21 @@ export const InventoryStore = signalStore(
         ),
 
         // Start a new inventory for a trade event
-        startNewInventory: rxMethod<number>(
+        startNewInventory: rxMethod<number | undefined>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((tradeEventId) =>
               inventoriesService.createInventory(tradeEventId).pipe(
                 tapResponse({
                   next: (inventory) => {
-                    patchState(store, {
-                      selectedInventory: inventory,
-                      stockItems: [],
-                      isLoading: false,
-                    });
-                    if (inventory.id) {
-                      loadStockItemsInternal(inventory.id);
-                    }
-                  },
-                  error: (error: Error) => {
-                    console.error('Error starting new inventory:', error);
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
-          )
-        ),
+                    // Find the trade event name for this inventory
+                    const tradeEventName = tradeEventId
+                      ? store.tradeEvents().find(te => te.id === tradeEventId)?.name ?? null
+                      : null;
 
-        // Start a new inventory without trade event
-        startNewInventoryWithoutEvent: rxMethod<void>(
-          pipe(
-            tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap(() =>
-              inventoriesService.createInventory(undefined).pipe(
-                tapResponse({
-                  next: (inventory) => {
                     patchState(store, {
                       selectedInventory: inventory,
+                      tradeEventName,
                       stockItems: [],
                       isLoading: false,
                     });
@@ -298,6 +288,7 @@ export const InventoryStore = signalStore(
                         next: (inventory) => {
                           patchState(store, {
                             selectedInventory: inventory,
+                            tradeEventName: tradeEvent.name ?? null,
                             stockItems: [],
                             isLoading: false,
                           });

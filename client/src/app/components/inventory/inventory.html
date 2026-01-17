@@ -7,8 +7,6 @@
             label="Neue Bestandsaufnahme starten"
             severity="danger"
             (onClick)="openNewInventoryDialog()"></p-button>
-  <div class="mr-1"><label>Messe:</label></div>
-  <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
   <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
   <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
 </div>
@@ -71,7 +69,12 @@
 
 <div class="flex gap-2 items-center mb-4">
   @if (startedAt(); as date) {
-    <div>Gestartet: {{date | germanDate}}</div>
+    <div>
+      @if (store.tradeEventName()) {
+        <span>{{store.tradeEventName()}}, </span>
+      }
+      <span>Gestartet: {{date | germanDateTime}}</span>
+    </div>
   } @else {
     <div>Keine aktive Bestandsaufnahme</div>
   }
