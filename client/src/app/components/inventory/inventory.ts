@@ -29,7 +29,7 @@ export class Inventory {
 
   protected showNewInventoryDialog = signal(false);
   protected selectedTradeEventId = signal<number | null>(null);
-  protected readonly newTradEventName = signal<string>('');
+  protected readonly newTradeEventName = signal<string>('');
 
   protected startedAt = computed(() => {
     const inventory = this.store.selectedInventory();
@@ -59,8 +59,8 @@ export class Inventory {
 
     // Add special options at the beginning
     return [
-      { label: 'Neue Messe anlegen', value: NEW_TRADE_EVENT_VALUE },
-      { label: 'Keine Messe auswählen', value: NO_TRADE_EVENT_VALUE },
+      { label: 'Neue Messe erstellen', value: NEW_TRADE_EVENT_VALUE },
+      { label: 'Ohne Messezuordnung starten', value: NO_TRADE_EVENT_VALUE },
       ...options
     ];
   });
@@ -76,7 +76,7 @@ export class Inventory {
     }
     if (selectedId === NEW_TRADE_EVENT_VALUE) {
       // Check if name is provided
-      return this.newTradEventName().trim().length > 0;
+      return this.newTradeEventName().trim().length > 0;
     }
     return true;
   });
@@ -88,20 +88,20 @@ export class Inventory {
   protected closeNewInventoryDialog() {
     this.showNewInventoryDialog.set(false);
     this.selectedTradeEventId.set(null);
-    this.newTradEventName.set('');
+    this.newTradeEventName.set('');
   }
 
   protected onTradeEventChange(event: SelectChangeEvent) {
     this.selectedTradeEventId.set(event.value);
     // Reset the name field when changing selection
     if (event.value !== NEW_TRADE_EVENT_VALUE) {
-      this.newTradEventName.set('');
+      this.newTradeEventName.set('');
     }
   }
 
   protected onTradeEventNameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.newTradEventName.set(input.value);
+    this.newTradeEventName.set(input.value);
   }
 
   protected startNewInventory() {
@@ -109,7 +109,7 @@ export class Inventory {
 
     if (selectedId === NEW_TRADE_EVENT_VALUE) {
       // Create new trade event first, then create inventory
-      const name = this.newTradEventName().trim();
+      const name = this.newTradeEventName().trim();
       if (name) {
         this.createTradeEventAndStartInventory(name);
       }
