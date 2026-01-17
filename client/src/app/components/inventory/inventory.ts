@@ -30,7 +30,14 @@ export class Inventory {
   protected showNewInventoryDialog = signal(false);
   protected selectedTradeEventId = signal<number | null>(null);
   protected readonly newTradeEventName = signal<string>('');
-  protected items = computed(() => this.store.stockItems());
+  protected items = computed(() => {
+    const items = this.store.stockItems();
+    return [...items].sort((a, b) => {
+      const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return dateB - dateA; // Descending order (newest first)
+    });
+  });
 
   protected startedAt = computed(() => {
     const inventory = this.store.selectedInventory();

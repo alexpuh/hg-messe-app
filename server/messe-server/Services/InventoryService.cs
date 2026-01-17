@@ -200,6 +200,7 @@ public class InventoryService(
                 UnitId = stockItem.UnitId,
                 ArticleNr = articleUnit?.ArtNr,
                 ArticleDisplayName = articleUnit?.DisplayName,
+                UnitWeight = articleUnit?.Weight ?? 0,
                 UpdatedAt = stockItem.UpdatedAt,
                 Ean = articleUnit?.EanUnit ?? string.Empty,
                 Count = stockItem.QuantityUnits,

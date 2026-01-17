@@ -6,6 +6,7 @@ public class DtoInventoryStockItem
     public int UnitId { get; set; }
     public string? ArticleNr { get; set; }
     public string? ArticleDisplayName { get; set; }
+    public int UnitWeight { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public string Ean { get; set; }
     public int Count { get; set; }

@@ -93,11 +93,12 @@
   <h2>Artikel</h2>
   @if (items().length > 0) {
     <div class="stock-list">
-      @for (item of store.stockItems(); track item.unitId) {
+      @for (item of items(); track item.unitId) {
         <div class="stock-item">
           <div class="item-info">
             <div class="flex items-center gap-2">
               <span class="artNr">{{item.articleNr}}</span>
+              <span class="artWeight">{{item.unitWeight}}</span>
               <span class="artName">{{item.articleDisplayName}}</span>
             </div>
             <span class="artEan">{{item.ean}}</span>

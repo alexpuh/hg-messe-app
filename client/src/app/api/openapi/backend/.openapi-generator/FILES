@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 README.md
 api.module.ts
 api/api.ts
@@ -15,6 +14,7 @@ model/dtoArticle.ts
 model/dtoEventInventory.ts
 model/dtoInventoryStockItem.ts
 model/dtoTradeEvent.ts
+model/eanUnit.ts
 model/models.ts
 model/setRequiredUnitsRequest.ts
 param.ts

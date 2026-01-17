@@ -11,15 +11,8 @@
  */
 
 
-export interface DtoInventoryStockItem { 
-    id?: number;
+export interface EanUnit { 
     unitId?: number;
-    articleNr?: string | null;
-    articleDisplayName?: string | null;
-    unitWeight?: number;
-    updatedAt?: string | null;
     ean?: string | null;
-    count?: number;
-    requiredCount?: number | null;
 }
 
