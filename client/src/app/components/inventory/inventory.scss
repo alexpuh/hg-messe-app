@@ -1,0 +1,39 @@
+.stock-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  .item-info {
+    .artNr {
+      font-weight: bold;
+    }
+    .artName {
+      color: #666;
+    }
+    .artEan {
+      color: #999;
+    }
+  }
+  .scan-info {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    .updatedAt {
+      color: #999;
+    }
+  }
+  .item-counts{
+    width: 150px;
+    .ist-count {
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .req-exists {
+      color: #007bff;
+    }
+    .req-not-exists {
+      color: gray;
+    }
+  }
+}

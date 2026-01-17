@@ -30,6 +30,7 @@ export class Inventory {
   protected showNewInventoryDialog = signal(false);
   protected selectedTradeEventId = signal<number | null>(null);
   protected readonly newTradeEventName = signal<string>('');
+  protected items = computed(() => this.store.stockItems());
 
   protected startedAt = computed(() => {
     const inventory = this.store.selectedInventory();

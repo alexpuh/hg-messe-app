@@ -91,18 +91,26 @@
 
 <div class="stock-items">
   <h2>Artikel</h2>
-  @if (store.stockItems().length > 0) {
+  @if (items().length > 0) {
     <div class="stock-list">
       @for (item of store.stockItems(); track item.unitId) {
         <div class="stock-item">
           <div class="item-info">
-            <strong>{{item.articleDisplayName}}</strong>
-            <span class="article-nr">{{item.articleNr}}</span>
+            <div class="flex items-center gap-2">
+              <span class="artNr">{{item.articleNr}}</span>
+              <span class="artName">{{item.articleDisplayName}}</span>
+            </div>
+            <span class="artEan">{{item.ean}}</span>
           </div>
-          <div class="item-quantities">
-            <span>Einheiten: {{item.count}}</span>
+          <div class="scan-info">
+            <span class="updatedAt">{{(item.updatedAt ?? undefined) | germanDateTime}}</span>
+          </div>
+          <div class="item-counts flex flex-col items-end">
+            <span class="ist-count">{{item.count}}</span>
             @if (item.requiredCount !== null && item.requiredCount !== undefined) {
-              <span>Soll: {{item.requiredCount}}</span>
+              <span class="req-exists">Soll: {{item.requiredCount}}</span>
+            } @else {
+              <span class="req-not-exists">Soll: -</span>
             }
           </div>
         </div>
