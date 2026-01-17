@@ -1,10 +1,15 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Select, SelectChangeEvent } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { RouterLink } from '@angular/router';
+import { Dialog } from 'primeng/dialog';
 import { GermanDatePipe } from '../../pipes/german-date.pipe';
 import { InventoryStore } from '../../store/inventory.store';
+import { InputText } from 'primeng/inputtext';
 
+// Special values for new options
+const NEW_TRADE_EVENT_VALUE = -1;
+const NO_TRADE_EVENT_VALUE = -2;
 
 @Component({
   selector: 'app-inventory',
@@ -12,7 +17,9 @@ import { InventoryStore } from '../../store/inventory.store';
     Select,
     Button,
     RouterLink,
-    GermanDatePipe
+    GermanDatePipe,
+    Dialog,
+    InputText
   ],
   templateUrl: './inventory.html',
   styleUrl: './inventory.scss',
@@ -21,6 +28,9 @@ export class Inventory {
   protected readonly store = inject(InventoryStore);
 
   protected messeList: string[] = ['Frankfurt', 'Berlin'];
+  protected showNewInventoryDialog = signal(false);
+  protected selectedTradeEventId = signal<number | null>(null);
+  protected readonly newTradEventName = signal<string>('');
 
   protected startedAt = computed(() => {
     const inventory = this.store.selectedInventory();
@@ -42,8 +52,87 @@ export class Inventory {
     return this.store.isScannerConnected() ? 'success' : 'danger';
   });
 
+  protected tradeEventOptions = computed(() => {
+    const options = this.store.tradeEvents().map(event => ({
+      label: event.name || 'Unbekannt',
+      value: event.id
+    }));
+
+    // Add special options at the beginning
+    return [
+      { label: 'Neue Messe anlegen', value: NEW_TRADE_EVENT_VALUE },
+      { label: 'Keine Messe auswählen', value: NO_TRADE_EVENT_VALUE },
+      ...options
+    ];
+  });
+
+  protected showNewTradeEventNameField = computed(() => {
+    return this.selectedTradeEventId() === NEW_TRADE_EVENT_VALUE;
+  });
+
+  protected canStartInventory = computed(() => {
+    const selectedId = this.selectedTradeEventId();
+    if (selectedId === null) {
+      return false;
+    }
+    if (selectedId === NEW_TRADE_EVENT_VALUE) {
+      // Check if name is provided
+      return this.newTradEventName().trim().length > 0;
+    }
+    return true;
+  });
+
   protected onMesseChange(_event: SelectChangeEvent) {
 
+  }
+
+  protected openNewInventoryDialog() {
+    this.showNewInventoryDialog.set(true);
+  }
+
+  protected closeNewInventoryDialog() {
+    this.showNewInventoryDialog.set(false);
+    this.selectedTradeEventId.set(null);
+    this.newTradEventName.set('');
+  }
+
+  protected onTradeEventChange(event: SelectChangeEvent) {
+    this.selectedTradeEventId.set(event.value);
+    // Reset the name field when changing selection
+    if (event.value !== NEW_TRADE_EVENT_VALUE) {
+      this.newTradEventName.set('');
+    }
+  }
+
+  protected onTradeEventNameChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.newTradEventName.set(input.value);
+  }
+
+  protected startNewInventory() {
+    const selectedId = this.selectedTradeEventId();
+
+    if (selectedId === NEW_TRADE_EVENT_VALUE) {
+      // Create new trade event first, then create inventory
+      const name = this.newTradEventName().trim();
+      if (name) {
+        this.createTradeEventAndStartInventory(name);
+      }
+    } else if (selectedId === NO_TRADE_EVENT_VALUE) {
+      // Start inventory without trade event
+      this.store.startNewInventoryWithoutEvent();
+      this.closeNewInventoryDialog();
+    } else if (selectedId) {
+      // Start inventory with existing trade event
+      this.store.startNewInventory(selectedId);
+      this.closeNewInventoryDialog();
+    }
+  }
+
+  private createTradeEventAndStartInventory(name: string) {
+    // Use the store method that will handle both creation and inventory start
+    this.store.createTradeEventAndStartInventory(name);
+    this.closeNewInventoryDialog();
   }
 
   protected doTest() {

@@ -5,12 +5,70 @@
             ></p-button>
   <p-button class="mr-1" icon="pi pi-barcode"
             label="Neue Bestandsaufnahme starten"
-            severity="danger"></p-button>
+            severity="danger"
+            (onClick)="openNewInventoryDialog()"></p-button>
   <div class="mr-1"><label>Messe:</label></div>
   <p-select [options]="messeList" (onChange)="onMesseChange($event)" appendTo="body"></p-select>
   <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
   <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
 </div>
+
+<!-- Dialog für neue Bestandsaufnahme -->
+<p-dialog
+  [header]="'Neue Bestandsaufnahme starten'"
+  [(visible)]="showNewInventoryDialog"
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [draggable]="false"
+  [resizable]="false">
+  <div class="flex flex-col gap-4">
+    <div>
+      <label for="tradeEventSelect" class="block mb-2">Messe/Event auswählen:</label>
+      <p-select
+        id="tradeEventSelect"
+        [options]="tradeEventOptions()"
+        (onChange)="onTradeEventChange($event)"
+        placeholder="Bitte wählen Sie eine Messe"
+        [style]="{width: '100%'}"
+        appendTo="body">
+      </p-select>
+    </div>
+    @if (showNewTradeEventNameField()) {
+      <div>
+        <label for="tradeEventName" class="block mb-2">Messe-Name:</label>
+        <input
+          id="tradeEventName"
+          type="text"
+          pInputText
+          [value]="newTradEventName()"
+          (input)="onTradeEventNameChange($event)"
+          placeholder="Name der neuen Messe"
+          [style]="{width: '100%'}"
+        />
+      </div>
+    }
+    @if (store.isLoading()) {
+      <div class="text-center">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <p>Bestandsaufnahme wird gestartet...</p>
+      </div>
+    }
+  </div>
+  <ng-template #footer>
+    <p-button
+      label="Abbrechen"
+      severity="secondary"
+      (onClick)="closeNewInventoryDialog()"
+      [disabled]="store.isLoading()">
+    </p-button>
+    <p-button
+      label="Starten"
+      (onClick)="startNewInventory()"
+      [disabled]="!canStartInventory() || store.isLoading()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
 <div class="flex gap-2 items-center mb-4">
   @if (startedAt(); as date) {
     <div>Gestartet: {{date | germanDate}}</div>

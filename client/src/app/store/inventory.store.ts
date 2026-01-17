@@ -223,6 +223,120 @@ export const InventoryStore = signalStore(
           )
         ),
 
+        // Start a new inventory without trade event
+        startNewInventoryWithoutEvent: rxMethod<void>(
+          pipe(
+            tap(() => patchState(store, { isLoading: true, error: null })),
+            switchMap(() =>
+              inventoriesService.createInventory(undefined).pipe(
+                tapResponse({
+                  next: (inventory) => {
+                    patchState(store, {
+                      selectedInventory: inventory,
+                      stockItems: [],
+                      isLoading: false,
+                    });
+                    if (inventory.id) {
+                      loadStockItemsInternal(inventory.id);
+                    }
+                  },
+                  error: (error: Error) => {
+                    console.error('Error starting new inventory:', error);
+                    patchState(store, {
+                      isLoading: false,
+                      error: error.message,
+                    });
+                  },
+                })
+              )
+            )
+          )
+        ),
+
+        // Create a new trade event
+        createTradeEvent: rxMethod<string>(
+          pipe(
+            tap(() => patchState(store, { isLoading: true, error: null })),
+            switchMap((name) =>
+              tradeEventsService.addTradeEvent({ name }).pipe(
+                tapResponse({
+                  next: (tradeEvent) => {
+                    // Add the new trade event to the list
+                    patchState(store, {
+                      tradeEvents: [...store.tradeEvents(), tradeEvent],
+                      isLoading: false,
+                    });
+                  },
+                  error: (error: Error) => {
+                    console.error('Error creating trade event:', error);
+                    patchState(store, {
+                      isLoading: false,
+                      error: error.message,
+                    });
+                  },
+                })
+              )
+            )
+          )
+        ),
+
+        // Create a new trade event and start inventory for it
+        createTradeEventAndStartInventory: rxMethod<string>(
+          pipe(
+            tap(() => patchState(store, { isLoading: true, error: null })),
+            switchMap((name) =>
+              tradeEventsService.addTradeEvent({ name }).pipe(
+                switchMap((tradeEvent) => {
+                  // Add the new trade event to the list
+                  patchState(store, {
+                    tradeEvents: [...store.tradeEvents(), tradeEvent],
+                  });
+                  // Start inventory for the new trade event
+                  if (tradeEvent.id) {
+                    return inventoriesService.createInventory(tradeEvent.id).pipe(
+                      tapResponse({
+                        next: (inventory) => {
+                          patchState(store, {
+                            selectedInventory: inventory,
+                            stockItems: [],
+                            isLoading: false,
+                          });
+                          if (inventory.id) {
+                            loadStockItemsInternal(inventory.id);
+                          }
+                        },
+                        error: (error: Error) => {
+                          console.error('Error starting inventory:', error);
+                          patchState(store, {
+                            isLoading: false,
+                            error: error.message,
+                          });
+                        },
+                      })
+                    );
+                  } else {
+                    patchState(store, {
+                      isLoading: false,
+                      error: 'Trade event created but no ID returned',
+                    });
+                    return [];
+                  }
+                }),
+                tapResponse({
+                  next: () => {},
+                  error: (error: Error) => {
+                    console.error('Error creating trade event:', error);
+                    patchState(store, {
+                      isLoading: false,
+                      error: error.message,
+                    });
+                  },
+                })
+              )
+            )
+          )
+        ),
+
         // Reload stock items for current inventory (e.g., after SignalR event)
         reloadStockItems: () => {
           const inventoryId = store.inventoryId();
