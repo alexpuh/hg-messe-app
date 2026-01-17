@@ -3,10 +3,10 @@ import { Select, SelectChangeEvent } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { GermanDatePipe } from '../../pipes/german-date.pipe';
-import { EventInventoriesService } from '../../api/event-inventories.service';
-import { DtoEventInventory } from '../../api/openapi/backend';
+import {DtoEventInventory, DtoInventoryStockItem} from '../../api/openapi/backend';
 import {SignalrService} from '../../api/notifications/signalr.service';
-import {DtoStockItem} from '../../api/openapi/backend/model/dtoStockItem';
+import {InventoriesService} from '../../api/inventories.service';
+
 
 @Component({
   selector: 'app-inventory',
@@ -20,12 +20,12 @@ import {DtoStockItem} from '../../api/openapi/backend/model/dtoStockItem';
   styleUrl: './inventory.scss',
 })
 export class Inventory implements OnInit {
-  private readonly eventInventoriesService = inject(EventInventoriesService);
+  private readonly eventInventoriesService = inject(InventoriesService);
   private readonly signalr = inject(SignalrService);
 
   protected messeList: string[] = ['Frankfurt', 'Berlin'];
   protected currentInventory = signal<DtoEventInventory | null>(null);
-  protected stockItems = signal<DtoStockItem[]>([]);
+  protected stockItems = signal<DtoInventoryStockItem[]>([]);
 
   protected startedAt = computed(() => {
     const inventory = this.currentInventory();
@@ -57,7 +57,7 @@ export class Inventory implements OnInit {
   }
 
   private loadStockItems(inventoryId: number): void {
-    this.eventInventoriesService.getStockFromCurrentInventory(inventoryId).subscribe({
+    this.eventInventoriesService.getInventoryStockItems(inventoryId).subscribe({
       next: (items) => {
         this.stockItems.set(items);
       },

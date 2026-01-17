@@ -30,10 +30,9 @@
             <span class="article-nr">{{item.articleNr}}</span>
           </div>
           <div class="item-quantities">
-            <span>Einheiten: {{item.quantityUnits}}</span>
-            <span>Kartons: {{item.quantityBox}}</span>
-            @if (item.required !== null && item.required !== undefined) {
-              <span>Soll: {{item.required}}</span>
+            <span>Einheiten: {{item.count}}</span>
+            @if (item.requiredCount !== null && item.requiredCount !== undefined) {
+              <span>Soll: {{item.requiredCount}}</span>
             }
           </div>
         </div>

@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { EventInventoriesService } from './event-inventories.service';
+import { InventoriesService } from './inventories.service';
 
 describe('EventInventoriesService', () => {
-  let service: EventInventoriesService;
+  let service: InventoriesService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(EventInventoriesService);
+    service = TestBed.inject(InventoriesService);
   });
 
   it('should be created', () => {
