@@ -3,8 +3,7 @@
 public class BarcodeScannerBackgroundService(
     ILogger<BarcodeScannerBackgroundService> logger,
     BarcodeScannerService scannerService,
-    IServiceProvider serviceProvider,
-    EventInventoriesService inventoriesService)
+    IServiceProvider serviceProvider)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -64,42 +63,25 @@ public class BarcodeScannerBackgroundService(
 
         try
         {
+            // Create a scope to get InventoryService
+            using var scope = serviceProvider.CreateScope();
+            var inventoriesService = scope.ServiceProvider.GetRequiredService<InventoryService>();
+
             // Prüfe ob aktuelles Event-Inventar existiert
-            var currentInventory = inventoriesService.GetCurrentEventInventory();
+            var currentInventory = await inventoriesService.GetCurrentInventoryAsync();
             if (currentInventory == null)
             {
                 logger.LogWarning("Kein aktives Event-Inventar gefunden");
                 e.IsProcessed = false;
                 return;
             }
-
-            // Create a scope to get ArticlesService
-            using var scope = serviceProvider.CreateScope();
-            var articlesService = scope.ServiceProvider.GetRequiredService<ArticlesService>();
-
-            // Suche Artikel anhand des EAN-Codes
-            if (!articlesService.TryFindEan(e.Barcode, out var articleUnit))
-            {
-                logger.LogWarning("Artikel mit EAN {EAN} nicht gefunden", e.Barcode);
-                e.IsProcessed = false;
-                return;
-            }
-
-            // Bestimme ob Box oder Einheit gescannt wurde
-            var isBox = articleUnit!.EanBox == e.Barcode;
             
-            logger.LogInformation(
-                "Artikel gefunden: UnitId={UnitId}, Artikel={Article}, Type={Type}",
-                articleUnit.UnitId,
-                articleUnit.ArticleName,
-                isBox ? "Box" : "Unit");
-
             // Füge zum Inventar hinzu
-            var success = await inventoriesService.TryAddStockItem(articleUnit.UnitId, isBox);
+            var success = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
             
             if (success)
             {
-                logger.LogInformation("Artikel erfolgreich zum Inventar hinzugefügt");
+                logger.LogDebug("Artikel erfolgreich zum Inventar hinzugefügt");
                 e.IsProcessed = true;
             }
             else

@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
-import {Select} from 'primeng/select';
 
 @Component({
   selector: 'app-required-stock-setup',

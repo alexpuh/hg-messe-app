@@ -1,10 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import {
-  EventInventoriesOpenApi,
-  DtoEventInventory,
-  DtoStockItem
-} from './openapi/backend';
+import { DtoEventInventory } from './openapi';
+import {EventInventoriesOpenApi} from './openapi/backend/api/eventInventories.openapi.service';
+import {DtoStockItem} from './openapi/backend/model/dtoStockItem';
 
 @Injectable({
   providedIn: 'root'

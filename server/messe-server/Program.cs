@@ -37,7 +37,6 @@ try
 
     builder.Services
         .AddScoped<TradeEventsService>()
-        .AddSingleton<EventInventoriesService>()
         .AddScoped<ArticlesService>()
         .AddScoped<InventoryService>()
         .AddSingleton<BarcodeScannerService>()

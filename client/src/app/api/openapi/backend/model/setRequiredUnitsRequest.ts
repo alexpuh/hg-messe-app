@@ -11,10 +11,8 @@
  */
 
 
-export interface DtoEventInventory { 
-    id?: number | null;
-    startedAt?: string | null;
-    tradeEventId?: number | null;
-    updatedAt?: string | null;
+export interface SetRequiredUnitsRequest { 
+    unitId?: number;
+    count?: number;
 }
 

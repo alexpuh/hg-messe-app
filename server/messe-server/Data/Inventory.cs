@@ -12,6 +12,8 @@ public class Inventory
     
     public DateTime StartedAt { get; set; }
     
+    public DateTime? UpdatedAt { get; set; }
+    
     public int? TradeEventId { get; set; }
     
     // Navigation Properties

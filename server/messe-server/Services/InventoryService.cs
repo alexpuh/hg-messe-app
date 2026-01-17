@@ -67,6 +67,9 @@ public class InventoryService(
         stockItem.QuantityUnits++;
         stockItem.UpdatedAt = now;
 
+        // Setze UpdatedAt des Inventory auf den Timestamp des StockItems
+        inventory.UpdatedAt = now;
+
         await dbContext.SaveChangesAsync();
 
         logger.LogInformation(
@@ -84,6 +87,7 @@ public class InventoryService(
         var inventory = new Inventory
         {
             StartedAt = DateTime.Now,
+            UpdatedAt = DateTime.Now,
             TradeEventId = tradeEventId
         };
 
@@ -104,6 +108,16 @@ public class InventoryService(
             .Include(i => i.StockItems)
             .ThenInclude(s => s.BarcodeScans)
             .FirstOrDefaultAsync(i => i.Id == inventoryId);
+    }
+
+    /// <summary>
+    /// Holt das aktuelle Inventory (mit dem neuesten UpdatedAt-Wert)
+    /// </summary>
+    public async Task<Inventory?> GetCurrentInventoryAsync()
+    {
+        return await dbContext.Inventories
+            .OrderByDescending(i => i.UpdatedAt)
+            .FirstOrDefaultAsync();
     }
 
     /// <summary>
