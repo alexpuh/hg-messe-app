@@ -2,6 +2,10 @@
 GET {{HostAddress}}/api/Articles
 Accept: application/json
 
+### Get articles
+GET {{HostAddress}}/api/articles/units
+Accept: application/json
+
 ### Import articles from JSON file
 POST {{HostAddress}}/api/Articles/import
 Content-Type: application/json; charset=utf-8
@@ -10,7 +14,7 @@ Accept: application/json
 "C:\\Work\\github-herrmann\\hg-messe-app\\server\\messe-server\\testdata\\articles-with-units-20260111-135224.json"
 
 ### Get article by EAN
-GET {{HostAddress}}/api/Articles/by-ean/4260011990035
+GET {{HostAddress}}/api/Articles/by-ean/2060011996349
 Accept: application/json
 
 ### Get article by UnitId

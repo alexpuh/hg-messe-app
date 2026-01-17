@@ -104,6 +104,31 @@ public class ArticlesService
         return entities.Count;
     }
 
+    public List<EanUnit> GetAllEanUnits()
+    {
+        var result = new List<EanUnit>();
+        
+        var units = _dbContext.ArticleUnits
+            .AsNoTracking()
+            .Where(x => !x.IsArticleDisabled && !x.IsUnitDisabled)
+            .ToList();
+
+        foreach (var unit in units)
+        {
+            if (!string.IsNullOrWhiteSpace(unit.EanUnit))
+            {
+                result.Add(new EanUnit(unit.UnitId, unit.EanUnit));
+            }
+            
+            if (!string.IsNullOrWhiteSpace(unit.EanBox))
+            {
+                result.Add(new EanUnit(unit.UnitId, unit.EanBox));
+            }
+        }
+
+        return result;
+    }
+
     private static DtoArticleUnit MapToDto(ArticleUnit entity)
     {
         return new DtoArticleUnit
@@ -117,4 +142,8 @@ public class ArticlesService
             UnitsPerBox = entity.PackagesInBox
         };
     }
+    
+    
 }
+
+public record EanUnit(int unitId, string ean);

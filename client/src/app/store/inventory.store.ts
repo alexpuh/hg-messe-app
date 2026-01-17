@@ -223,35 +223,28 @@ export const InventoryStore = signalStore(
         startNewInventory: rxMethod<number | undefined>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((tradeEventId) =>
-              inventoriesService.createInventory(tradeEventId).pipe(
-                tapResponse({
-                  next: (inventory) => {
-                    // Find the trade event name for this inventory
-                    const tradeEventName = tradeEventId
-                      ? store.tradeEvents().find(te => te.id === tradeEventId)?.name ?? null
-                      : null;
+            switchMap((tradeEventId) => inventoriesService.createInventory(tradeEventId)),
+            tapResponse({
+              next: (inventory) => {
+                const tradeEventName = inventory.tradeEventId
+                  ? store.tradeEvents().find(te => te.id === inventory.tradeEventId)?.name ?? null
+                  : "Unbekannt";
 
-                    patchState(store, {
-                      selectedInventory: inventory,
-                      tradeEventName,
-                      stockItems: [],
-                      isLoading: false,
-                    });
-                    if (inventory.id) {
-                      loadStockItemsInternal(inventory.id);
-                    }
-                  },
-                  error: (error: Error) => {
-                    console.error('Error starting new inventory:', error);
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+                patchState(store, {
+                  selectedInventory: inventory,
+                  tradeEventName,
+                  stockItems: [],
+                  isLoading: false,
+                });
+              },
+              error: (error: Error) => {
+                console.error('Error starting new inventory:', error);
+                patchState(store, {
+                  isLoading: false,
+                  error: error.message,
+                });
+              },
+            })
           )
         ),
 

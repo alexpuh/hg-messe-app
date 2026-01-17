@@ -62,6 +62,18 @@ public class ArticlesController(
         }
         return NotFound(new { Message = "Artikel mit dieser EAN nicht gefunden", Ean = ean });
     }
+    
+    /// <summary>
+    /// Sucht einen Artikel anhand seiner EAN
+    /// </summary>
+    [HttpGet("units")]
+    public ActionResult<EanUnit[]> GetUnitList()
+    {
+        return articlesService.GetAllEanUnits().ToArray();
+    }
+
+    
+    
 
     /// <summary>
     /// Holt einen Artikel anhand seiner UnitId
