@@ -3,8 +3,7 @@ import { Select, SelectChangeEvent } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
-import { GermanDatePipe } from '../../pipes/german-date.pipe';
-import { InventoryStore } from '../../store/inventory.store';
+import { InventoryStore } from '../../store';
 import { InputText } from 'primeng/inputtext';
 import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
 
@@ -18,7 +17,6 @@ const NO_TRADE_EVENT_VALUE = -2;
     Select,
     Button,
     RouterLink,
-    GermanDatePipe,
     Dialog,
     InputText,
     GermanDateTimePipe
@@ -29,7 +27,6 @@ const NO_TRADE_EVENT_VALUE = -2;
 export class Inventory {
   protected readonly store = inject(InventoryStore);
 
-  protected messeList: string[] = ['Frankfurt', 'Berlin'];
   protected showNewInventoryDialog = signal(false);
   protected selectedTradeEventId = signal<number | null>(null);
   protected readonly newTradEventName = signal<string>('');
@@ -83,10 +80,6 @@ export class Inventory {
     }
     return true;
   });
-
-  protected onMesseChange(_event: SelectChangeEvent) {
-
-  }
 
   protected openNewInventoryDialog() {
     this.showNewInventoryDialog.set(true);

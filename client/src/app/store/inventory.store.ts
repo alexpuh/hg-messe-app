@@ -84,6 +84,18 @@ export const InventoryStore = signalStore(
         )
       );
 
+      // Helper function to create a trade event and add it to the list
+      const createTradeEventInternal = (name: string) => {
+        return tradeEventsService.addTradeEvent({ name }).pipe(
+          tap((tradeEvent) => {
+            // Add the new trade event to the list
+            patchState(store, {
+              tradeEvents: [...store.tradeEvents(), tradeEvent],
+            });
+          })
+        );
+      };
+
       return {
         // Load current inventory and its stock items
         loadCurrentInventory: rxMethod<void>(
@@ -248,14 +260,10 @@ export const InventoryStore = signalStore(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((name) =>
-              tradeEventsService.addTradeEvent({ name }).pipe(
+              createTradeEventInternal(name).pipe(
                 tapResponse({
-                  next: (tradeEvent) => {
-                    // Add the new trade event to the list
-                    patchState(store, {
-                      tradeEvents: [...store.tradeEvents(), tradeEvent],
-                      isLoading: false,
-                    });
+                  next: () => {
+                    patchState(store, { isLoading: false });
                   },
                   error: (error: Error) => {
                     console.error('Error creating trade event:', error);
@@ -275,12 +283,8 @@ export const InventoryStore = signalStore(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((name) =>
-              tradeEventsService.addTradeEvent({ name }).pipe(
+              createTradeEventInternal(name).pipe(
                 switchMap((tradeEvent) => {
-                  // Add the new trade event to the list
-                  patchState(store, {
-                    tradeEvents: [...store.tradeEvents(), tradeEvent],
-                  });
                   // Start inventory for the new trade event
                   if (tradeEvent.id) {
                     return inventoriesService.createInventory(tradeEvent.id).pipe(
