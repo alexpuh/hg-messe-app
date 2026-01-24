@@ -1,7 +1,7 @@
 <div class="h-full flex flex-col">
   <div class="workplace-header flex items-center gap-2">
     <h1>Konfiguration ({{messeName()}})</h1>
-    <p-button icon="pi pi-barcode" label="Bestandsaufnahme" routerLink="/inventory" severity="secondary"></p-button>
+    <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/inventory" severity="secondary"></p-button>
     <h2 class="ml-auto">Messe</h2>
     <div class="flex gap-2 align-items-center">
       <p-select
@@ -56,10 +56,53 @@
             </td>
             <td>{{article.ean || '-'}}</td>
             <td>
-              @if (article.requiredCount !== null && article.requiredCount !== undefined) {
-                <span class="required-value">{{article.requiredCount}}</span>
+              @if (isEditing(article.unitId)) {
+                <!-- Editing mode -->
+                <div class="flex gap-2 items-center w-full">
+                  <input
+                    pInputText
+                    type="number"
+                    [(ngModel)]="editingValue"
+                    min="0"
+                    class="w-20"
+                  />
+                  <p-button
+                    icon="pi pi-check"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="success"
+                    (onClick)="saveRequiredCount(article.unitId)"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    (onClick)="cancelEditing()"
+                  />
+                </div>
               } @else {
-                <span class="no-required">-</span>
+                <!-- Display mode -->
+                <div class="flex gap-2 items-center w-full">
+                  <p-button
+                    [text]="true"
+                    severity="secondary"
+                    size="large"
+                    [label]="article.requiredCount ?? '+'"
+                    (onClick)="startEditing(article.unitId, article.requiredCount)"
+                    class="w-12"
+                  />
+                  @if (article.requiredCount !== null && article.requiredCount !== undefined) {
+                    <p-button
+                      icon="pi pi-trash"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="danger"
+                      size="small"
+                      (onClick)="deleteRequiredCount(article.unitId)"
+                    />
+                  }
+                </div>
               }
             </td>
           </tr>

@@ -1,7 +1,9 @@
 <div class="workplace-header">
   <h1>Bestandsaufnahme</h1>
-  <p-button class="ml-auto mr-1" icon="pi pi-barcode"
-            label="Bestandsaufnahme fortsetzen"
+  <p-button class="ml-auto mr-1" icon="pi pi-file-excel"
+            label="Excel exportieren"
+            severity="success"
+            (onClick)="exportToExcel()"
             ></p-button>
   <p-button class="mr-1" icon="pi pi-barcode"
             label="Neue Bestandsaufnahme starten"
@@ -9,6 +11,13 @@
             (onClick)="openNewInventoryDialog()"></p-button>
   <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
   <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
+  <p-button
+    [label]="barcodeScannerStatusText()"
+    [severity]="barcodeScannerStatusSeverity()"
+    icon="pi pi-qrcode"
+    [outlined]="true"
+    size="small"
+  ></p-button>
 </div>
 
 <!-- Dialog für neue Bestandsaufnahme -->
@@ -78,15 +87,6 @@
   } @else {
     <div>Keine aktive Bestandsaufnahme</div>
   }
-  <div class="ml-auto">
-    <p-button
-      [label]="barcodeScannerStatusText()"
-      [severity]="barcodeScannerStatusSeverity()"
-      icon="pi pi-qrcode"
-      [outlined]="true"
-      size="small"
-    ></p-button>
-  </div>
 </div>
 
 <div class="stock-items">

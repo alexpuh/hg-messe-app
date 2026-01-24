@@ -141,4 +141,8 @@ export class Inventory {
   protected doTest() {
     console.log('Test button clicked');
   }
+
+  protected exportToExcel() {
+
+  }
 }

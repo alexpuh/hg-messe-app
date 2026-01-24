@@ -9,7 +9,6 @@ import { InventoryStore } from '../../store';
 import { TradeEventsService } from '../../api/trade-events.service';
 import { DtoTradeEventArticleUnit } from '../../api/openapi/backend';
 import {TableModule} from 'primeng/table';
-import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -37,6 +36,10 @@ export class RequiredStockSetup {
   protected showNewTradeEventDialog = signal(false);
   protected newTradeEventName = signal('');
   private articlesData = signal<DtoTradeEventArticleUnit[]>([]);
+
+  // Editing state for required counts
+  protected editingUnitId = signal<number | null>(null);
+  protected editingValue = signal<string>('');
 
   constructor() {
     // Load articles when trade event changes
@@ -121,6 +124,74 @@ export class RequiredStockSetup {
         console.error('Error creating trade event:', error);
       }
     });
+  }
+
+  protected startEditing(unitId: number | undefined, currentValue: number | null | undefined) {
+    if (!unitId) return;
+    this.editingUnitId.set(unitId);
+    this.editingValue.set(currentValue?.toString() ?? '');
+  }
+
+  protected cancelEditing() {
+    this.editingUnitId.set(null);
+    this.editingValue.set('');
+  }
+
+  protected saveRequiredCount(unitId: number | undefined) {
+    if (!unitId) return;
+
+    const tradeEventId = this.selectedTradeEventId();
+    if (!tradeEventId) return;
+
+    const value = parseInt(this.editingValue(), 10);
+    if (isNaN(value) || value < 0) {
+      console.error('Invalid value');
+      return;
+    }
+
+    this.tradeEventsService.setRequiredUnits(tradeEventId, {
+      unitId,
+      count: value
+    }).subscribe({
+      next: () => {
+        // Update local data
+        const articles = this.articlesData();
+        const updatedArticles = articles.map(a =>
+          a.unitId === unitId ? { ...a, requiredCount: value } : a
+        );
+        this.articlesData.set(updatedArticles);
+        this.cancelEditing();
+      },
+      error: (error) => {
+        console.error('Error saving required count:', error);
+      }
+    });
+  }
+
+  protected deleteRequiredCount(unitId: number | undefined) {
+    if (!unitId) return;
+
+    const tradeEventId = this.selectedTradeEventId();
+    if (!tradeEventId) return;
+
+    this.tradeEventsService.deleteRequiredUnit(tradeEventId, unitId).subscribe({
+      next: () => {
+        // Update local data
+        const articles = this.articlesData();
+        const updatedArticles = articles.map(a =>
+          a.unitId === unitId ? { ...a, requiredCount: null } : a
+        );
+        this.articlesData.set(updatedArticles);
+        this.cancelEditing();
+      },
+      error: (error) => {
+        console.error('Error deleting required count:', error);
+      }
+    });
+  }
+
+  protected isEditing(unitId: number | undefined): boolean {
+    return this.editingUnitId() === unitId;
   }
 
   private compareArticles(
