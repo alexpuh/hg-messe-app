@@ -108,6 +108,20 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
         await tradeEventsService.DeleteRequiredUnitAsync(tradeEventId, unitId);
         return NoContent();
     }
+    
+    /// <summary>
+    /// Löscht eine erforderliche Artikeleinheit für ein Trade Event
+    /// </summary>
+    [HttpGet("{tradeEventId:int}/units", Name = "GetTradeEventArticleUnits")]
+    public async Task<ActionResult<DtoTradeEventArticleUnit[]>> GetTradeEventArticleUnits(int tradeEventId)
+    {
+        var ret = await tradeEventsService.GetTradeEventArticleUnits(tradeEventId);
+        if (ret == null)
+        {
+            return NotFound();
+        }
+        return ret;
+    }
 }
 
 /// <summary>

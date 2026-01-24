@@ -183,8 +183,45 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
     /// </summary>
     /// <param name="tradeEventId">ID des Trade Events</param>
     /// <returns>Liste der Artikel/Artikeleinheiten, sowohl mit Mindestanforderung, wie auch ohne. </returns>
-    public async Task<DtoTradeEventArticleUnit[]> GetTradeEventArticleUnits(int tradeEventId)
+    public async Task<DtoTradeEventArticleUnit[]?> GetTradeEventArticleUnits(int tradeEventId)
     {
-        throw new NotImplementedException();
+        // Prüfe ob TradeEvent existiert
+        var tradeEventExists = await dbContext.TradeEvents.AnyAsync(t => t.Id == tradeEventId);
+        if (!tradeEventExists)
+        {
+            logger.LogWarning("TradeEvent {TradeEventId} nicht gefunden", tradeEventId);
+            return null;
+        }
+        
+        // Lade alle ArticleUnits
+        var articleUnits = await dbContext.ArticleUnits
+            .AsNoTracking()
+            .Where(a => !a.IsArticleDisabled && !a.IsUnitDisabled)
+            .OrderBy(a => a.ArtNr)
+            .ThenBy(a => a.UnitId)
+            .ToListAsync();
+        
+        // Lade erforderliche Mengen für dieses TradeEvent
+        var requiredUnits = await dbContext.TradeEventRequiredUnits
+            .AsNoTracking()
+            .Where(r => r.TradeEventId == tradeEventId)
+            .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
+        
+        // Mappe zu DTOs
+        var result = articleUnits.Select(au => new DtoTradeEventArticleUnit
+        {
+            Id = au.UnitId, // Verwende UnitId als Id
+            UnitId = au.UnitId,
+            ArticleNr = au.ArtNr,
+            ArticleDisplayName = au.DisplayName,
+            UnitWeight = au.Weight,
+            Ean = au.EanUnit ?? au.EanBox ?? string.Empty,
+            RequiredCount = requiredUnits.TryGetValue(au.UnitId, out var requiredCount) ? requiredCount : null
+        }).ToArray();
+        
+        logger.LogDebug("Abgerufen: {Count} ArticleUnits für TradeEvent {TradeEventId} ({RequiredCount} mit Anforderung)", 
+            result.Length, tradeEventId, requiredUnits.Count);
+        
+        return result;
     }
 }
