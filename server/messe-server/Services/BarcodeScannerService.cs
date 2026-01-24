@@ -6,6 +6,8 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
 {
     private SerialPort? serialPort;
     private bool isConnected;
+    private int consecutiveTimeouts;
+    private const int TimeoutsBeforeReopen = 10; // ~5 Sekunden bei 500ms Timeout
 
     public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
     public event EventHandler<ConnectionChangedEventArgs>? ConnectionChanged;
@@ -61,6 +63,7 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
         }
 
         logger.LogInformation("Starte Barcode-Scan-Prozess");
+        consecutiveTimeouts = 0;
         
         while (IsConnected())
         {
@@ -68,6 +71,9 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
             {
                 var line = serialPort.ReadLine();
                 var barcode = string.Concat(line.Where(char.IsLetterOrDigit));
+                
+                // Erfolgreiche Daten empfangen - Timeout-Zähler zurücksetzen
+                consecutiveTimeouts = 0;
                 
                 if (string.IsNullOrWhiteSpace(barcode))
                 {
@@ -100,6 +106,38 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
             catch (TimeoutException)
             {
                 // Normal - keine Daten empfangen
+                // Aber periodisch Port neu öffnen um getrennte Geräte zu erkennen
+                consecutiveTimeouts++;
+                
+                if (consecutiveTimeouts >= TimeoutsBeforeReopen)
+                {
+                    logger.LogDebug("Periodisches Neuöffnen des Ports nach {Count} Timeouts", consecutiveTimeouts);
+                    consecutiveTimeouts = 0;
+                    
+                    try
+                    {
+                        serialPort.Close();
+                        serialPort.Open();
+                    }
+                    catch (UnauthorizedAccessException unauthEx)
+                    {
+                        logger.LogWarning(unauthEx, "Port kann nicht neu geöffnet werden - Zugriff verweigert (möglicherweise von anderem Prozess besetzt oder Gerät entfernt)");
+                        SetConnectionState(false);
+                        break;
+                    }
+                    catch (IOException ioEx)
+                    {
+                        logger.LogWarning(ioEx, "Port kann nicht neu geöffnet werden - I/O-Fehler (Gerät wahrscheinlich getrennt)");
+                        SetConnectionState(false);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Port kann nicht neu geöffnet werden - unerwarteter Fehler");
+                        SetConnectionState(false);
+                        break;
+                    }
+                }
             }
             catch (IOException ioException)
             {
