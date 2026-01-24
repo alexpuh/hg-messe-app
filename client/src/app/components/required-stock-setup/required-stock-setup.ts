@@ -8,6 +8,8 @@ import { FormsModule } from '@angular/forms';
 import { InventoryStore } from '../../store';
 import { TradeEventsService } from '../../api/trade-events.service';
 import { DtoTradeEventArticleUnit } from '../../api/openapi/backend';
+import {TableModule} from 'primeng/table';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -17,17 +19,21 @@ import { DtoTradeEventArticleUnit } from '../../api/openapi/backend';
     Select,
     Dialog,
     InputText,
-    FormsModule
+    FormsModule,
+    TableModule
   ],
   templateUrl: './required-stock-setup.html',
   styleUrl: './required-stock-setup.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'h-full'
+  }
 })
 export class RequiredStockSetup {
   private readonly store = inject(InventoryStore);
   private readonly tradeEventsService = inject(TradeEventsService);
 
-  protected selectedTradeEventId = signal<number | null>(null);
+  protected selectedTradeEventId = signal<number | null>(this.store.selectedInventory()?.tradeEventId ?? null);
   protected showNewTradeEventDialog = signal(false);
   protected newTradeEventName = signal('');
   private articlesData = signal<DtoTradeEventArticleUnit[]>([]);
