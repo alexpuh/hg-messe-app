@@ -177,4 +177,14 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
         
         logger.LogDebug("Required unit {UnitId} für TradeEvent {TradeEventId} gelöscht", unitId, tradeEventId);
     }
+
+    /// <summary>
+    /// Holt alle Artikeleinheiten für ein Trade Event Display-Ready
+    /// </summary>
+    /// <param name="tradeEventId">ID des Trade Events</param>
+    /// <returns>Liste der Artikel/Artikeleinheiten, sowohl mit Mindestanforderung, wie auch ohne. </returns>
+    public async Task<DtoTradeEventArticleUnit[]> GetTradeEventArticleUnits(int tradeEventId)
+    {
+        throw new NotImplementedException();
+    }
 }
