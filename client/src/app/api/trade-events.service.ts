@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DtoTradeEvent, SetRequiredUnitsRequest } from './openapi/backend';
+import { DtoTradeEvent, DtoTradeEventArticleUnit, SetRequiredUnitsRequest } from './openapi/backend';
 import {TradeEventsOpenApi} from './openapi/backend';
 
 @Injectable({
@@ -39,6 +39,10 @@ export class TradeEventsService {
 
   deleteRequiredUnit(tradeEventId: number, unitId: number): Observable<void> {
     return this.api.deleteRequiredUnit(tradeEventId, unitId);
+  }
+
+  getTradeEventArticleUnits(tradeEventId: number): Observable<Array<DtoTradeEventArticleUnit>> {
+    return this.api.getTradeEventArticleUnits(tradeEventId);
   }
 }
 

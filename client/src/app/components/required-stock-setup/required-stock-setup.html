@@ -1,10 +1,105 @@
 <div class="workplace-header">
-  <h1>Konfiguration ({{messeName}})</h1>
+  <h1>Konfiguration ({{messeName()}})</h1>
 </div>
-<div class="flex gap-2">
+
+<div class="trade-event-selection">
+  <h2>Messe auswählen</h2>
+  <div class="flex gap-2 align-items-center">
+    <p-select
+      [options]="tradeEventOptions()"
+      [(ngModel)]="selectedTradeEventId"
+      (onChange)="onTradeEventChange($event)"
+      placeholder="Messe auswählen..."
+      [style]="{ 'min-width': '300px' }"
+    />
+    <p-button
+      icon="pi pi-plus"
+      label="Neue Messe"
+      (onClick)="openNewTradeEventDialog()"
+      severity="secondary"
+    />
+  </div>
+</div>
+
+<div class="flex gap-2 mt-4">
   <p-button icon="pi pi-barcode" label="Bestandsaufnahme" routerLink="/inventory"></p-button>
   <p-button icon="pi pi-save" label="Speichern als..." severity="info"></p-button>
   <p-button icon="pi pi-file-plus" label="Neue Konfiguration" severity="info"></p-button>
 </div>
 
+<div class="articles-container">
+  <h2>Artikelliste mit Sollbeständen</h2>
+
+  @if (selectedTradeEventId() === null) {
+    <div class="no-selection">Bitte wählen Sie eine Messe aus, um die Artikelliste anzuzeigen.</div>
+  } @else if (articles().length > 0) {
+    <div class="articles-table">
+      <div class="table-header">
+        <div class="col-artnr">Art.-Nr.</div>
+        <div class="col-name">Artikelname</div>
+        <div class="col-weight">Gewicht</div>
+        <div class="col-ean">EAN</div>
+        <div class="col-required">Sollbestand</div>
+      </div>
+
+      @for (article of articles(); track article.unitId) {
+        <div class="article-row">
+          <div class="col-artnr">{{article.articleNr}}</div>
+          <div class="col-name">{{article.articleDisplayName}}</div>
+          <div class="col-weight">
+            @if (article.unitWeight) {
+              {{article.unitWeight}} g
+            } @else {
+              -
+            }
+          </div>
+          <div class="col-ean">{{article.ean || '-'}}</div>
+          <div class="col-required">
+            @if (article.requiredCount !== null && article.requiredCount !== undefined) {
+              <span class="required-value">{{article.requiredCount}}</span>
+            } @else {
+              <span class="no-required">-</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="no-articles">Keine Artikel für diese Messe vorhanden</div>
+  }
+</div>
+
+<!-- Dialog für neue Messe -->
+<p-dialog
+  header="Neue Messe erstellen"
+  [(visible)]="showNewTradeEventDialog"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+>
+  <div class="dialog-content">
+    <label for="newTradeEventName" class="block mb-2">Messe-Name</label>
+    <input
+      pInputText
+      id="newTradeEventName"
+      type="text"
+      [value]="newTradeEventName()"
+      (input)="onNewTradeEventNameChange($event)"
+      placeholder="Messe-Name eingeben..."
+      class="w-full"
+    />
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button
+      label="Abbrechen"
+      severity="secondary"
+      (onClick)="closeNewTradeEventDialog()"
+    />
+    <p-button
+      label="Erstellen"
+      (onClick)="createNewTradeEvent()"
+      [disabled]="!canCreateTradeEvent()"
+    />
+  </div>
+</p-dialog>
 
