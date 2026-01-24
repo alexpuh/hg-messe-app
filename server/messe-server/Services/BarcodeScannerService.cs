@@ -5,8 +5,10 @@ namespace Herrmann.MesseApp.Server.Services;
 public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDisposable
 {
     private SerialPort? serialPort;
+    private bool isConnected;
 
     public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
+    public event EventHandler<ConnectionChangedEventArgs>? ConnectionChanged;
 
     public void Connect()
     {
@@ -15,6 +17,7 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
         
         if (firstComPort == null)
         {
+            SetConnectionState(false);
             throw new ApplicationException("Kein COM-Port gefunden");
         }
 
@@ -36,10 +39,12 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
         if (!sp.IsOpen)
         {
             sp.Dispose();
+            SetConnectionState(false);
             throw new ApplicationException($"COM-Port {firstComPort} kann nicht geöffnet werden");
         }
         
         serialPort = sp;
+        SetConnectionState(true);
         logger.LogInformation("Barcode-Scanner erfolgreich verbunden");
     }
 
@@ -98,7 +103,8 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
             }
             catch (IOException ioException)
             {
-                logger.LogWarning(ioException, "Scan-Prozess gestoppt");
+                logger.LogWarning(ioException, "Scan-Prozess gestoppt - Verbindung verloren");
+                SetConnectionState(false);
                 break;
             }
             catch (Exception ex)
@@ -144,7 +150,18 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
             serialPort.Close();
             serialPort.Dispose();
             serialPort = null;
+            SetConnectionState(false);
             logger.LogInformation("Scanner getrennt");
+        }
+    }
+
+    private void SetConnectionState(bool connected)
+    {
+        if (isConnected != connected)
+        {
+            isConnected = connected;
+            logger.LogInformation("Verbindungsstatus geändert: {IsConnected}", connected);
+            ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(connected));
         }
     }
 
@@ -153,10 +170,3 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
         Disconnect();
     }
 }
-
-public class BarcodeScannedEventArgs(string barcode) : EventArgs
-{
-    public string Barcode { get; } = barcode;
-    public bool IsProcessed { get; set; }
-}
-

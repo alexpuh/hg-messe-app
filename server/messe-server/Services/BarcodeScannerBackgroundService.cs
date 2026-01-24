@@ -12,35 +12,53 @@ public class BarcodeScannerBackgroundService(
 
         // Event-Handler registrieren
         scannerService.BarcodeScanned += OnBarcodeScanned;
+        scannerService.ConnectionChanged += OnConnectionChanged;
 
         try
         {
-            // Mit Scanner verbinden
-            await Task.Run(() =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                try
+                // Mit Scanner verbinden
+                await Task.Run(() =>
                 {
-                    scannerService.Connect();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Fehler beim Verbinden mit dem Scanner");
-                    throw;
-                }
-            }, stoppingToken);
+                    try
+                    {
+                        scannerService.Connect();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Fehler beim Verbinden mit dem Scanner");
+                    }
+                }, stoppingToken);
 
-            // Scan-Prozess starten (blockierend, läuft in Background Task)
-            await Task.Run(() =>
-            {
-                try
+                // Wenn Verbindung fehlgeschlagen ist, warte 15 Sekunden und versuche erneut
+                if (!scannerService.IsConnected())
                 {
-                    scannerService.StartScan();
+                    logger.LogInformation("Verbindung fehlgeschlagen. Warte 15 Sekunden vor erneutem Versuch...");
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
+                    continue;
                 }
-                catch (Exception ex)
+
+                // Scan-Prozess starten (blockierend, läuft in Background Task)
+                await Task.Run(() =>
                 {
-                    logger.LogError(ex, "Fehler im Scan-Prozess");
+                    try
+                    {
+                        scannerService.StartScan();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Fehler im Scan-Prozess");
+                    }
+                }, stoppingToken);
+
+                // Wenn Scan-Prozess beendet wurde (z.B. durch Verbindungsverlust)
+                if (!scannerService.IsConnected())
+                {
+                    logger.LogInformation("Verbindung verloren. Warte 15 Sekunden vor Wiederverbindung...");
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
                 }
-            }, stoppingToken);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -53,6 +71,7 @@ public class BarcodeScannerBackgroundService(
         finally
         {
             scannerService.BarcodeScanned -= OnBarcodeScanned;
+            scannerService.ConnectionChanged -= OnConnectionChanged;
             scannerService.Disconnect();
         }
     }
@@ -98,6 +117,24 @@ public class BarcodeScannerBackgroundService(
         {
             logger.LogError(ex, "Fehler bei der Barcode-Verarbeitung");
             e.IsProcessed = false;
+        }
+    }
+
+    private async void OnConnectionChanged(object? sender, ConnectionChangedEventArgs e)
+    {
+        logger.LogInformation("Scanner-Verbindungsstatus geändert: {IsConnected}", e.IsConnected);
+        
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var notificationService = scope.ServiceProvider.GetRequiredService<SignalNotificationService>();
+            
+            // Benachrichtige Clients über Verbindungsänderung
+            await notificationService.SendScannerStatusChanged(e.IsConnected);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Fehler beim Verarbeiten der Verbindungsänderung");
         }
     }
 
