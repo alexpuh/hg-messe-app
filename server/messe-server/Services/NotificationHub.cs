@@ -6,12 +6,6 @@ public class NotificationHub(ILogger<NotificationHub> logger) : Hub
 {
     private static int _connectedClients = 0;
     
-    public async Task SendMessage(string message)
-    {
-        logger.LogInformation("SendMessage called with: {Message}", message);
-        await Clients.All.SendAsync("ReceiveMessage", message);
-    }
-
     public override async Task OnConnectedAsync()
     {
         Interlocked.Increment(ref _connectedClients);

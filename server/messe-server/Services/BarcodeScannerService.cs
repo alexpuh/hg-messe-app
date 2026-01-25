@@ -2,17 +2,15 @@
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class BarcodeScannerService : IDisposable
+public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDisposable
 {
     private SerialPort? serialPort;
-    private readonly ILogger<BarcodeScannerService> logger;
-    
-    public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
+    private bool isConnected;
+    private int consecutiveTimeouts;
+    private const int TimeoutsBeforeReopen = 10; // ~5 Sekunden bei 500ms Timeout
 
-    public BarcodeScannerService(ILogger<BarcodeScannerService> logger)
-    {
-        this.logger = logger;
-    }
+    public event EventHandler<BarcodeScannedEventArgs>? BarcodeScanned;
+    public event EventHandler<ConnectionChangedEventArgs>? ConnectionChanged;
 
     public void Connect()
     {
@@ -21,6 +19,7 @@ public class BarcodeScannerService : IDisposable
         
         if (firstComPort == null)
         {
+            SetConnectionState(false);
             throw new ApplicationException("Kein COM-Port gefunden");
         }
 
@@ -42,16 +41,18 @@ public class BarcodeScannerService : IDisposable
         if (!sp.IsOpen)
         {
             sp.Dispose();
+            SetConnectionState(false);
             throw new ApplicationException($"COM-Port {firstComPort} kann nicht geöffnet werden");
         }
         
         serialPort = sp;
+        SetConnectionState(true);
         logger.LogInformation("Barcode-Scanner erfolgreich verbunden");
     }
 
     public bool IsConnected()
     {
-        return serialPort != null && serialPort.IsOpen;
+        return serialPort is { IsOpen: true };
     }
 
     public void StartScan()
@@ -62,6 +63,7 @@ public class BarcodeScannerService : IDisposable
         }
 
         logger.LogInformation("Starte Barcode-Scan-Prozess");
+        consecutiveTimeouts = 0;
         
         while (IsConnected())
         {
@@ -69,6 +71,9 @@ public class BarcodeScannerService : IDisposable
             {
                 var line = serialPort.ReadLine();
                 var barcode = string.Concat(line.Where(char.IsLetterOrDigit));
+                
+                // Erfolgreiche Daten empfangen - Timeout-Zähler zurücksetzen
+                consecutiveTimeouts = 0;
                 
                 if (string.IsNullOrWhiteSpace(barcode))
                 {
@@ -88,10 +93,12 @@ public class BarcodeScannerService : IDisposable
                     
                     if (eventArgs.IsProcessed)
                     {
+                        logger.LogInformation("Scan: Success");
                         SendOk();
                     }
                     else
                     {
+                        logger.LogError("Scan: Error");
                         SendError();
                     }
                 }
@@ -99,10 +106,43 @@ public class BarcodeScannerService : IDisposable
             catch (TimeoutException)
             {
                 // Normal - keine Daten empfangen
+                // Aber periodisch Port neu öffnen um getrennte Geräte zu erkennen
+                consecutiveTimeouts++;
+                
+                if (consecutiveTimeouts >= TimeoutsBeforeReopen)
+                {
+                    logger.LogDebug("Periodisches Neuöffnen des Ports nach {Count} Timeouts", consecutiveTimeouts);
+                    consecutiveTimeouts = 0;
+                    
+                    try
+                    {
+                        serialPort.Close();
+                        serialPort.Open();
+                    }
+                    catch (UnauthorizedAccessException unauthEx)
+                    {
+                        logger.LogWarning(unauthEx, "Port kann nicht neu geöffnet werden - Zugriff verweigert (möglicherweise von anderem Prozess besetzt oder Gerät entfernt)");
+                        SetConnectionState(false);
+                        break;
+                    }
+                    catch (IOException ioEx)
+                    {
+                        logger.LogWarning(ioEx, "Port kann nicht neu geöffnet werden - I/O-Fehler (Gerät wahrscheinlich getrennt)");
+                        SetConnectionState(false);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Port kann nicht neu geöffnet werden - unerwarteter Fehler");
+                        SetConnectionState(false);
+                        break;
+                    }
+                }
             }
             catch (IOException ioException)
             {
-                logger.LogWarning(ioException, "Scan-Prozess gestoppt");
+                logger.LogWarning(ioException, "Scan-Prozess gestoppt - Verbindung verloren");
+                SetConnectionState(false);
                 break;
             }
             catch (Exception ex)
@@ -119,7 +159,7 @@ public class BarcodeScannerService : IDisposable
     {
         try
         {
-            serialPort?.Write(new byte[] { 0x07 }, 0, 1); // BEL (Fehler-Piep)
+            serialPort?.Write([0x07], 0, 1); // BEL (Fehler-Piep)
             logger.LogDebug("Fehler-Signal an Scanner gesendet");
         }
         catch (Exception ex)
@@ -132,7 +172,7 @@ public class BarcodeScannerService : IDisposable
     {
         try
         {
-            serialPort?.Write(new byte[] { 0x06 }, 0, 1); // ACK (OK-Signal)
+            serialPort?.Write([0x06], 0, 1); // ACK (OK-Signal)
             logger.LogDebug("OK-Signal an Scanner gesendet");
         }
         catch (Exception ex)
@@ -148,7 +188,18 @@ public class BarcodeScannerService : IDisposable
             serialPort.Close();
             serialPort.Dispose();
             serialPort = null;
+            SetConnectionState(false);
             logger.LogInformation("Scanner getrennt");
+        }
+    }
+
+    private void SetConnectionState(bool connected)
+    {
+        if (isConnected != connected)
+        {
+            isConnected = connected;
+            logger.LogInformation("Verbindungsstatus geändert: {IsConnected}", connected);
+            ConnectionChanged?.Invoke(this, new ConnectionChangedEventArgs(connected));
         }
     }
 
@@ -157,16 +208,3 @@ public class BarcodeScannerService : IDisposable
         Disconnect();
     }
 }
-
-public class BarcodeScannedEventArgs : EventArgs
-{
-    public string Barcode { get; }
-    public bool IsProcessed { get; set; }
-
-    public BarcodeScannedEventArgs(string barcode)
-    {
-        Barcode = barcode;
-        IsProcessed = false;
-    }
-}
-

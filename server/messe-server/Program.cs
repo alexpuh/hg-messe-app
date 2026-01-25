@@ -1,4 +1,6 @@
+using Herrmann.MesseApp.Server.Data;
 using Herrmann.MesseApp.Server.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using Serilog;
 
@@ -18,9 +20,13 @@ try
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
-
     
-    builder.Services.AddSignalR();
+    builder.Services
+        .AddSignalR();
+
+    // Configure SQLite Database
+    builder.Services
+        .AddDbContext<MesseAppDbContext>(options => options.UseSqlite("Data Source=messeapp.db"));
 
     
     // Add services to the container.
@@ -30,9 +36,10 @@ try
     builder.Services.AddOpenApi();
 
     builder.Services
-        .AddSingleton<TradeEventsService>()
-        .AddSingleton<EventInventoriesService>()
-        .AddSingleton<ArticlesService>()
+        .AddScoped<TradeEventsService>()
+        .AddScoped<ArticlesService>()
+        .AddScoped<InventoryService>()
+        .AddScoped<SignalNotificationService>()
         .AddSingleton<BarcodeScannerService>()
         .AddHostedService<BarcodeScannerBackgroundService>()
         ;
@@ -50,6 +57,15 @@ try
     });
 
     var app = builder.Build();
+
+    // Initialize database
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<MesseAppDbContext>();
+        Log.Information("Initialisiere Datenbank...");
+        await dbContext.Database.EnsureCreatedAsync();
+        Log.Information("Datenbank initialisiert");
+    }
 
 // Add Serilog request logging
     app.UseSerilogRequestLogging();

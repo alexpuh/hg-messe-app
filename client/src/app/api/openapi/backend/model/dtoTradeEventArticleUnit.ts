@@ -11,10 +11,13 @@
  */
 
 
-export interface DtoEventInventory { 
-    id?: number | null;
-    startedAt?: string | null;
-    tradeEventId?: number | null;
-    updatedAt?: string | null;
+export interface DtoTradeEventArticleUnit { 
+    id?: number;
+    unitId?: number;
+    articleNr?: string | null;
+    articleDisplayName?: string | null;
+    unitWeight?: number;
+    ean?: string | null;
+    requiredCount?: number | null;
 }
 

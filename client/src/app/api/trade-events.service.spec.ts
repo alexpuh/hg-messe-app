@@ -1,16 +1,17 @@
 import { TestBed } from '@angular/core/testing';
-import { InventoriesService } from './inventories.service';
+import { TradeEventsService } from './trade-events.service';
 
-describe('EventInventoriesService', () => {
-  let service: InventoriesService;
+describe('TradeEventsService', () => {
+  let service: TradeEventsService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(InventoriesService);
+    service = TestBed.inject(TradeEventsService);
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 });
+
 

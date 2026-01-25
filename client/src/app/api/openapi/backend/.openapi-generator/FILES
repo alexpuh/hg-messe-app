@@ -3,7 +3,8 @@ README.md
 api.module.ts
 api/api.ts
 api/articles.openapi.service.ts
-api/eventInventories.openapi.service.ts
+api/barcodeScanner.openapi.service.ts
+api/inventories.openapi.service.ts
 api/tradeEvents.openapi.service.ts
 configuration.ts
 encoder.ts
@@ -11,8 +12,11 @@ git_push.sh
 index.ts
 model/dtoArticle.ts
 model/dtoEventInventory.ts
-model/dtoStockItem.ts
+model/dtoInventoryStockItem.ts
 model/dtoTradeEvent.ts
+model/dtoTradeEventArticleUnit.ts
+model/eanUnit.ts
 model/models.ts
+model/setRequiredUnitsRequest.ts
 param.ts
 variables.ts

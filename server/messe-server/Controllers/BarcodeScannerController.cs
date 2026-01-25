@@ -5,19 +5,11 @@ namespace Herrmann.MesseApp.Server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BarcodeScannerController : ControllerBase
+public class BarcodeScannerController(
+    BarcodeScannerService scannerService,
+    ILogger<BarcodeScannerController> logger)
+    : ControllerBase
 {
-    private readonly BarcodeScannerService scannerService;
-    private readonly ILogger<BarcodeScannerController> logger;
-
-    public BarcodeScannerController(
-        BarcodeScannerService scannerService,
-        ILogger<BarcodeScannerController> logger)
-    {
-        this.scannerService = scannerService;
-        this.logger = logger;
-    }
-
     /// <summary>
     /// Gibt den Verbindungsstatus des Barcode-Scanners zurück
     /// </summary>

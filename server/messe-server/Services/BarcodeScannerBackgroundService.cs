@@ -1,59 +1,64 @@
 ﻿namespace Herrmann.MesseApp.Server.Services;
 
-public class BarcodeScannerBackgroundService : BackgroundService
+public class BarcodeScannerBackgroundService(
+    ILogger<BarcodeScannerBackgroundService> logger,
+    BarcodeScannerService scannerService,
+    IServiceProvider serviceProvider)
+    : BackgroundService
 {
-    private readonly ILogger<BarcodeScannerBackgroundService> logger;
-    private readonly BarcodeScannerService scannerService;
-    private readonly ArticlesService articlesService;
-    private readonly EventInventoriesService inventoriesService;
-
-    public BarcodeScannerBackgroundService(
-        ILogger<BarcodeScannerBackgroundService> logger,
-        BarcodeScannerService scannerService,
-        ArticlesService articlesService,
-        EventInventoriesService inventoriesService)
-    {
-        this.logger = logger;
-        this.scannerService = scannerService;
-        this.articlesService = articlesService;
-        this.inventoriesService = inventoriesService;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Barcode Scanner Background Service wird gestartet");
 
         // Event-Handler registrieren
         scannerService.BarcodeScanned += OnBarcodeScanned;
+        scannerService.ConnectionChanged += OnConnectionChanged;
 
         try
         {
-            // Mit Scanner verbinden
-            await Task.Run(() =>
+            while (!stoppingToken.IsCancellationRequested)
             {
-                try
+                // Mit Scanner verbinden
+                await Task.Run(() =>
                 {
-                    scannerService.Connect();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Fehler beim Verbinden mit dem Scanner");
-                    throw;
-                }
-            }, stoppingToken);
+                    try
+                    {
+                        scannerService.Connect();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Fehler beim Verbinden mit dem Scanner");
+                    }
+                }, stoppingToken);
 
-            // Scan-Prozess starten (blockierend, läuft in Background Task)
-            await Task.Run(() =>
-            {
-                try
+                // Wenn Verbindung fehlgeschlagen ist, warte 15 Sekunden und versuche erneut
+                if (!scannerService.IsConnected())
                 {
-                    scannerService.StartScan();
+                    logger.LogInformation("Verbindung fehlgeschlagen. Warte 15 Sekunden vor erneutem Versuch...");
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
+                    continue;
                 }
-                catch (Exception ex)
+
+                // Scan-Prozess starten (blockierend, läuft in Background Task)
+                await Task.Run(() =>
                 {
-                    logger.LogError(ex, "Fehler im Scan-Prozess");
+                    try
+                    {
+                        scannerService.StartScan();
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Fehler im Scan-Prozess");
+                    }
+                }, stoppingToken);
+
+                // Wenn Scan-Prozess beendet wurde (z.B. durch Verbindungsverlust)
+                if (!scannerService.IsConnected())
+                {
+                    logger.LogInformation("Verbindung verloren. Warte 15 Sekunden vor Wiederverbindung...");
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
                 }
-            }, stoppingToken);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -66,6 +71,7 @@ public class BarcodeScannerBackgroundService : BackgroundService
         finally
         {
             scannerService.BarcodeScanned -= OnBarcodeScanned;
+            scannerService.ConnectionChanged -= OnConnectionChanged;
             scannerService.Disconnect();
         }
     }
@@ -76,42 +82,33 @@ public class BarcodeScannerBackgroundService : BackgroundService
 
         try
         {
+            // Create a scope to get InventoryService
+            using var scope = serviceProvider.CreateScope();
+            var inventoriesService = scope.ServiceProvider.GetRequiredService<InventoryService>();
+            var notificationService = scope.ServiceProvider.GetRequiredService<SignalNotificationService>();
+
             // Prüfe ob aktuelles Event-Inventar existiert
-            var currentInventory = inventoriesService.GetCurrentEventInventory();
+            var currentInventory = await inventoriesService.GetCurrentInventoryAsync();
             if (currentInventory == null)
             {
                 logger.LogWarning("Kein aktives Event-Inventar gefunden");
+                await notificationService.SendBarcodeError(e.Barcode, "Kein aktives Event-Inventar gefunden");
                 e.IsProcessed = false;
                 return;
             }
-
-            // Suche Artikel anhand des EAN-Codes
-            if (!articlesService.TryFindEan(e.Barcode, out var articleUnit))
-            {
-                logger.LogWarning("Artikel mit EAN {EAN} nicht gefunden", e.Barcode);
-                e.IsProcessed = false;
-                return;
-            }
-
-            // Bestimme ob Box oder Einheit gescannt wurde
-            bool isBox = articleUnit!.EanBox == e.Barcode;
             
-            logger.LogInformation(
-                "Artikel gefunden: UnitId={UnitId}, Artikel={Article}, Type={Type}",
-                articleUnit.UnitId,
-                articleUnit.ArticleName,
-                isBox ? "Box" : "Unit");
-
             // Füge zum Inventar hinzu
-            var success = await inventoriesService.TryAddStockItem(articleUnit.UnitId, isBox);
+            var (success, errorMessage) = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
             
             if (success)
             {
-                logger.LogInformation("Artikel erfolgreich zum Inventar hinzugefügt");
+                await notificationService.SendBarcodeScanned(e.Barcode);
+                logger.LogDebug("Artikel erfolgreich zum Inventar hinzugefügt");
                 e.IsProcessed = true;
             }
             else
             {
+                await notificationService.SendBarcodeError(e.Barcode, errorMessage);
                 logger.LogError("Fehler beim Hinzufügen des Artikels zum Inventar");
                 e.IsProcessed = false;
             }
@@ -120,6 +117,24 @@ public class BarcodeScannerBackgroundService : BackgroundService
         {
             logger.LogError(ex, "Fehler bei der Barcode-Verarbeitung");
             e.IsProcessed = false;
+        }
+    }
+
+    private async void OnConnectionChanged(object? sender, ConnectionChangedEventArgs e)
+    {
+        logger.LogInformation("Scanner-Verbindungsstatus geändert: {IsConnected}", e.IsConnected);
+        
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var notificationService = scope.ServiceProvider.GetRequiredService<SignalNotificationService>();
+            
+            // Benachrichtige Clients über Verbindungsänderung
+            await notificationService.SendScannerStatusChanged(e.IsConnected);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Fehler beim Verarbeiten der Verbindungsänderung");
         }
     }
 
