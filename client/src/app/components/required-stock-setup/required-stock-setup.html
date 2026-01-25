@@ -6,7 +6,7 @@
     <div class="flex gap-2 align-items-center">
       <p-select
         [options]="tradeEventOptions()"
-        [(ngModel)]="selectedTradeEventId"
+        [ngModel]="selectedTradeEventId()"
         (onChange)="onTradeEventChange($event)"
         placeholder="Messe auswählen..."
         [style]="{ 'min-width': '300px' }"
@@ -62,7 +62,8 @@
                   <input
                     pInputText
                     type="number"
-                    [(ngModel)]="editingValue"
+                    [ngModel]="editingValue()"
+                    (ngModelChange)="editingValue.set($event)"
                     min="0"
                     class="w-20"
                   />
@@ -117,7 +118,8 @@
 <!-- Dialog für neue Messe -->
 <p-dialog
   header="Neue Messe erstellen"
-  [(visible)]="showNewTradeEventDialog"
+  [visible]="showNewTradeEventDialog()"
+  (visibleChange)="showNewTradeEventDialog.set($event)"
   [modal]="true"
   [style]="{ width: '450px' }"
 >

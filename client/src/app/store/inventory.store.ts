@@ -211,7 +211,7 @@ export const InventoryStore = signalStore(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((inventoryId) =>
-              inventoriesService.getCurrentInventory().pipe(
+              inventoriesService.getInventory(inventoryId).pipe(
                 tapResponse({
                   next: (inventory) => {
                     // Find the trade event name for this inventory

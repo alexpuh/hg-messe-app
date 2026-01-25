@@ -23,7 +23,9 @@
 <!-- Dialog für neue Bestandsaufnahme -->
 <p-dialog
   [header]="'Neue Bestandsaufnahme starten'"
-  [(visible)]="showNewInventoryDialog"
+  [visible]="showNewInventoryDialog()"
+  (visibleChange)="showNewInventoryDialog.set($event)"
+
   [modal]="true"
   [style]="{width: '450px'}"
   [draggable]="false"

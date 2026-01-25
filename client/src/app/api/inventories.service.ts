@@ -12,6 +12,10 @@ export class InventoriesService {
     return this.api.getCurrentInventory();
   }
 
+  getInventory(id: number): Observable<DtoEventInventory> {
+    return this.api.getInventory(id);
+  }
+
   getInventoryStockItems(inventoryId: number) {
     return this.api.getInventoryStockItems(inventoryId);
   }

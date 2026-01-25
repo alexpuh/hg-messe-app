@@ -73,13 +73,12 @@ public class ArticlesService
         // Lösche alle vorhandenen Einträge
         await _dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
 
-        var entities = new List<ArticleUnit>();
-
-        foreach (var article in articles)
-        {
-            foreach (var unit in article.Units)
+        var entities = articles
+            .SelectMany(a => a.Units.Select(au => (article: a, unit: au)))
+            .Select(paramAu =>
             {
-                var entity = new ArticleUnit
+                var (article, unit) = paramAu;
+                return new ArticleUnit
                 {
                     UnitId = unit.Id,
                     ArticleId = unit.ArticleId,
@@ -92,11 +91,8 @@ public class ArticlesService
                     EanUnit = string.IsNullOrWhiteSpace(unit.Ean) ? null : unit.Ean,
                     EanBox = null // Im Import-JSON scheint es nur Unit-EAN zu geben
                 };
-
-                entities.Add(entity);
-            }
-        }
-
+            }).ToList();
+        
         await _dbContext.ArticleUnits.AddRangeAsync(entities);
         await _dbContext.SaveChangesAsync();
 

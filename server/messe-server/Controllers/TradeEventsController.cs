@@ -110,7 +110,7 @@ public class TradeEventsController(TradeEventsService tradeEventsService) : Cont
     }
     
     /// <summary>
-    /// Löscht eine erforderliche Artikeleinheit für ein Trade Event
+    /// Holt alle Artikeleinheiten für ein Trade Event und ihre Mindestanzahl
     /// </summary>
     [HttpGet("{tradeEventId:int}/units", Name = "GetTradeEventArticleUnits")]
     public async Task<ActionResult<DtoTradeEventArticleUnit[]>> GetTradeEventArticleUnits(int tradeEventId)

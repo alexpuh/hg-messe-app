@@ -98,7 +98,7 @@ public class BarcodeScannerBackgroundService(
             }
             
             // Füge zum Inventar hinzu
-            var (success, erromessage) = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
+            var (success, errorMessage) = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
             
             if (success)
             {
@@ -108,7 +108,7 @@ public class BarcodeScannerBackgroundService(
             }
             else
             {
-                await notificationService.SendBarcodeError(e.Barcode, erromessage);
+                await notificationService.SendBarcodeError(e.Barcode, errorMessage);
                 logger.LogError("Fehler beim Hinzufügen des Artikels zum Inventar");
                 e.IsProcessed = false;
             }

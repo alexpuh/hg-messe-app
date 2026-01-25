@@ -93,11 +93,11 @@ public class TradeEventsService(MesseAppDbContext dbContext, ILogger<TradeEvents
     /// </summary>
     /// <param name="tradeEventId">ID des Trade Events</param>
     /// <param name="unitId">ID der Artikeleinheit</param>
-    /// <param name="count">Erforderliche Anzahl (0 oder negativ zum Löschen)</param>
+    /// <param name="count">Erforderliche Anzahl</param>
     /// <returns>true wenn erfolgreich, false wenn TradeEvent nicht gefunden wurde</returns>
     public async Task<bool> SetRequiredUnitsAsync(int tradeEventId, int unitId, int count)
     {
-        if (count < 0)
+        if (count <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative");
         }

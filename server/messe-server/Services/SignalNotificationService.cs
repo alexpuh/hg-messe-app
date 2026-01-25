@@ -18,7 +18,7 @@ public class SignalNotificationService(ILogger<SignalNotificationService> logger
 
     public async Task SendScannerStatusChanged(bool status)
     {
-        logger.LogDebug("Signal StatusChanged: {Ean}", status);
+        logger.LogDebug("Signal StatusChanged: {status}", status);
         await hubContext.Clients.All.SendAsync("ScannerStatusChanged", status);
     }
 }

@@ -24,7 +24,7 @@ export class SignalrService {
     this.hubConnection.on('BarcodeError', callback);
   }
 
-  onScannerStatusChanged(callback: (msg: string) => void) {
+  onScannerStatusChanged(callback: (isConnected: boolean) => void) {
     this.hubConnection.on('ScannerStatusChanged', callback);
   }
 }
