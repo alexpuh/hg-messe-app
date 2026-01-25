@@ -40,6 +40,7 @@ try
         .AddScoped<ArticlesService>()
         .AddScoped<InventoryService>()
         .AddScoped<SignalNotificationService>()
+        .AddScoped<InventoryExcelExportService>()
         .AddSingleton<BarcodeScannerService>()
         .AddHostedService<BarcodeScannerBackgroundService>()
         ;

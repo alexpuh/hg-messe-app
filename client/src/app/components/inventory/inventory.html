@@ -4,6 +4,7 @@
             label="Excel exportieren"
             severity="success"
             (onClick)="exportToExcel()"
+            [disabled]="!store.selectedInventory()"
             ></p-button>
   <p-button class="mr-1" icon="pi pi-barcode"
             label="Neue Bestandsaufnahme starten"
