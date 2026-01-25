@@ -32,7 +32,7 @@ public class InventoryService(
         if (!articlesService.TryFindEan(ean, out var articleUnit))
         {
             logger.LogWarning("Artikel mit EAN {Ean} nicht gefunden", ean);
-            return (false, $"Artikel mit EAN {ean} nicht gefunden");;
+            return (false, $"Artikel mit EAN {ean} nicht gefunden");
         }
 
         var unitId = articleUnit!.UnitId;
