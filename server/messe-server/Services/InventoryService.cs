@@ -162,7 +162,7 @@ public class InventoryService(
         }
 
         // Sammle alle UnitIds (gescannte + required)
-        var scannedUnitIds = inventory.StockItems.Select(s => s.UnitId).Distinct().ToHashSet();
+        var scannedUnitIds = inventory.StockItems.Select(s => s.UnitId).ToHashSet();
         var allUnitIds = new HashSet<int>(scannedUnitIds);
 
         // Lade RequiredUnits für das TradeEvent (falls vorhanden)
