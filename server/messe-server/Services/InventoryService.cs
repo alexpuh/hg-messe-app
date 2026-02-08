@@ -147,11 +147,12 @@ public class InventoryService(
     /// </summary>
     /// <param name="inventoryId">ID des Inventars</param>
     /// <returns>Null if inventoryId not found or collection</returns>
-    public async Task<DtoInventoryStockItem[]?> GetInventoryResultsAsync(int inventoryId)
+    public async Task<(string? tradeEventName, DtoInventoryStockItem[] items)?> GetInventoryResultsAsync(int inventoryId)
     {
         // Lade Inventory mit StockItems
         var inventory = await dbContext.Inventories
             .Include(i => i.StockItems)
+            .Include(i => i.TradeEvent)
             .FirstOrDefaultAsync(i => i.Id == inventoryId);
 
         if (inventory == null)
@@ -159,9 +160,9 @@ public class InventoryService(
             return null;
         }
 
-        if (!inventory.StockItems.Any())
+        if (inventory.StockItems.Count == 0)
         {
-            return [];
+            return (null, []);
         }
 
         // Lade ArticleUnits für alle StockItems
@@ -204,6 +205,6 @@ public class InventoryService(
             };
         }).ToArray();
 
-        return results;
+        return (inventory.TradeEvent?.Name, results);
     }
 }

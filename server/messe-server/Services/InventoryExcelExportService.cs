@@ -5,39 +5,167 @@ namespace Herrmann.MesseApp.Server.Services;
 
 public class InventoryExcelExportService(ILogger<InventoryExcelExportService> logger)
 {
-    public void Generate(Stream stream, IEnumerable<DtoInventoryStockItem> inventory, string workbookName)
+    public void Generate(Stream stream, string? tradeEventName, IEnumerable<DtoInventoryStockItem> inventory, string workbookName)
     {
         logger.LogDebug("Excel Export started: {WorkbookName}", workbookName);
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add(workbookName);
-        GenerateExcel(inventory.OrderBy(i => i.ArticleNr), ws);
+        GenerateExcel(tradeEventName, inventory.OrderBy(i => i.ArticleNr), ws);
         workbook.SaveAs(stream);
     }
 
-    private static void GenerateExcel(IEnumerable<DtoInventoryStockItem> items, IXLWorksheet ws)
+    private static void GenerateExcel(string? tradeEventName, IEnumerable<DtoInventoryStockItem> items, IXLWorksheet ws)
     {
+        const int maxCol = 7;
+        ws.Column(1).Width = 10;
+        ws.Column(2).Width = 35;
+        ws.Column(3).Width = 12;
+        ws.Column(4).Width = 20;
+        ws.Column(5).Width = 10;
+        ws.Column(6).Width = 10;
+        ws.Column(7).Width = 10;
+        
         var zeile = 1;
+        ws.Row(zeile).Height = 30;
+        ws.Range(zeile, 1, zeile, maxCol).Merge();
+        ws.Cell(zeile, 1).Value = "LKW-Kontrolle";
+        SetHeaderStyle(ws.Cell(zeile, 1));
 
-        ws.Cell(zeile, 1).Value = "Art.Nr.";
-        ws.Cell(zeile, 2).Value = "Artikel";
-        ws.Cell(zeile, 3).Value = "Gewicht";
-        ws.Column(3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        ws.Cell(zeile, 4).Value = "EAN";
-        ws.Column(4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        ws.Cell(zeile, 5).Value = "Bestand";
-        ws.Cell(zeile, 6).Value = "Soll";
-        ws.Cell(zeile, 7).Value = "Differenz";
+        zeile++;
+        ws.Row(zeile).Height = 25;
+        ws.Range(zeile, 1, zeile, 4).Merge();
+        SetCell(ws, zeile, 1, cell =>
+        {
+            cell.Value = tradeEventName;
+            SetHeader2Style(cell, XLAlignmentHorizontalValues.Left);
+        });
+        
+        ws.Range(zeile, 5, zeile, maxCol).Merge();
+        SetCell(ws, zeile, 5, cell =>
+        {
+            cell.Value = DateTime.Today;
+            SetHeader2Style(cell, XLAlignmentHorizontalValues.Right);
+        });
 
+        zeile++;
+        ws.Row(zeile).Height = 45;
+
+        SetCell(ws, zeile, 1, cell =>
+        {
+            cell.Value = "Art.Nr.";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Left);
+        });
+        SetCell(ws, zeile, 2, cell =>
+        {
+            cell.Value = "Artikel";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Left);
+        });
+        SetCell(ws, zeile, 3, cell =>
+        {
+            cell.Value = "Gewicht";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Right);
+        });
+        SetCell(ws, zeile, 4, cell =>
+        {
+            cell.Value = "EAN";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Right);
+        });
+        SetCell(ws, zeile, 5, cell =>
+        {
+            cell.Value = "Bestand";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
+        });
+        SetCell(ws, zeile, 6, cell =>
+        {
+            cell.Value = "Soll";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
+        });
+        SetCell(ws, zeile, 7, cell =>
+        {
+            cell.Value = "Fehlt";
+            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
+        });
+        
         foreach (var item in items)
         {
             zeile++;
-            ws.Cell(zeile, 1).Value = $"{item.ArticleNr}";
-            ws.Cell(zeile, 2).Value = $"{item.ArticleDisplayName}";
-            ws.Cell(zeile, 3).Value = $"{item.UnitWeight}";
-            ws.Cell(zeile, 4).SetValue(item.Ean);
-            ws.Cell(zeile, 5).Value = $"{item.Count}";
-            ws.Cell(zeile, 6).Value = $"{item.RequiredCount}";
-            ws.Cell(zeile, 7).Value = $"{item.Count - item.RequiredCount}";
+            ws.Row(zeile).Height = 25;
+            SetCell(ws, zeile, 1, cell =>
+            {
+                cell.Value = $"{item.ArticleNr}";
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Left);
+            });
+            SetCell(ws, zeile, 2, cell =>
+            {
+                cell.Value = $"{item.ArticleDisplayName}";
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Left);
+            });
+            SetCell(ws, zeile, 3, cell =>
+            {
+                cell.Value = item.UnitWeight;
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Right);
+            });
+            SetCell(ws, zeile, 4, cell =>
+            {
+                cell.Value = $"{item.Ean}";
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Right);
+            });
+            SetCell(ws, zeile,5, cell =>
+            {
+                cell.Value = item.Count;
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+            });
+            SetCell(ws, zeile, 6, cell =>
+            {
+                cell.Value = item.RequiredCount;
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+            });
+            if (item.RequiredCount < item.Count)
+            {
+                SetCell(ws, zeile, 7, cell =>
+                {
+                    cell.Value = item.Count - item.RequiredCount;
+                    SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+                });
+            }
         }
+    }
+    private static void SetHeaderStyle(IXLCell cell)
+    {
+        cell.Style.Font.SetBold(true)
+            .Font.SetFontSize(18)
+            .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+    }
+    private static void SetHeader2Style(IXLCell cell, XLAlignmentHorizontalValues horizonalAlignment)
+    {
+        cell.Style.Font.SetBold(true)
+            .Font.SetFontSize(14)
+            .Alignment.SetHorizontal(horizonalAlignment)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center);
+    }
+    private static void SetTableHeaderStyle(IXLCell cell, XLAlignmentHorizontalValues horizonalAlignment)
+    {
+        cell.Style.Font.SetBold(true)
+            .Font.SetFontSize(12)
+            .Fill.SetBackgroundColor(XLColor.LightGray)            
+            .Alignment.SetHorizontal(horizonalAlignment)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Bottom)
+            .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+            ;
+    }
+    private static void SetTableDataStyle(IXLCell cell, XLAlignmentHorizontalValues horizonalAlignment)
+    {
+        cell.Style.Font.SetBold(false)
+            .Font.SetFontSize(12)
+            .Alignment.SetHorizontal(horizonalAlignment)
+            .Alignment.SetVertical(XLAlignmentVerticalValues.Center)
+            .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+            ;
+    }
+
+    private static void SetCell(IXLWorksheet ws, int row, int col, Action<IXLCell> cellSetup)
+    {
+        cellSetup(ws.Cell(row, col));
     }
 } 

@@ -61,7 +61,7 @@ public class InventoriesController(InventoryService inventoryService, ILogger<In
         {
             return NotFound();
         }
-        return result;
+        return result.Value.items;
     }
     
     private const string ExcelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -80,7 +80,7 @@ public class InventoriesController(InventoryService inventoryService, ILogger<In
             return NotFound();
         }
         using var memoryStream = new MemoryStream();
-        excelReportService.Generate(memoryStream, result, DateTime.Today.ToString("yyyy-MM-dd"));
+        excelReportService.Generate(memoryStream, result.Value.tradeEventName, result.Value.items, DateTime.Today.ToString("yyyy-MM-dd"));
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {
