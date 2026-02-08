@@ -1,4 +1,5 @@
-﻿using Herrmann.MesseApp.Server.Dto;
+﻿using System.Net;
+using Herrmann.MesseApp.Server.Dto;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,8 +61,31 @@ public class InventoriesController(InventoryService inventoryService, ILogger<In
         {
             return NotFound();
         }
-        return result;
+        return result.Value.items;
     }
     
+    private const string ExcelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+    [HttpGet]
+    [Route("{id:int}/stock/excel", Name = nameof(GetInventoryStockItemsExcel))]
+    [ProducesResponseType(typeof(FileContentResult), (int)HttpStatusCode.OK)]    
+    public async Task<IActionResult> GetInventoryStockItemsExcel(
+        int id,
+        [FromServices] InventoryExcelExportService excelReportService
+        )
+    {
+        var result = await inventoryService.GetInventoryResultsAsync(id);
+        if (result == null)
+        {
+            return NotFound();
+        }
+        using var memoryStream = new MemoryStream();
+        excelReportService.Generate(memoryStream, result.Value.tradeEventName, result.Value.items, DateTime.Today.ToString("yyyy-MM-dd"));
+        var data = memoryStream.ToArray();
+        return new FileContentResult(data, ExcelContentType)
+        {
+            FileDownloadName = "result.xlsx"
+        };
+    }
     
 }

@@ -6,20 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class ArticlesService
+public class ArticlesService(MesseAppDbContext dbContext, ILogger<ArticlesService> logger)
 {
-    private readonly MesseAppDbContext _dbContext;
-    private readonly ILogger<ArticlesService> _logger;
-
-    public ArticlesService(MesseAppDbContext dbContext, ILogger<ArticlesService> logger)
-    {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
-
     public bool TryGetArticleUnit(int unitId, out DtoArticleUnit? articleUnit)
     {
-        var entity = _dbContext.ArticleUnits
+        var entity = dbContext.ArticleUnits
             .AsNoTracking()
             .FirstOrDefault(x => x.UnitId == unitId);
 
@@ -35,7 +26,7 @@ public class ArticlesService
 
     public bool TryFindEan(string ean, out DtoArticleUnit? articleUnit)
     {
-        var entity = _dbContext.ArticleUnits
+        var entity = dbContext.ArticleUnits
             .AsNoTracking()
             .FirstOrDefault(x => x.EanBox == ean || x.EanUnit == ean);
 
@@ -51,7 +42,7 @@ public class ArticlesService
 
     public async Task<int> ImportFromJsonFileAsync(string filePath)
     {
-        _logger.LogInformation("Starte Import von Artikeln aus Datei: {FilePath}", filePath);
+        logger.LogInformation("Starte Import von Artikeln aus Datei: {FilePath}", filePath);
 
         if (!File.Exists(filePath))
         {
@@ -66,12 +57,12 @@ public class ArticlesService
 
         if (articles == null || articles.Count == 0)
         {
-            _logger.LogWarning("Keine Artikel in der JSON-Datei gefunden");
+            logger.LogWarning("Keine Artikel in der JSON-Datei gefunden");
             return 0;
         }
 
         // Lösche alle vorhandenen Einträge
-        await _dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
+        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
 
         var entities = articles
             .SelectMany(a => a.Units.Select(au => (article: a, unit: au)))
@@ -93,10 +84,10 @@ public class ArticlesService
                 };
             }).ToList();
         
-        await _dbContext.ArticleUnits.AddRangeAsync(entities);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.ArticleUnits.AddRangeAsync(entities);
+        await dbContext.SaveChangesAsync();
 
-        _logger.LogInformation("{Count} Artikel-Units erfolgreich importiert", entities.Count);
+        logger.LogInformation("{Count} Artikel-Units erfolgreich importiert", entities.Count);
         return entities.Count;
     }
 
@@ -104,7 +95,7 @@ public class ArticlesService
     {
         var result = new List<EanUnit>();
         
-        var units = _dbContext.ArticleUnits
+        var units = dbContext.ArticleUnits
             .AsNoTracking()
             .Where(x => !x.IsArticleDisabled && !x.IsUnitDisabled)
             .ToList();
@@ -138,8 +129,4 @@ public class ArticlesService
             UnitsPerBox = entity.PackagesInBox
         };
     }
-    
-    
 }
-
-public record EanUnit(int unitId, string ean);

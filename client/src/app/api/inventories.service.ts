@@ -20,6 +20,10 @@ export class InventoriesService {
     return this.api.getInventoryStockItems(inventoryId);
   }
 
+  getInventoryStockItemsExcel(inventoryId: number): Observable<Blob> {
+    return this.api.getInventoryStockItemsExcel(inventoryId);
+  }
+
   createInventory(tradeEventId?: number): Observable<DtoEventInventory> {
     return this.api.createInventory(tradeEventId);
   }

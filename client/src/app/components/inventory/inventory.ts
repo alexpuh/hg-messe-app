@@ -5,7 +5,8 @@ import { RouterLink } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
 import { InventoryStore } from '../../store';
 import { InputText } from 'primeng/inputtext';
-import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
+import { GermanDateTimePipe } from '../../pipes/german-date-time.pipe';
+import { InventoriesService } from '../../api/inventories.service';
 
 // Special values for new options
 const NEW_TRADE_EVENT_VALUE = -1;
@@ -26,6 +27,7 @@ const NO_TRADE_EVENT_VALUE = -2;
 })
 export class Inventory {
   protected readonly store = inject(InventoryStore);
+  private readonly inventoriesService = inject(InventoriesService);
 
   protected showNewInventoryDialog = signal(false);
   protected selectedTradeEventId = signal<number | null>(null);
@@ -143,6 +145,35 @@ export class Inventory {
   }
 
   protected exportToExcel() {
+    const inventory = this.store.selectedInventory();
+    if (!inventory?.id) {
+      console.error('No inventory selected');
+      return;
+    }
 
+    this.inventoriesService.getInventoryStockItemsExcel(inventory.id).subscribe({
+      next: (blob) => {
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Generate filename with trade event name and date
+        const date = new Date().toISOString().split('T')[0];
+        const tradeEventName = this.store.tradeEventName() || 'Bestand';
+        const filename = `${tradeEventName}_${date}.xlsx`;
+
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error exporting to Excel:', error);
+      }
+    });
   }
 }
