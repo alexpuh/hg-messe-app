@@ -4,7 +4,7 @@
             label="Excel exportieren"
             severity="success"
             (onClick)="exportToExcel()"
-            [disabled]="!store.selectedInventory()"
+            [disabled]="!store.selectedScanSession()"
             ></p-button>
   <p-button class="mr-1" icon="pi pi-barcode"
             label="Neue Bestandsaufnahme starten"
@@ -50,7 +50,7 @@
           id="tradeEventName"
           type="text"
           pInputText
-          [value]="newTradeEventName()"
+          [value]="newLoadingListName()"
           (input)="onTradeEventNameChange($event)"
           placeholder="Name der neuen Messe"
           [style]="{width: '100%'}"

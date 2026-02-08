@@ -5,10 +5,10 @@ import { Select, SelectChangeEvent } from 'primeng/select';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import { InventoryStore } from '../../store';
-import { TradeEventsService } from '../../api/trade-events.service';
-import { DtoTradeEventArticleUnit } from '../../api/openapi/backend';
+import { ScanSessionStore } from '../../store';
+import { LoadingListsService } from '../../api/loading-lists.service';
 import {TableModule} from 'primeng/table';
+import {DtoLoadingListArticleUnit} from '../../api/openapi/backend';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -29,20 +29,20 @@ import {TableModule} from 'primeng/table';
   }
 })
 export class RequiredStockSetup {
-  private readonly store = inject(InventoryStore);
-  private readonly tradeEventsService = inject(TradeEventsService);
+  private readonly store = inject(ScanSessionStore);
+  private readonly tradeEventsService = inject(LoadingListsService);
 
-  protected selectedTradeEventId = signal<number | null>(this.store.selectedInventory()?.tradeEventId ?? null);
+  protected selectedTradeEventId = signal<number | null>(this.store.selectedScanSession()?.loadingListId ?? null);
   protected showNewTradeEventDialog = signal(false);
   protected newTradeEventName = signal('');
-  private articlesData = signal<DtoTradeEventArticleUnit[]>([]);
+  private articlesData = signal<DtoLoadingListArticleUnit[]>([]);
 
   // Editing state for required counts
   protected editingUnitId = signal<number | null>(null);
   protected editingValue = signal<string>('');
 
   constructor() {
-    // Load articles when trade event changes
+    // Load articles when loadinglist changes
     effect(() => {
       const tradeEventId = this.selectedTradeEventId();
       if (!tradeEventId) {
@@ -50,7 +50,7 @@ export class RequiredStockSetup {
         return;
       }
 
-      this.tradeEventsService.getTradeEventArticleUnits(tradeEventId).subscribe({
+      this.tradeEventsService.getLoadingListArticleUnits(tradeEventId).subscribe({
         next: (articles) => {
           this.articlesData.set(articles);
         },
@@ -110,10 +110,10 @@ export class RequiredStockSetup {
     const name = this.newTradeEventName().trim();
     if (!name) return;
 
-    this.tradeEventsService.addTradeEvent({ name }).subscribe({
+    this.tradeEventsService.addLoadingList({ name }).subscribe({
       next: (tradeEvent) => {
-        // Reload trade events from store
-        this.store.loadTradeEvents();
+        // Reload trade events from the store
+        this.store.readLoadingLists();
         // Select the newly created trade event
         if (tradeEvent.id) {
           this.selectedTradeEventId.set(tradeEvent.id);

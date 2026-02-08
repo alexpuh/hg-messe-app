@@ -1,6 +1,6 @@
 ﻿namespace Herrmann.MesseApp.Server.Dto;
 
-public class DtoLoadingLIstArticleUnit
+public class DtoLoadingListArticleUnit
 {
     public int Id { get; set; }
     public int UnitId { get; set; }

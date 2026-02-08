@@ -3,14 +3,14 @@ import { Select, SelectChangeEvent } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { RouterLink } from '@angular/router';
 import { Dialog } from 'primeng/dialog';
-import { InventoryStore } from '../../store';
+import { ScanSessionStore } from '../../store';
 import { InputText } from 'primeng/inputtext';
 import { GermanDateTimePipe } from '../../pipes/german-date-time.pipe';
-import { InventoriesService } from '../../api/inventories.service';
+import { ScanSessionsService } from '../../api/scan-sessions.service';
 
 // Special values for new options
-const NEW_TRADE_EVENT_VALUE = -1;
-const NO_TRADE_EVENT_VALUE = -2;
+const NEW_LOADING_LIST_VALUE = -1;
+const NO_LOADING_LIST_VALUE = -2;
 
 @Component({
   selector: 'app-inventory',
@@ -26,14 +26,14 @@ const NO_TRADE_EVENT_VALUE = -2;
   styleUrl: './inventory.scss',
 })
 export class Inventory {
-  protected readonly store = inject(InventoryStore);
-  private readonly inventoriesService = inject(InventoriesService);
+  protected readonly store = inject(ScanSessionStore);
+  private readonly scanSessionsService = inject(ScanSessionsService);
 
   protected showNewInventoryDialog = signal(false);
-  protected selectedTradeEventId = signal<number | null>(null);
-  protected readonly newTradeEventName = signal<string>('');
+  protected selectedLoadingListId = signal<number | null>(null);
+  protected readonly newLoadingListName = signal<string>('');
   protected items = computed(() => {
-    const items = this.store.stockItems();
+    const items = this.store.scanSessionArticles();
     return [...items].sort((a, b) => {
       const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
@@ -42,8 +42,8 @@ export class Inventory {
   });
 
   protected startedAt = computed(() => {
-    const inventory = this.store.selectedInventory();
-    return inventory?.startedAt ? new Date(inventory.startedAt) : null;
+    const scanSession = this.store.selectedScanSession();
+    return scanSession?.startedAt ? new Date(scanSession.startedAt) : null;
   });
 
   protected barcodeScannerStatusText = computed(() => {
@@ -69,24 +69,24 @@ export class Inventory {
 
     // Add special options at the beginning
     return [
-      { label: 'Neue Messe erstellen', value: NEW_TRADE_EVENT_VALUE },
-      { label: 'Ohne Messezuordnung starten', value: NO_TRADE_EVENT_VALUE },
+      { label: 'Neue Messe erstellen', value: NEW_LOADING_LIST_VALUE },
+      { label: 'Ohne Messezuordnung starten', value: NO_LOADING_LIST_VALUE },
       ...options
     ];
   });
 
   protected showNewTradeEventNameField = computed(() => {
-    return this.selectedTradeEventId() === NEW_TRADE_EVENT_VALUE;
+    return this.selectedLoadingListId() === NEW_LOADING_LIST_VALUE;
   });
 
   protected canStartInventory = computed(() => {
-    const selectedId = this.selectedTradeEventId();
+    const selectedId = this.selectedLoadingListId();
     if (selectedId === null) {
       return false;
     }
-    if (selectedId === NEW_TRADE_EVENT_VALUE) {
+    if (selectedId === NEW_LOADING_LIST_VALUE) {
       // Check if name is provided
-      return this.newTradeEventName().trim().length > 0;
+      return this.newLoadingListName().trim().length > 0;
     }
     return true;
   });
@@ -97,33 +97,33 @@ export class Inventory {
 
   protected closeNewInventoryDialog() {
     this.showNewInventoryDialog.set(false);
-    this.selectedTradeEventId.set(null);
-    this.newTradeEventName.set('');
+    this.selectedLoadingListId.set(null);
+    this.newLoadingListName.set('');
   }
 
   protected onTradeEventChange(event: SelectChangeEvent) {
-    this.selectedTradeEventId.set(event.value);
+    this.selectedLoadingListId.set(event.value);
     // Reset the name field when changing selection
-    if (event.value !== NEW_TRADE_EVENT_VALUE) {
-      this.newTradeEventName.set('');
+    if (event.value !== NEW_LOADING_LIST_VALUE) {
+      this.newLoadingListName.set('');
     }
   }
 
   protected onTradeEventNameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.newTradeEventName.set(input.value);
+    this.newLoadingListName.set(input.value);
   }
 
   protected startNewInventory() {
-    const selectedId = this.selectedTradeEventId();
+    const selectedId = this.selectedLoadingListId();
 
-    if (selectedId === NEW_TRADE_EVENT_VALUE) {
+    if (selectedId === NEW_LOADING_LIST_VALUE) {
       // Create new trade event first, then create inventory
-      const name = this.newTradeEventName().trim();
+      const name = this.newLoadingListName().trim();
       if (name) {
         this.createTradeEventAndStartInventory(name);
       }
-    } else if (selectedId === NO_TRADE_EVENT_VALUE) {
+    } else if (selectedId === NO_LOADING_LIST_VALUE) {
       // Start inventory without trade event
       this.store.startNewInventory(undefined);
       this.closeNewInventoryDialog();
@@ -145,13 +145,13 @@ export class Inventory {
   }
 
   protected exportToExcel() {
-    const inventory = this.store.selectedInventory();
-    if (!inventory?.id) {
-      console.error('No inventory selected');
+    const scanSession = this.store.selectedScanSession();
+    if (!scanSession?.id) {
+      console.error('No scanSession selected');
       return;
     }
 
-    this.inventoriesService.getInventoryStockItemsExcel(inventory.id).subscribe({
+    this.scanSessionsService.getScanSessionArticlesExcel(scanSession.id).subscribe({
       next: (blob) => {
         // Create a download link
         const url = window.URL.createObjectURL(blob);

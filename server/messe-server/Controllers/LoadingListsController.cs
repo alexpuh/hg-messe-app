@@ -113,7 +113,7 @@ public class LoadingListsController(LoadingListService loadingListService) : Con
     /// Holt alle Artikeleinheiten für eine Beladeliste und ihre Mindestanzahl
     /// </summary>
     [HttpGet("{loadingListId:int}/units", Name = nameof(GetLoadingListArticleUnits))]
-    public async Task<ActionResult<DtoLoadingLIstArticleUnit[]>> GetLoadingListArticleUnits(int loadingListId)
+    public async Task<ActionResult<DtoLoadingListArticleUnit[]>> GetLoadingListArticleUnits(int loadingListId)
     {
         var ret = await loadingListService.GetLoadingListArticleUnits(loadingListId);
         if (ret == null)

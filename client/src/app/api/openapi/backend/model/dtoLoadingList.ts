@@ -11,9 +11,8 @@
  */
 
 
-export interface DtoArticle { 
-    id?: number;
+export interface DtoLoadingList { 
+    id?: number | null;
     name?: string | null;
-    arNr?: string | null;
 }
 

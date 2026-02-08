@@ -183,7 +183,7 @@ public class LoadingListService(MesseAppDbContext dbContext, ILogger<LoadingList
     /// </summary>
     /// <param name="loadingListId">ID der Beladeliste</param>
     /// <returns>Liste der Artikel/Artikeleinheiten, sowohl mit Mindestanforderung, wie auch ohne. </returns>
-    public async Task<DtoLoadingLIstArticleUnit[]?> GetLoadingListArticleUnits(int loadingListId)
+    public async Task<DtoLoadingListArticleUnit[]?> GetLoadingListArticleUnits(int loadingListId)
     {
         // Prüfe ob LoadingList existiert
         var loadingListExists = await dbContext.LoadingLists.AnyAsync(t => t.Id == loadingListId);
@@ -208,7 +208,7 @@ public class LoadingListService(MesseAppDbContext dbContext, ILogger<LoadingList
             .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
         
         // Mappe zu DTOs
-        var result = articleUnits.Select(au => new DtoLoadingLIstArticleUnit
+        var result = articleUnits.Select(au => new DtoLoadingListArticleUnit
         {
             Id = au.UnitId, // Verwende UnitId als Id
             UnitId = au.UnitId,

@@ -11,7 +11,7 @@
  */
 
 
-export interface DtoInventoryStockItem { 
+export interface DtoScanSessionArticle { 
     id?: number;
     unitId?: number;
     articleNr?: string | null;
