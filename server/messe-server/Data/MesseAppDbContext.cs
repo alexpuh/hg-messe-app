@@ -5,8 +5,8 @@ namespace Herrmann.MesseApp.Server.Data;
 public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : DbContext(options)
 {
     public DbSet<ArticleUnit> ArticleUnits => Set<ArticleUnit>();
-    public DbSet<LoadingList> LoadingLists => Set<LoadingList>();
-    public DbSet<LoadingListRequiredUnit> LoadingListRequiredUnits => Set<LoadingListRequiredUnit>();
+    public DbSet<DispatchSheet> DispatchSheets => Set<DispatchSheet>();
+    public DbSet<DispatchSheetRequiredUnit> DispatchSheetRequiredUnits => Set<DispatchSheetRequiredUnit>();
     public DbSet<ScanSession> ScanSessions => Set<ScanSession>();
     public DbSet<ScannedArticle> ScannedArticles => Set<ScannedArticle>();
     public DbSet<BarcodeScan> BarcodeScans => Set<BarcodeScan>();
@@ -24,21 +24,21 @@ public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : Db
         modelBuilder.Entity<ArticleUnit>()
             .HasIndex(e => e.ArticleId);
         
-        modelBuilder.Entity<LoadingListRequiredUnit>()
-            .HasIndex(e => e.LoadingListId);
+        modelBuilder.Entity<DispatchSheetRequiredUnit>()
+            .HasIndex(e => e.DispatchSheetId);
         
-        modelBuilder.Entity<LoadingListRequiredUnit>()
-            .HasIndex(e => new { e.LoadingListId, e.UnitId })
+        modelBuilder.Entity<DispatchSheetRequiredUnit>()
+            .HasIndex(e => new { e.DispatchSheetId, e.UnitId })
             .IsUnique();
         
-        modelBuilder.Entity<LoadingList>()
+        modelBuilder.Entity<DispatchSheet>()
             .HasMany(t => t.RequiredUnits)
-            .WithOne(r => r.LoadingList)
-            .HasForeignKey(r => r.LoadingListId)
-            .OnDelete(DeleteBehavior.Cascade); // Beim Löschen einer Beladeliste werden auch die RequiredUnits gelöscht
+            .WithOne(r => r.DispatchSheet)
+            .HasForeignKey(r => r.DispatchSheetId)
+            .OnDelete(DeleteBehavior.Cascade); // Beim Löschen einer Verladeschein werden auch die RequiredUnits gelöscht
         
         modelBuilder.Entity<ScanSession>()
-            .HasIndex(e => e.LoadingListId);
+            .HasIndex(e => e.DispatchSheetId);
         
         modelBuilder.Entity<ScanSession>()
             .HasMany(i => i.ScannedArticles)
@@ -47,9 +47,9 @@ public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : Db
             .OnDelete(DeleteBehavior.Cascade);
         
         modelBuilder.Entity<ScanSession>()
-            .HasOne(i => i.LoadingList)
+            .HasOne(i => i.DispatchSheet)
             .WithMany()
-            .HasForeignKey(i => i.LoadingListId)
+            .HasForeignKey(i => i.DispatchSheetId)
             .OnDelete(DeleteBehavior.SetNull);
         
         modelBuilder.Entity<ScannedArticle>()

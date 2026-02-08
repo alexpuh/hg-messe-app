@@ -10,9 +10,9 @@ namespace Herrmann.MesseApp.Server.Controllers;
 public class ScanSessionsController(ScanSessionService scanSessionService, ILogger<ScanSessionsController> logger) : ControllerBase
 {
     [HttpPost(Name = nameof(CreateScanSession))]
-    public async Task<ActionResult<DtoScanSession>> CreateScanSession([FromQuery] int? loadingListId = null)
+    public async Task<ActionResult<DtoScanSession>> CreateScanSession([FromQuery] int? dispatchSheetId = null)
     {
-        var scanSessionId = await scanSessionService.CreateScanSessionAsync(loadingListId);
+        var scanSessionId = await scanSessionService.CreateScanSessionAsync(dispatchSheetId);
         var scanSession = await scanSessionService.GetScanSessionAsync(scanSessionId);
         
         if (scanSession == null)
@@ -24,7 +24,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         { 
             Id = scanSession.Id, 
             StartedAt = scanSession.StartedAt, 
-            LoadingListId = scanSession.LoadingListId, 
+            DispatchSheetId = scanSession.DispatchSheetId, 
             UpdatedAt = scanSession.UpdatedAt 
         };
         
@@ -39,7 +39,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         {
             return NotFound();
         }
-        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, LoadingListId = result.LoadingListId, UpdatedAt = result.UpdatedAt};
+        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
     }
     
     [HttpGet("{id:int}", Name = nameof(GetScanSession))]
@@ -50,7 +50,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         {
             return NotFound();
         }
-        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, LoadingListId = result.LoadingListId, UpdatedAt = result.UpdatedAt};
+        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
     }
     
     [HttpGet("{id:int}/articles", Name = nameof(GetScanSessionArticles))]
@@ -80,7 +80,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
             return NotFound();
         }
         using var memoryStream = new MemoryStream();
-        excelReportService.Generate(memoryStream, result.Value.loadingListName, result.Value.articles, DateTime.Today.ToString("yyyy-MM-dd"));
+        excelReportService.Generate(memoryStream, result.Value.dispatchSheetName, result.Value.articles, DateTime.Today.ToString("yyyy-MM-dd"));
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {

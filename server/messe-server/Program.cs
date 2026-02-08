@@ -36,7 +36,7 @@ try
     builder.Services.AddOpenApi();
 
     builder.Services
-        .AddScoped<LoadingListService>()
+        .AddScoped<DispatchSheetService>()
         .AddScoped<ArticlesService>()
         .AddScoped<ScanSessionService>()
         .AddScoped<SignalNotificationService>()

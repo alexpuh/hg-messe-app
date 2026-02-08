@@ -82,19 +82,19 @@ public class ScanSessionService(
     /// <summary>
     /// Erstellt ein neue Scan Session
     /// </summary>
-    public async Task<int> CreateScanSessionAsync(int? loadingListId = null)
+    public async Task<int> CreateScanSessionAsync(int? dispatchSheetId = null)
     {
         var scanSession = new ScanSession
         {
             StartedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
-            LoadingListId = loadingListId
+            DispatchSheetId = dispatchSheetId
         };
 
         dbContext.ScanSessions.Add(scanSession);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Scan session erstellt: Id={SessionId}, LoadingListId={LoadingListId}", scanSession.Id, loadingListId);
+        logger.LogInformation("Scan session erstellt: Id={SessionId}, DispatchSheetId={DispatchSheetId}", scanSession.Id, dispatchSheetId);
 
         return scanSession.Id;
     }
@@ -121,17 +121,17 @@ public class ScanSessionService(
     }
     
     /// <summary>
-    /// Holt Scan Session-Ergebnisse als DTO mit RequiredCount aus der Beladeliste
+    /// Holt Scan Session-Ergebnisse als DTO mit RequiredCount aus der Verladeschein
     /// Gibt sowohl gescannte Items als auch nicht-gescannte Items mit RequiredCount > 0 zurück
     /// </summary>
     /// <param name="sessionId">ID der ScanSession</param>
     /// <returns>Null if sessionId not found</returns>
-    public async Task<(string? loadingListName, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
+    public async Task<(string? dispatchSheetName, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
     {
         // Lade Scan Session mit Articles
         var scanSession = await dbContext.ScanSessions
             .Include(i => i.ScannedArticles)
-            .Include(i => i.LoadingList)
+            .Include(i => i.DispatchSheet)
             .FirstOrDefaultAsync(i => i.Id == sessionId);
 
         if (scanSession == null)
@@ -144,10 +144,10 @@ public class ScanSessionService(
         var allUnitIds = new HashSet<int>(scannedUnitIds);
 
         Dictionary<int, int>? requiredUnits = null;
-        if (scanSession.LoadingListId.HasValue)
+        if (scanSession.DispatchSheetId.HasValue)
         {
-            requiredUnits = await dbContext.LoadingListRequiredUnits
-                .Where(r => r.LoadingListId == scanSession.LoadingListId.Value && r.RequiredCount > 0)
+            requiredUnits = await dbContext.DispatchSheetRequiredUnits
+                .Where(r => r.DispatchSheetId == scanSession.DispatchSheetId.Value && r.RequiredCount > 0)
                 .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
             
             // Füge alle UnitIds mit RequiredCount > 0 hinzu
@@ -159,7 +159,7 @@ public class ScanSessionService(
 
         if (allUnitIds.Count == 0)
         {
-            return (scanSession.LoadingList?.Name, []);
+            return (scanSession.DispatchSheet?.Name, []);
         }
 
         // Lade ArticleUnits für alle UnitIds (gescannte + required)
@@ -222,6 +222,6 @@ public class ScanSessionService(
             }
         }
 
-        return (scanSession.LoadingList?.Name, results.ToArray());
+        return (scanSession.DispatchSheet?.Name, results.ToArray());
     }
 }

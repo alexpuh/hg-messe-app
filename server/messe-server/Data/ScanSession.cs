@@ -14,10 +14,10 @@ public class ScanSession
     
     public DateTime? UpdatedAt { get; set; }
     
-    public int? LoadingListId { get; set; }
+    public int? DispatchSheetId { get; set; }
     
     // Navigation Properties
-    public LoadingList? LoadingList { get; set; }
+    public DispatchSheet? DispatchSheet { get; set; }
     
     public ICollection<ScannedArticle> ScannedArticles { get; set; } = new List<ScannedArticle>();
 }

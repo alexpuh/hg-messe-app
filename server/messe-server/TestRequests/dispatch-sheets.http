@@ -1,0 +1,71 @@
+﻿### ===== Dispatch Sheets =====
+### Get all Dispatch Sheets
+GET {{HostAddress}}/api/DispatchSheets
+Accept: application/json
+
+### Get Dispatch Sheet by ID
+GET {{HostAddress}}/api/DispatchSheets/1
+Accept: application/json
+
+### Create new Dispatch Sheet
+POST {{HostAddress}}/api/DispatchSheets
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "name": "LKW-1"
+}
+
+### Update Dispatch Sheet
+PUT {{HostAddress}}/api/DispatchSheets/1
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "name": "LKW Groß"
+}
+
+### Delete Dispatch Sheet
+DELETE {{HostAddress}}/api/DispatchSheets/3
+Accept: application/json
+
+### Get DispatchSheets articles
+GET {{HostAddress}}/api/DispatchSheets/1/units
+
+### Set Required Units for Dispatch Sheet
+POST {{HostAddress}}/api/DispatchSheets/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 6338,
+  "count": 50
+}
+
+### Get Required Units for Dispatch Sheet
+GET {{HostAddress}}/api/DispatchSheets/1/required-units
+Accept: application/json
+
+### Update Required Units (different unit)
+POST {{HostAddress}}/api/DispatchSheets/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 2,
+  "count": 30
+}
+
+### Delete Required Unit (set count to 0)
+POST {{HostAddress}}/api/DispatchSheets/1/required-units
+Content-Type: application/json; charset=utf-8
+Accept: application/json
+
+{
+  "unitId": 1,
+  "count": 0
+}
+
+### Delete Required Unit (using DELETE endpoint)
+DELETE {{HostAddress}}/api/DispatchSheets/1/required-units/2
+Accept: application/json

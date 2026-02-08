@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Herrmann.MesseApp.Server.Data;
 
-[Table("LoadingLists")]
-public class LoadingList
+[Table("DispatchSheets")]
+public class DispatchSheet
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,6 +16,6 @@ public class LoadingList
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
-    public ICollection<LoadingListRequiredUnit> RequiredUnits { get; set; } = new List<LoadingListRequiredUnit>();
+    public ICollection<DispatchSheetRequiredUnit> RequiredUnits { get; set; } = new List<DispatchSheetRequiredUnit>();
 }
 
