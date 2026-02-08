@@ -124,14 +124,14 @@ public class InventoryExcelExportService(ILogger<InventoryExcelExportService> lo
                 cell.Value = item.RequiredCount;
                 SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
             });
-            if (item.RequiredCount is not null && item.RequiredCount < item.Count)
+            SetCell(ws, zeile, 7, cell =>
             {
-                SetCell(ws, zeile, 7, cell =>
+                if (item.RequiredCount is not null && item.Count < item.RequiredCount)
                 {
-                    cell.Value = item.Count - item.RequiredCount.Value;
-                    SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
-                });
-            }
+                    cell.Value = item.RequiredCount - item.Count;
+                }
+                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+            });
         }
     }
     private static void SetHeaderStyle(IXLCell cell)
