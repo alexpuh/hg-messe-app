@@ -12,6 +12,10 @@ public class InventoryExcelExportService(ILogger<InventoryExcelExportService> lo
         var ws = workbook.Worksheets.Add(workbookName);
         GenerateExcel(tradeEventName, inventory.OrderBy(i => i.ArticleNr), ws);
         workbook.SaveAs(stream);
+        if (stream.CanSeek)
+        {
+            stream.Position = 0;
+        }
     }
 
     private static void GenerateExcel(string? tradeEventName, IEnumerable<DtoInventoryStockItem> items, IXLWorksheet ws)
@@ -120,11 +124,11 @@ public class InventoryExcelExportService(ILogger<InventoryExcelExportService> lo
                 cell.Value = item.RequiredCount;
                 SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
             });
-            if (item.RequiredCount < item.Count)
+            if (item.RequiredCount is not null && item.RequiredCount < item.Count)
             {
                 SetCell(ws, zeile, 7, cell =>
                 {
-                    cell.Value = item.Count - item.RequiredCount;
+                    cell.Value = item.Count - item.RequiredCount.Value;
                     SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
                 });
             }

@@ -162,7 +162,7 @@ public class InventoryService(
 
         if (inventory.StockItems.Count == 0)
         {
-            return (null, []);
+            return (inventory.TradeEvent?.Name, []);
         }
 
         // Lade ArticleUnits für alle StockItems
