@@ -36,11 +36,11 @@ try
     builder.Services.AddOpenApi();
 
     builder.Services
-        .AddScoped<TradeEventsService>()
+        .AddScoped<LoadingListService>()
         .AddScoped<ArticlesService>()
-        .AddScoped<InventoryService>()
+        .AddScoped<ScanSessionService>()
         .AddScoped<SignalNotificationService>()
-        .AddScoped<InventoryExcelExportService>()
+        .AddScoped<ScanSessionExcelExportService>()
         .AddSingleton<BarcodeScannerService>()
         .AddHostedService<BarcodeScannerBackgroundService>()
         ;

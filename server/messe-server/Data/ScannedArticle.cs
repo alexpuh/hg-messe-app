@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Herrmann.MesseApp.Server.Data;
 
-[Table("StockItems")]
-public class StockItem
+[Table("ScannedArticles")]
+public class ScannedArticle
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     
-    public int InventoryId { get; set; }
+    public int ScanSessionId { get; set; }
     
     public int UnitId { get; set; }
     
@@ -19,7 +19,7 @@ public class StockItem
     public DateTime UpdatedAt { get; set; }
     
     // Navigation Properties
-    public Inventory? Inventory { get; set; }
+    public ScanSession? ScanSession { get; set; }
     
     public ICollection<BarcodeScan> BarcodeScans { get; set; } = new List<BarcodeScan>();
 }

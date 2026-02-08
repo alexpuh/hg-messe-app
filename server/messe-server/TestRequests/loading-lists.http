@@ -1,39 +1,39 @@
 ﻿### ===== Trade Events =====
 ### Get all Trade Events
-GET {{HostAddress}}/api/TradeEvents
+GET {{HostAddress}}/api/LoadingLists
 Accept: application/json
 
 ### Get Trade Event by ID
-GET {{HostAddress}}/api/TradeEvents/1
+GET {{HostAddress}}/api/LoadingLists/1
 Accept: application/json
 
 ### Create new Trade Event
-POST {{HostAddress}}/api/TradeEvents
+POST {{HostAddress}}/api/LoadingLists
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
 {
-  "name": "München"
+  "name": "LKW-1"
 }
 
 ### Update Trade Event
-PUT {{HostAddress}}/api/TradeEvents/1
+PUT {{HostAddress}}/api/LoadingLists/1
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
 {
-  "name": "Berlin 2026"
+  "name": "LKW Groß"
 }
 
 ### Delete Trade Event
-DELETE {{HostAddress}}/api/TradeEvents/3
+DELETE {{HostAddress}}/api/LoadingLists/3
 Accept: application/json
 
-### Get TradeEvent articles
-GET {{HostAddress}}/api/TradeEvents/1/units
+### Get LoadingLists articles
+GET {{HostAddress}}/api/LoadingLists/1/units
 
 ### Set Required Units for Trade Event
-POST {{HostAddress}}/api/TradeEvents/1/required-units
+POST {{HostAddress}}/api/LoadingLists/1/required-units
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
@@ -43,11 +43,11 @@ Accept: application/json
 }
 
 ### Get Required Units for Trade Event
-GET {{HostAddress}}/api/TradeEvents/1/required-units
+GET {{HostAddress}}/api/LoadingLists/1/required-units
 Accept: application/json
 
 ### Update Required Units (different unit)
-POST {{HostAddress}}/api/TradeEvents/1/required-units
+POST {{HostAddress}}/api/LoadingLists/1/required-units
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
@@ -57,7 +57,7 @@ Accept: application/json
 }
 
 ### Delete Required Unit (set count to 0)
-POST {{HostAddress}}/api/TradeEvents/1/required-units
+POST {{HostAddress}}/api/LoadingLists/1/required-units
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
@@ -67,5 +67,5 @@ Accept: application/json
 }
 
 ### Delete Required Unit (using DELETE endpoint)
-DELETE {{HostAddress}}/api/TradeEvents/1/required-units/2
+DELETE {{HostAddress}}/api/LoadingLists/1/required-units/2
 Accept: application/json

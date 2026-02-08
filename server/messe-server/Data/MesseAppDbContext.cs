@@ -5,10 +5,10 @@ namespace Herrmann.MesseApp.Server.Data;
 public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : DbContext(options)
 {
     public DbSet<ArticleUnit> ArticleUnits => Set<ArticleUnit>();
-    public DbSet<TradeEvent> TradeEvents => Set<TradeEvent>();
-    public DbSet<TradeEventRequiredUnit> TradeEventRequiredUnits => Set<TradeEventRequiredUnit>();
-    public DbSet<Inventory> Inventories => Set<Inventory>();
-    public DbSet<StockItem> StockItems => Set<StockItem>();
+    public DbSet<LoadingList> LoadingLists => Set<LoadingList>();
+    public DbSet<LoadingListRequiredUnit> LoadingListRequiredUnits => Set<LoadingListRequiredUnit>();
+    public DbSet<ScanSession> ScanSessions => Set<ScanSession>();
+    public DbSet<ScannedArticle> ScannedArticles => Set<ScannedArticle>();
     public DbSet<BarcodeScan> BarcodeScans => Set<BarcodeScan>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -24,54 +24,46 @@ public class MesseAppDbContext(DbContextOptions<MesseAppDbContext> options) : Db
         modelBuilder.Entity<ArticleUnit>()
             .HasIndex(e => e.ArticleId);
         
-        // TradeEventRequiredUnit Indizes
-        modelBuilder.Entity<TradeEventRequiredUnit>()
-            .HasIndex(e => e.TradeEventId);
+        modelBuilder.Entity<LoadingListRequiredUnit>()
+            .HasIndex(e => e.LoadingListId);
         
-        modelBuilder.Entity<TradeEventRequiredUnit>()
-            .HasIndex(e => new { e.TradeEventId, e.UnitId })
-            .IsUnique(); // Ein UnitId kann nur einmal pro TradeEvent vorkommen
+        modelBuilder.Entity<LoadingListRequiredUnit>()
+            .HasIndex(e => new { e.LoadingListId, e.UnitId })
+            .IsUnique();
         
-        // Relation: TradeEvent -> TradeEventRequiredUnits (1:n)
-        modelBuilder.Entity<TradeEvent>()
+        modelBuilder.Entity<LoadingList>()
             .HasMany(t => t.RequiredUnits)
-            .WithOne(r => r.TradeEvent)
-            .HasForeignKey(r => r.TradeEventId)
-            .OnDelete(DeleteBehavior.Cascade); // Beim Löschen eines TradeEvents werden auch die RequiredUnits gelöscht
+            .WithOne(r => r.LoadingList)
+            .HasForeignKey(r => r.LoadingListId)
+            .OnDelete(DeleteBehavior.Cascade); // Beim Löschen einer Beladeliste werden auch die RequiredUnits gelöscht
         
-        // Inventory Indizes
-        modelBuilder.Entity<Inventory>()
-            .HasIndex(e => e.TradeEventId);
+        modelBuilder.Entity<ScanSession>()
+            .HasIndex(e => e.LoadingListId);
         
-        // Relation: Inventory -> StockItems (1:n)
-        modelBuilder.Entity<Inventory>()
-            .HasMany(i => i.StockItems)
-            .WithOne(s => s.Inventory)
-            .HasForeignKey(s => s.InventoryId)
+        modelBuilder.Entity<ScanSession>()
+            .HasMany(i => i.ScannedArticles)
+            .WithOne(s => s.ScanSession)
+            .HasForeignKey(s => s.ScanSessionId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        // Relation: Inventory -> TradeEvent (n:1)
-        modelBuilder.Entity<Inventory>()
-            .HasOne(i => i.TradeEvent)
+        modelBuilder.Entity<ScanSession>()
+            .HasOne(i => i.LoadingList)
             .WithMany()
-            .HasForeignKey(i => i.TradeEventId)
+            .HasForeignKey(i => i.LoadingListId)
             .OnDelete(DeleteBehavior.SetNull);
         
-        // StockItem Indizes
-        modelBuilder.Entity<StockItem>()
-            .HasIndex(e => e.InventoryId);
+        modelBuilder.Entity<ScannedArticle>()
+            .HasIndex(e => e.ScanSessionId);
         
-        modelBuilder.Entity<StockItem>()
+        modelBuilder.Entity<ScannedArticle>()
             .HasIndex(e => e.UnitId);
         
-        // Relation: StockItem -> BarcodeScans (1:n)
-        modelBuilder.Entity<StockItem>()
+        modelBuilder.Entity<ScannedArticle>()
             .HasMany(s => s.BarcodeScans)
             .WithOne(b => b.StockItem)
             .HasForeignKey(b => b.StockItemId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        // BarcodeScan Indizes
         modelBuilder.Entity<BarcodeScan>()
             .HasIndex(e => e.StockItemId);
         

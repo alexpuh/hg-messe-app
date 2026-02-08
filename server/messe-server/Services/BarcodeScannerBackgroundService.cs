@@ -82,34 +82,33 @@ public class BarcodeScannerBackgroundService(
 
         try
         {
-            // Create a scope to get InventoryService
+            // Create a scope to get scoped services
             using var scope = serviceProvider.CreateScope();
-            var inventoriesService = scope.ServiceProvider.GetRequiredService<InventoryService>();
+            var scanSessionService = scope.ServiceProvider.GetRequiredService<ScanSessionService>();
             var notificationService = scope.ServiceProvider.GetRequiredService<SignalNotificationService>();
 
-            // Prüfe ob aktuelles Event-Inventar existiert
-            var currentInventory = await inventoriesService.GetCurrentInventoryAsync();
-            if (currentInventory == null)
+            // Prüfe ob aktuelle scan session existiert
+            var currentScanSession = await scanSessionService.GetCurrentScanSessionAsync();
+            if (currentScanSession == null)
             {
-                logger.LogWarning("Kein aktives Event-Inventar gefunden");
-                await notificationService.SendBarcodeError(e.Barcode, "Kein aktives Event-Inventar gefunden");
+                logger.LogWarning("Keine aktive Scan-Session gefunden");
+                await notificationService.SendBarcodeError(e.Barcode, "Keine aktive Scan-Session gefunden");
                 e.IsProcessed = false;
                 return;
             }
             
-            // Füge zum Inventar hinzu
-            var (success, errorMessage) = await inventoriesService.AddBarcodeAsync(currentInventory.Id, e.Barcode);
+            var (success, errorMessage) = await scanSessionService.AddBarcodeAsync(currentScanSession.Id, e.Barcode);
             
             if (success)
             {
                 await notificationService.SendBarcodeScanned(e.Barcode);
-                logger.LogDebug("Artikel erfolgreich zum Inventar hinzugefügt");
+                logger.LogDebug("Artikel erfolgreich zur Scan-Session hinzugefügt");
                 e.IsProcessed = true;
             }
             else
             {
                 await notificationService.SendBarcodeError(e.Barcode, errorMessage);
-                logger.LogError("Fehler beim Hinzufügen des Artikels zum Inventar");
+                logger.LogError("Fehler beim Hinzufügen des Artikels zur Scan-Session");
                 e.IsProcessed = false;
             }
         }

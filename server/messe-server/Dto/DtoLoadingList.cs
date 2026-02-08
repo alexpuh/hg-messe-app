@@ -1,6 +1,6 @@
 ﻿namespace Herrmann.MesseApp.Server.Dto;
 
-public class DtoTradeEvent
+public class DtoLoadingList
 {
     public int? Id { get; set; }
     public string Name { get; set; }

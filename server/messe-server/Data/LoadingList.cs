@@ -3,8 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Herrmann.MesseApp.Server.Data;
 
-[Table("TradeEvents")]
-public class TradeEvent
+[Table("LoadingLists")]
+public class LoadingList
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -16,7 +16,6 @@ public class TradeEvent
     
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     
-    // Navigation Property: Ein TradeEvent kann mehrere Required Units haben
-    public ICollection<TradeEventRequiredUnit> RequiredUnits { get; set; } = new List<TradeEventRequiredUnit>();
+    public ICollection<LoadingListRequiredUnit> RequiredUnits { get; set; } = new List<LoadingListRequiredUnit>();
 }
 

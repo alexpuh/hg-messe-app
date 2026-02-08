@@ -11,16 +11,6 @@ public class ArticlesController(
     ILogger<ArticlesController> logger
     ) : ControllerBase
 {
-    [HttpGet(Name = "GetArticles")]
-    public IEnumerable<DtoArticle> Get()
-    {
-        return [
-            new DtoArticle{ Id = 1, Name = "Test", ArNr = "1234567890"},
-            new DtoArticle{ Id = 2, Name = "Test2", ArNr = "1234567891"},
-            new DtoArticle{ Id = 3, Name = "Test3", ArNr = "1234567892"}
-        ];
-    }
-
     /// <summary>
     /// Importiert Artikel aus einer JSON-Datei
     /// </summary>
