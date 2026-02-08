@@ -94,19 +94,19 @@ export class ScanSessionsOpenApi {
     }
 
     /**
-     * @param loadingListId 
+     * @param dispatchSheetId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createScanSession(loadingListId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
-    public createScanSession(loadingListId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
-    public createScanSession(loadingListId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
-    public createScanSession(loadingListId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public createScanSession(dispatchSheetId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
+    public createScanSession(dispatchSheetId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
+    public createScanSession(dispatchSheetId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
+    public createScanSession(dispatchSheetId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
-        if (loadingListId !== undefined && loadingListId !== null) {
+        if (dispatchSheetId !== undefined && dispatchSheetId !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
-            <any>loadingListId, 'loadingListId');
+            <any>dispatchSheetId, 'dispatchSheetId');
         }
 
         let localVarHeaders = this.defaultHeaders;

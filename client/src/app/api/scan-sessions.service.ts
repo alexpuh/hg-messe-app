@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import {Observable, of} from 'rxjs';
+import {Observable} from 'rxjs';
 import {DtoScanSession, DtoScanSessionArticle, ScanSessionsOpenApi} from './openapi/backend';
 
 @Injectable({

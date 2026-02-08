@@ -6,9 +6,9 @@ import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { ScanSessionStore } from '../../store';
-import { LoadingListsService } from '../../api/loading-lists.service';
+import { DispatchSheetsService } from '../../api/dispatch-sheets.service';
 import {TableModule} from 'primeng/table';
-import {DtoLoadingListArticleUnit} from '../../api/openapi/backend';
+import {DtoDispatchSheetArticleUnit} from '../../api/openapi/backend';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -30,27 +30,27 @@ import {DtoLoadingListArticleUnit} from '../../api/openapi/backend';
 })
 export class RequiredStockSetup {
   private readonly store = inject(ScanSessionStore);
-  private readonly tradeEventsService = inject(LoadingListsService);
+  private readonly dispatchSheetsService = inject(DispatchSheetsService);
 
-  protected selectedTradeEventId = signal<number | null>(this.store.selectedScanSession()?.loadingListId ?? null);
-  protected showNewTradeEventDialog = signal(false);
-  protected newTradeEventName = signal('');
-  private articlesData = signal<DtoLoadingListArticleUnit[]>([]);
+  protected selectedDispatchSheetId = signal<number | null>(this.store.selectedScanSession()?.dispatchSheetId ?? null);
+  protected showNewDispatchSheetDialog = signal(false);
+  protected newDispatchSheetName = signal('');
+  private articlesData = signal<DtoDispatchSheetArticleUnit[]>([]);
 
   // Editing state for required counts
   protected editingUnitId = signal<number | null>(null);
   protected editingValue = signal<string>('');
 
   constructor() {
-    // Load articles when loadinglist changes
+    // Load articles when the dispatch sheet changes
     effect(() => {
-      const tradeEventId = this.selectedTradeEventId();
-      if (!tradeEventId) {
+      const dispatchSheetId = this.selectedDispatchSheetId();
+      if (!dispatchSheetId) {
         this.articlesData.set([]);
         return;
       }
 
-      this.tradeEventsService.getLoadingListArticleUnits(tradeEventId).subscribe({
+      this.dispatchSheetsService.getDispatchSheetArticleUnits(dispatchSheetId).subscribe({
         next: (articles) => {
           this.articlesData.set(articles);
         },
@@ -63,17 +63,17 @@ export class RequiredStockSetup {
   }
 
   protected messeName = computed(() => {
-    const selectedId = this.selectedTradeEventId();
+    const selectedId = this.selectedDispatchSheetId();
     if (!selectedId) return 'Keine Messe ausgewählt';
 
-    const tradeEvent = this.store.tradeEvents().find(te => te.id === selectedId);
-    return tradeEvent?.name ?? 'Unbekannt';
+    const dispatchSheet = this.store.dispatchSheets().find(te => te.id === selectedId);
+    return dispatchSheet?.name ?? 'Unbekannt';
   });
 
-  protected tradeEventOptions = computed(() => {
-    return this.store.tradeEvents().map(event => ({
-      label: event.name || 'Unbekannt',
-      value: event.id
+  protected dispatchSheetOptions = computed(() => {
+    return this.store.dispatchSheets().map(dispatchSheet => ({
+      label: dispatchSheet.name || 'Unbekannt',
+      value: dispatchSheet.id
     }));
   });
 
@@ -83,45 +83,45 @@ export class RequiredStockSetup {
     return [...items].sort(this.compareArticles);
   });
 
-  protected onTradeEventChange(event: SelectChangeEvent) {
-    this.selectedTradeEventId.set(event.value);
+  protected onDispatchSheetChange(event: SelectChangeEvent) {
+    this.selectedDispatchSheetId.set(event.value);
   }
 
-  protected openNewTradeEventDialog() {
-    this.showNewTradeEventDialog.set(true);
-    this.newTradeEventName.set('');
+  protected openNewDispatchSheetDialog() {
+    this.showNewDispatchSheetDialog.set(true);
+    this.newDispatchSheetName.set('');
   }
 
-  protected closeNewTradeEventDialog() {
-    this.showNewTradeEventDialog.set(false);
-    this.newTradeEventName.set('');
+  protected closeNewDispatchSheetDialog() {
+    this.showNewDispatchSheetDialog.set(false);
+    this.newDispatchSheetName.set('');
   }
 
-  protected onNewTradeEventNameChange(event: Event) {
+  protected onNewDispatchSheetNameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.newTradeEventName.set(input.value);
+    this.newDispatchSheetName.set(input.value);
   }
 
-  protected canCreateTradeEvent = computed(() => {
-    return this.newTradeEventName().trim().length > 0;
+  protected canCreateDispatchSheet = computed(() => {
+    return this.newDispatchSheetName().trim().length > 0;
   });
 
-  protected createNewTradeEvent() {
-    const name = this.newTradeEventName().trim();
+  protected createNewDispatchSheet() {
+    const name = this.newDispatchSheetName().trim();
     if (!name) return;
 
-    this.tradeEventsService.addLoadingList({ name }).subscribe({
-      next: (tradeEvent) => {
-        // Reload trade events from the store
-        this.store.readLoadingLists();
-        // Select the newly created trade event
-        if (tradeEvent.id) {
-          this.selectedTradeEventId.set(tradeEvent.id);
+    this.dispatchSheetsService.addDispatchSheet({ name }).subscribe({
+      next: (dispatchSheet) => {
+        // Reload dispatch sheets from the store
+        this.store.loadDispatchSheets();
+        // Select the newly created dispatch sheet
+        if (dispatchSheet.id) {
+          this.selectedDispatchSheetId.set(dispatchSheet.id);
         }
-        this.closeNewTradeEventDialog();
+        this.closeNewDispatchSheetDialog();
       },
       error: (error) => {
-        console.error('Error creating trade event:', error);
+        console.error('Error creating dispatch sheet:', error);
       }
     });
   }
@@ -140,8 +140,8 @@ export class RequiredStockSetup {
   protected saveRequiredCount(unitId: number | undefined) {
     if (!unitId) return;
 
-    const tradeEventId = this.selectedTradeEventId();
-    if (!tradeEventId) return;
+    const dispatchSheetId = this.selectedDispatchSheetId();
+    if (!dispatchSheetId) return;
 
     const value = parseInt(this.editingValue(), 10);
     if (isNaN(value) || value < 0) {
@@ -149,7 +149,7 @@ export class RequiredStockSetup {
       return;
     }
 
-    this.tradeEventsService.setRequiredUnits(tradeEventId, {
+    this.dispatchSheetsService.setRequiredUnits(dispatchSheetId, {
       unitId,
       count: value
     }).subscribe({
@@ -171,10 +171,10 @@ export class RequiredStockSetup {
   protected deleteRequiredCount(unitId: number | undefined) {
     if (!unitId) return;
 
-    const tradeEventId = this.selectedTradeEventId();
-    if (!tradeEventId) return;
+    const dispatchSheetId = this.selectedDispatchSheetId();
+    if (!dispatchSheetId) return;
 
-    this.tradeEventsService.deleteRequiredUnit(tradeEventId, unitId).subscribe({
+    this.dispatchSheetsService.deleteRequiredUnit(dispatchSheetId, unitId).subscribe({
       next: () => {
         // Update local data
         const articles = this.articlesData();

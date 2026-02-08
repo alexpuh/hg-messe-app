@@ -11,17 +11,17 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { pipe, switchMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { ScanSessionsService } from '../api/scan-sessions.service';
-import { LoadingListsService } from '../api/loading-lists.service';
+import { DispatchSheetsService } from '../api/dispatch-sheets.service';
 import { BarcodeScannerService, BarcodeScannerStatus } from '../api/barcode-scanner.service';
 import { SignalrService } from '../api/notifications/signalr.service';
 import { MessageService } from 'primeng/api';
-import {DtoLoadingList, DtoScanSession, DtoScanSessionArticle} from '../api/openapi/backend';
+import {DtoDispatchSheet, DtoScanSession, DtoScanSessionArticle} from '../api/openapi/backend';
 
 export interface ScanSessionState {
   selectedScanSession: DtoScanSession | null;
   scanSessionArticles: DtoScanSessionArticle[];
-  tradeEvents: DtoLoadingList[];
-  tradeEventName: string | null;
+  dispatchSheets: DtoDispatchSheet[];
+  dispatchSheetName: string | null;
   barcodeScannerStatus: BarcodeScannerStatus | null;
   isLoading: boolean;
   error: string | null;
@@ -30,8 +30,8 @@ export interface ScanSessionState {
 const initialState: ScanSessionState = {
   selectedScanSession: null,
   scanSessionArticles: [],
-  tradeEvents: [],
-  tradeEventName: null,
+  dispatchSheets: [],
+  dispatchSheetName: null,
   barcodeScannerStatus: null,
   isLoading: false,
   error: null,
@@ -41,8 +41,8 @@ export const ScanSessionStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
   withComputed((state) => ({
-    hasInventory: computed(() => state.selectedScanSession() !== null),
-    inventoryId: computed(() => state.selectedScanSession()?.id ?? null),
+    hasScanSession: computed(() => state.selectedScanSession() !== null),
+    scanSessionId: computed(() => state.selectedScanSession()?.id ?? null),
     isScannerConnected: computed(
       () => state.barcodeScannerStatus()?.isConnected ?? false
     ),
@@ -51,7 +51,7 @@ export const ScanSessionStore = signalStore(
     (
       store,
       scanSessionsService = inject(ScanSessionsService),
-      loadingListsService = inject(LoadingListsService),
+      dispatchSheetsService = inject(DispatchSheetsService),
       barcodeScannerService = inject(BarcodeScannerService),
       signalrService = inject(SignalrService),
       messageService = inject(MessageService)
@@ -100,44 +100,42 @@ export const ScanSessionStore = signalStore(
         });
       };
 
-      // Helper function to create a trade event and add it to the list
-      const createLoadingListInternal = (name: string) => {
-        return loadingListsService.addLoadingList({ name }).pipe(
-          tap((tradeEvent) => {
-            // Add the new trade event to the list
+      // Helper function to create a dispatch sheet and add it to the list
+      const createDispatchSheetInternal = (name: string) => {
+        return dispatchSheetsService.addDispatchSheet({ name }).pipe(
+          tap((dispatchSheet) => {
             patchState(store, {
-              tradeEvents: [...store.tradeEvents(), tradeEvent],
+              dispatchSheets: [...store.dispatchSheets(), dispatchSheet],
             });
           })
         );
       };
 
       return {
-        // Load current scan session and its stock items
-        readCurrentScanSession: rxMethod<void>(
+        // Load the current scan session and its stock items
+        loadCurrentScanSession: rxMethod<void>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap(() =>
               scanSessionsService.getCurrentScanSession().pipe(
                 tapResponse({
                   next: (scanSession) => {
-                    // Find the trade event name for this scanSession
-                    const tradeEventName = scanSession.loadingListId
-                      ? store.tradeEvents().find(te => te.id === scanSession.loadingListId)?.name ?? null
+                    // Find the dispatch sheet name for this scanSession
+                    const dispatchSheetName = scanSession.dispatchSheetId
+                      ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
                       : null;
 
                     patchState(store, {
                       selectedScanSession: scanSession,
-                      tradeEventName,
+                      dispatchSheetName: dispatchSheetName,
                       isLoading: false,
                     });
-                    // Load stock items if scanSession exists
                     if (scanSession.id) {
                       loadScanSessionArticlesInternal(scanSession.id);
                     }
                   },
                   error: (error: Error) => {
-                    console.error('Error loading inventory:', error);
+                    console.error('Error loading scan session:', error);
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -149,24 +147,24 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Load stock items for a specific inventory
-        readScanSessionArticles: loadScanSessionArticlesInternal,
+        // Load scan session articles
+        loadScanSessionArticles: loadScanSessionArticlesInternal,
 
-        // Load all loading lists
-        readLoadingLists: rxMethod<void>(
+        // Load all dispatch sheets
+        loadDispatchSheets: rxMethod<void>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap(() =>
-              loadingListsService.getLoadingLists().pipe(
+              dispatchSheetsService.getDispatchSheets().pipe(
                 tapResponse({
-                  next: (events) => {
+                  next: (dispatchSheets) => {
                     patchState(store, {
-                      tradeEvents: events,
+                      dispatchSheets: dispatchSheets,
                       isLoading: false,
                     });
                   },
                   error: (error: Error) => {
-                    console.error('Error reading loading lists:', error);
+                    console.error('Error reading dispatch sheets:', error);
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -202,28 +200,28 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Select an inventory by ID and reload its data
-        selectInventory: rxMethod<number>(
+        // Select a scan session by ID and reload its data
+        selectScanSession: rxMethod<number>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((inventoryId) =>
-              scanSessionsService.getScanSession(inventoryId).pipe(
+            switchMap((scanSessionId) =>
+              scanSessionsService.getScanSession(scanSessionId).pipe(
                 tapResponse({
                   next: (scanSession) => {
-                    // Find the trade event name for this scanSession
-                    const tradeEventName = scanSession.loadingListId
-                      ? store.tradeEvents().find(te => te.id === scanSession.loadingListId)?.name ?? null
+                    // Find the dispatch sheet name for this scanSession
+                    const dispatchSheetName = scanSession.dispatchSheetId
+                      ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
                       : null;
 
                     patchState(store, {
                       selectedScanSession: scanSession,
-                      tradeEventName,
+                      dispatchSheetName: dispatchSheetName,
                       isLoading: false,
                     });
-                    loadScanSessionArticlesInternal(inventoryId);
+                    loadScanSessionArticlesInternal(scanSessionId);
                   },
                   error: (error: Error) => {
-                    console.error('Error selecting inventory:', error);
+                    console.error('Error selecting scan session:', error);
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -235,26 +233,26 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Start a new inventory for a trade event
-        startNewInventory: rxMethod<number | undefined>(
+        // Start a new scan session for a dispatch sheet
+        startNewScanSession: rxMethod<number | undefined>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((tradeEventId) => scanSessionsService.createScanSession(tradeEventId)),
+            switchMap((dispatchSheetId) => scanSessionsService.createScanSession(dispatchSheetId)),
             tapResponse({
               next: (scanSession) => {
-                const loadingListName = scanSession.loadingListId
-                  ? store.tradeEvents().find(te => te.id === scanSession.loadingListId)?.name ?? null
+                const dispatchSheetName = scanSession.dispatchSheetId
+                  ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
                   : "Unbekannt";
 
                 patchState(store, {
                   selectedScanSession: scanSession,
-                  tradeEventName: loadingListName,
+                  dispatchSheetName: dispatchSheetName,
                   scanSessionArticles: [],
                   isLoading: false,
                 });
               },
               error: (error: Error) => {
-                console.error('Error starting new inventory:', error);
+                console.error('Error starting new scan session:', error);
                 patchState(store, {
                   isLoading: false,
                   error: error.message,
@@ -264,18 +262,18 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Create a new trade event
-        createTradeEvent: rxMethod<string>(
+        // Create a new dispatch sheet
+        createDispatchSheet: rxMethod<string>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((name) =>
-              createLoadingListInternal(name).pipe(
+              createDispatchSheetInternal(name).pipe(
                 tapResponse({
                   next: () => {
                     patchState(store, { isLoading: false });
                   },
                   error: (error: Error) => {
-                    console.error('Error creating trade event:', error);
+                    console.error('Error creating dispatch sheet:', error);
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -287,21 +285,21 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Create a new trade event and start inventory for it
-        createTradeEventAndStartInventory: rxMethod<string>(
+        // Create a new dispatch sheet and start a scan session for it
+        createDispatchSheetAndStartScanSession: rxMethod<string>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap((name) =>
-              createLoadingListInternal(name).pipe(
-                switchMap((tradeEvent) => {
-                  // Start inventory for the new trade event
-                  if (tradeEvent.id) {
-                    return scanSessionsService.createScanSession(tradeEvent.id).pipe(
+              createDispatchSheetInternal(name).pipe(
+                switchMap((dispatchSheet) => {
+                  // Start a scan session for the new dispatch sheet
+                  if (dispatchSheet.id) {
+                    return scanSessionsService.createScanSession(dispatchSheet.id).pipe(
                       tapResponse({
                         next: (scanSession) => {
                           patchState(store, {
                             selectedScanSession: scanSession,
-                            tradeEventName: tradeEvent.name ?? null,
+                            dispatchSheetName: dispatchSheet.name ?? null,
                             scanSessionArticles: [],
                             isLoading: false,
                           });
@@ -310,7 +308,7 @@ export const ScanSessionStore = signalStore(
                           }
                         },
                         error: (error: Error) => {
-                          console.error('Error starting inventory:', error);
+                          console.error('Error starting scan session:', error);
                           patchState(store, {
                             isLoading: false,
                             error: error.message,
@@ -321,7 +319,7 @@ export const ScanSessionStore = signalStore(
                   } else {
                     patchState(store, {
                       isLoading: false,
-                      error: 'Trade event created but no ID returned',
+                      error: 'Dispatch sheet created but no ID returned',
                     });
                     return [];
                   }
@@ -329,7 +327,7 @@ export const ScanSessionStore = signalStore(
                 tapResponse({
                   next: () => {},
                   error: (error: Error) => {
-                    console.error('Error creating trade event:', error);
+                    console.error('Error creating dispatch sheet:', error);
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -341,11 +339,11 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Reload stock items for a current scan session (e.g., after SignalR event)
-        reloadStockItems: () => {
-          const inventoryId = store.inventoryId();
-          if (inventoryId) {
-            loadScanSessionArticlesInternal(inventoryId);
+        // Reload article units for a current scan session (e.g., after SignalR event)
+        reloadScanSessionArticleUnits: () => {
+          const scanSessionId = store.scanSessionId();
+          if (scanSessionId) {
+            loadScanSessionArticlesInternal(scanSessionId);
           }
         },
 
@@ -353,9 +351,9 @@ export const ScanSessionStore = signalStore(
         setupSignalRListener: () => {
           signalrService.onBarcodeScanned((msg) => {
             console.log('StockChanged event received:', msg);
-            const inventoryId = store.inventoryId();
-            if (inventoryId) {
-              loadScanSessionArticlesInternal(inventoryId);
+            const scanSessionId = store.scanSessionId();
+            if (scanSessionId) {
+              loadScanSessionArticlesInternal(scanSessionId);
             }
           });
         },
@@ -386,8 +384,8 @@ export const ScanSessionStore = signalStore(
   withHooks({
     onInit(store) {
       // Load initial data
-      store.readCurrentScanSession();
-      store.readLoadingLists();
+      store.loadCurrentScanSession();
+      store.loadDispatchSheets();
       store.loadBarcodeScannerStatus();
 
       // Set up SignalR connection and listeners

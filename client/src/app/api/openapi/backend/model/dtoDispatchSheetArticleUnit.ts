@@ -11,8 +11,13 @@
  */
 
 
-export interface DtoLoadingList { 
-    id?: number | null;
-    name?: string | null;
+export interface DtoDispatchSheetArticleUnit { 
+    id?: number;
+    unitId?: number;
+    articleNr?: string | null;
+    articleDisplayName?: string | null;
+    unitWeight?: number;
+    ean?: string | null;
+    requiredCount?: number | null;
 }
 

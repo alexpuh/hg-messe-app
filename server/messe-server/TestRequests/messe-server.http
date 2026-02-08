@@ -24,7 +24,7 @@ Accept: application/json
 GET {{HostAddress}}/api/ScanSessions/current
 Accept: application/json
 
-### Create new EventInventory
+### Create new Scan Sessions
 POST {{HostAddress}}/api/ScanSessions
 Content-Type: application/json; charset=utf-8
 Accept: application/json

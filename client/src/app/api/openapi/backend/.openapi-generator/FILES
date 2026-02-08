@@ -5,14 +5,14 @@ api.module.ts
 api/api.ts
 api/articles.openapi.service.ts
 api/barcodeScanner.openapi.service.ts
-api/loadingLists.openapi.service.ts
+api/dispatchSheets.openapi.service.ts
 api/scanSessions.openapi.service.ts
 configuration.ts
 encoder.ts
 git_push.sh
 index.ts
-model/dtoLoadingList.ts
-model/dtoLoadingListArticleUnit.ts
+model/dtoDispatchSheet.ts
+model/dtoDispatchSheetArticleUnit.ts
 model/dtoScanSession.ts
 model/dtoScanSessionArticle.ts
 model/eanUnit.ts

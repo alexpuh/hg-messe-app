@@ -1,20 +1,20 @@
 <div class="h-full flex flex-col">
   <div class="workplace-header flex items-center gap-2">
     <h1>Konfiguration ({{messeName()}})</h1>
-    <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/inventory" severity="secondary"></p-button>
+    <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
     <h2 class="ml-auto">Messe</h2>
     <div class="flex gap-2 align-items-center">
       <p-select
-        [options]="tradeEventOptions()"
-        [ngModel]="selectedTradeEventId()"
-        (onChange)="onTradeEventChange($event)"
+        [options]="dispatchSheetOptions()"
+        [ngModel]="selectedDispatchSheetId()"
+        (onChange)="onDispatchSheetChange($event)"
         placeholder="Messe auswählen..."
         [style]="{ 'min-width': '300px' }"
       />
       <p-button
         icon="pi pi-plus"
         label="Neue Messe"
-        (onClick)="openNewTradeEventDialog()"
+        (onClick)="openNewDispatchSheetDialog()"
         severity="secondary"
       />
       <p-button icon="pi pi-save" label="Speichern als..." severity="secondary">
@@ -25,7 +25,7 @@
   <div class="articles-container flex flex-col grow">
     <h2>Artikelliste mit Sollbeständen</h2>
 
-    @if (selectedTradeEventId() === null) {
+    @if (selectedDispatchSheetId() === null) {
       <div class="no-selection">Bitte wählen Sie eine Messe aus, um die Artikelliste anzuzeigen.</div>
     } @else if (articles().length > 0) {
       <p-table [value]="articles()"
@@ -118,8 +118,8 @@
 <!-- Dialog für neue Messe -->
 <p-dialog
   header="Neue Messe erstellen"
-  [visible]="showNewTradeEventDialog()"
-  (visibleChange)="showNewTradeEventDialog.set($event)"
+  [visible]="showNewDispatchSheetDialog()"
+  (visibleChange)="showNewDispatchSheetDialog.set($event)"
   [modal]="true"
   [style]="{ width: '450px' }"
 >
@@ -129,8 +129,8 @@
       pInputText
       id="newTradeEventName"
       type="text"
-      [value]="newTradeEventName()"
-      (input)="onNewTradeEventNameChange($event)"
+      [value]="newDispatchSheetName()"
+      (input)="onNewDispatchSheetNameChange($event)"
       placeholder="Messe-Name eingeben..."
       class="w-full"
     />
@@ -140,12 +140,12 @@
     <p-button
       label="Abbrechen"
       severity="secondary"
-      (onClick)="closeNewTradeEventDialog()"
+      (onClick)="closeNewDispatchSheetDialog()"
     />
     <p-button
       label="Erstellen"
-      (onClick)="createNewTradeEvent()"
-      [disabled]="!canCreateTradeEvent()"
+      (onClick)="createNewDispatchSheet()"
+      [disabled]="!canCreateDispatchSheet()"
     />
   </div>
 </p-dialog>

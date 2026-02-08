@@ -19,9 +19,9 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
-import { DtoLoadingList } from '../model/dtoLoadingList';
+import { DtoDispatchSheet } from '../model/dtoDispatchSheet';
 // @ts-ignore
-import { DtoLoadingListArticleUnit } from '../model/dtoLoadingListArticleUnit';
+import { DtoDispatchSheetArticleUnit } from '../model/dtoDispatchSheetArticleUnit';
 // @ts-ignore
 import { SetRequiredUnitsRequest } from '../model/setRequiredUnitsRequest';
 
@@ -34,7 +34,7 @@ import { Configuration }                                     from '../configurat
 @Injectable({
   providedIn: 'root'
 })
-export class LoadingListsOpenApi {
+export class DispatchSheetsOpenApi {
 
     protected basePath = 'http://localhost';
     public defaultHeaders = new HttpHeaders();
@@ -96,14 +96,14 @@ export class LoadingListsOpenApi {
     }
 
     /**
-     * @param dtoLoadingList 
+     * @param dtoDispatchSheet 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public addLoadingList(dtoLoadingList?: DtoLoadingList, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoLoadingList>;
-    public addLoadingList(dtoLoadingList?: DtoLoadingList, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoLoadingList>>;
-    public addLoadingList(dtoLoadingList?: DtoLoadingList, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoLoadingList>>;
-    public addLoadingList(dtoLoadingList?: DtoLoadingList, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public addDispatchSheet(dtoDispatchSheet?: DtoDispatchSheet, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoDispatchSheet>;
+    public addDispatchSheet(dtoDispatchSheet?: DtoDispatchSheet, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoDispatchSheet>>;
+    public addDispatchSheet(dtoDispatchSheet?: DtoDispatchSheet, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoDispatchSheet>>;
+    public addDispatchSheet(dtoDispatchSheet?: DtoDispatchSheet, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -149,11 +149,11 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists`;
-        return this.httpClient.request<DtoLoadingList>('post', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/api/DispatchSheets`;
+        return this.httpClient.request<DtoDispatchSheet>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: dtoLoadingList,
+                body: dtoDispatchSheet,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
@@ -168,12 +168,12 @@ export class LoadingListsOpenApi {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteLoadingList(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public deleteLoadingList(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public deleteLoadingList(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public deleteLoadingList(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+    public deleteDispatchSheet(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public deleteDispatchSheet(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public deleteDispatchSheet(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public deleteDispatchSheet(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
         if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling deleteLoadingList.');
+            throw new Error('Required parameter id was null or undefined when calling deleteDispatchSheet.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -206,7 +206,7 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         return this.httpClient.request<any>('delete', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -220,17 +220,17 @@ export class LoadingListsOpenApi {
     }
 
     /**
-     * @param loadingListId 
+     * @param dispatchSheetId 
      * @param unitId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteRequiredUnit(loadingListId: number, unitId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public deleteRequiredUnit(loadingListId: number, unitId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public deleteRequiredUnit(loadingListId: number, unitId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public deleteRequiredUnit(loadingListId: number, unitId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
-        if (loadingListId === null || loadingListId === undefined) {
-            throw new Error('Required parameter loadingListId was null or undefined when calling deleteRequiredUnit.');
+    public deleteRequiredUnit(dispatchSheetId: number, unitId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public deleteRequiredUnit(dispatchSheetId: number, unitId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public deleteRequiredUnit(dispatchSheetId: number, unitId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public deleteRequiredUnit(dispatchSheetId: number, unitId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+        if (dispatchSheetId === null || dispatchSheetId === undefined) {
+            throw new Error('Required parameter dispatchSheetId was null or undefined when calling deleteRequiredUnit.');
         }
         if (unitId === null || unitId === undefined) {
             throw new Error('Required parameter unitId was null or undefined when calling deleteRequiredUnit.');
@@ -266,7 +266,7 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "loadingListId", value: loadingListId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units/${this.configuration.encodeParam({name: "unitId", value: unitId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "dispatchSheetId", value: dispatchSheetId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units/${this.configuration.encodeParam({name: "unitId", value: unitId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         return this.httpClient.request<any>('delete', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -280,16 +280,16 @@ export class LoadingListsOpenApi {
     }
 
     /**
-     * @param loadingListId 
+     * @param dispatchSheetId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getLoadingListArticleUnits(loadingListId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoLoadingListArticleUnit>>;
-    public getLoadingListArticleUnits(loadingListId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoLoadingListArticleUnit>>>;
-    public getLoadingListArticleUnits(loadingListId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoLoadingListArticleUnit>>>;
-    public getLoadingListArticleUnits(loadingListId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (loadingListId === null || loadingListId === undefined) {
-            throw new Error('Required parameter loadingListId was null or undefined when calling getLoadingListArticleUnits.');
+    public getDispatchSheetArticleUnits(dispatchSheetId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoDispatchSheetArticleUnit>>;
+    public getDispatchSheetArticleUnits(dispatchSheetId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoDispatchSheetArticleUnit>>>;
+    public getDispatchSheetArticleUnits(dispatchSheetId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoDispatchSheetArticleUnit>>>;
+    public getDispatchSheetArticleUnits(dispatchSheetId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (dispatchSheetId === null || dispatchSheetId === undefined) {
+            throw new Error('Required parameter dispatchSheetId was null or undefined when calling getDispatchSheetArticleUnits.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -325,8 +325,8 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "loadingListId", value: loadingListId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/units`;
-        return this.httpClient.request<Array<DtoLoadingListArticleUnit>>('get', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "dispatchSheetId", value: dispatchSheetId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/units`;
+        return this.httpClient.request<Array<DtoDispatchSheetArticleUnit>>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -343,12 +343,12 @@ export class LoadingListsOpenApi {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getLoadingListById(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoLoadingList>;
-    public getLoadingListById(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoLoadingList>>;
-    public getLoadingListById(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoLoadingList>>;
-    public getLoadingListById(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public getDispatchSheetById(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoDispatchSheet>;
+    public getDispatchSheetById(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoDispatchSheet>>;
+    public getDispatchSheetById(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoDispatchSheet>>;
+    public getDispatchSheetById(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
         if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling getLoadingListById.');
+            throw new Error('Required parameter id was null or undefined when calling getDispatchSheetById.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -384,8 +384,8 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
-        return this.httpClient.request<DtoLoadingList>('get', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        return this.httpClient.request<DtoDispatchSheet>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -401,10 +401,10 @@ export class LoadingListsOpenApi {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getLoadingLists(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoLoadingList>>;
-    public getLoadingLists(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoLoadingList>>>;
-    public getLoadingLists(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoLoadingList>>>;
-    public getLoadingLists(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public getDispatchSheets(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoDispatchSheet>>;
+    public getDispatchSheets(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoDispatchSheet>>>;
+    public getDispatchSheets(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoDispatchSheet>>>;
+    public getDispatchSheets(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -439,8 +439,8 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists`;
-        return this.httpClient.request<Array<DtoLoadingList>>('get', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/api/DispatchSheets`;
+        return this.httpClient.request<Array<DtoDispatchSheet>>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -453,16 +453,16 @@ export class LoadingListsOpenApi {
     }
 
     /**
-     * @param loadingListId 
+     * @param dispatchSheetId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getRequiredUnits(loadingListId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<{ [key: string]: number; }>;
-    public getRequiredUnits(loadingListId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<{ [key: string]: number; }>>;
-    public getRequiredUnits(loadingListId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<{ [key: string]: number; }>>;
-    public getRequiredUnits(loadingListId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (loadingListId === null || loadingListId === undefined) {
-            throw new Error('Required parameter loadingListId was null or undefined when calling getRequiredUnits.');
+    public getRequiredUnits(dispatchSheetId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<{ [key: string]: number; }>;
+    public getRequiredUnits(dispatchSheetId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<{ [key: string]: number; }>>;
+    public getRequiredUnits(dispatchSheetId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<{ [key: string]: number; }>>;
+    public getRequiredUnits(dispatchSheetId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+        if (dispatchSheetId === null || dispatchSheetId === undefined) {
+            throw new Error('Required parameter dispatchSheetId was null or undefined when calling getRequiredUnits.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -498,7 +498,7 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "loadingListId", value: loadingListId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units`;
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "dispatchSheetId", value: dispatchSheetId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units`;
         return this.httpClient.request<{ [key: string]: number; }>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -512,17 +512,17 @@ export class LoadingListsOpenApi {
     }
 
     /**
-     * @param loadingListId 
+     * @param dispatchSheetId 
      * @param setRequiredUnitsRequest 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public setRequiredUnits(loadingListId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public setRequiredUnits(loadingListId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public setRequiredUnits(loadingListId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public setRequiredUnits(loadingListId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
-        if (loadingListId === null || loadingListId === undefined) {
-            throw new Error('Required parameter loadingListId was null or undefined when calling setRequiredUnits.');
+    public setRequiredUnits(dispatchSheetId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public setRequiredUnits(dispatchSheetId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public setRequiredUnits(dispatchSheetId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public setRequiredUnits(dispatchSheetId: number, setRequiredUnitsRequest?: SetRequiredUnitsRequest, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+        if (dispatchSheetId === null || dispatchSheetId === undefined) {
+            throw new Error('Required parameter dispatchSheetId was null or undefined when calling setRequiredUnits.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -566,7 +566,7 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "loadingListId", value: loadingListId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units`;
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "dispatchSheetId", value: dispatchSheetId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/required-units`;
         return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -582,16 +582,16 @@ export class LoadingListsOpenApi {
 
     /**
      * @param id 
-     * @param dtoLoadingList 
+     * @param dtoDispatchSheet 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateLoadingList(id: number, dtoLoadingList?: DtoLoadingList, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public updateLoadingList(id: number, dtoLoadingList?: DtoLoadingList, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public updateLoadingList(id: number, dtoLoadingList?: DtoLoadingList, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public updateLoadingList(id: number, dtoLoadingList?: DtoLoadingList, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+    public updateDispatchSheet(id: number, dtoDispatchSheet?: DtoDispatchSheet, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public updateDispatchSheet(id: number, dtoDispatchSheet?: DtoDispatchSheet, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public updateDispatchSheet(id: number, dtoDispatchSheet?: DtoDispatchSheet, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public updateDispatchSheet(id: number, dtoDispatchSheet?: DtoDispatchSheet, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
         if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling updateLoadingList.');
+            throw new Error('Required parameter id was null or undefined when calling updateDispatchSheet.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -635,11 +635,11 @@ export class LoadingListsOpenApi {
             }
         }
 
-        let localVarPath = `/api/LoadingLists/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        let localVarPath = `/api/DispatchSheets/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         return this.httpClient.request<any>('put', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: dtoLoadingList,
+                body: dtoDispatchSheet,
                 responseType: <any>responseType_,
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

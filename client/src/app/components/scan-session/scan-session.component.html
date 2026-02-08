@@ -9,7 +9,7 @@
   <p-button class="mr-1" icon="pi pi-barcode"
             label="Neue Bestandsaufnahme starten"
             severity="danger"
-            (onClick)="openNewInventoryDialog()"></p-button>
+            (onClick)="openNewScanSessionDialog()"></p-button>
   <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
   <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
   <p-button
@@ -24,8 +24,8 @@
 <!-- Dialog für neue Bestandsaufnahme -->
 <p-dialog
   [header]="'Neue Bestandsaufnahme starten'"
-  [visible]="showNewInventoryDialog()"
-  (visibleChange)="showNewInventoryDialog.set($event)"
+  [visible]="showNewScanSessionDialog()"
+  (visibleChange)="showNewScanSessionDialog.set($event)"
 
   [modal]="true"
   [style]="{width: '450px'}"
@@ -36,22 +36,22 @@
       <label for="tradeEventSelect" class="block mb-2">Messe/Event auswählen:</label>
       <p-select
         id="tradeEventSelect"
-        [options]="tradeEventOptions()"
-        (onChange)="onTradeEventChange($event)"
+        [options]="dispatchSheetOptions()"
+        (onChange)="onDispatchSheetChange($event)"
         placeholder="Bitte wählen Sie eine Messe"
         [style]="{width: '100%'}"
         appendTo="body">
       </p-select>
     </div>
-    @if (showNewTradeEventNameField()) {
+    @if (showNewDispatchSheetNameField()) {
       <div>
         <label for="tradeEventName" class="block mb-2">Messe-Name:</label>
         <input
           id="tradeEventName"
           type="text"
           pInputText
-          [value]="newLoadingListName()"
-          (input)="onTradeEventNameChange($event)"
+          [value]="newDispatchSheetName()"
+          (input)="onDispatchSheetNameChange($event)"
           placeholder="Name der neuen Messe"
           [style]="{width: '100%'}"
         />
@@ -64,17 +64,18 @@
       </div>
     }
   </div>
+  <!--suppress JSUnusedGlobalSymbols -->
   <ng-template #footer>
     <p-button
       label="Abbrechen"
       severity="secondary"
-      (onClick)="closeNewInventoryDialog()"
+      (onClick)="closeNewScanSessionDialog()"
       [disabled]="store.isLoading()">
     </p-button>
     <p-button
       label="Starten"
-      (onClick)="startNewInventory()"
-      [disabled]="!canStartInventory() || store.isLoading()">
+      (onClick)="startNewScanSession()"
+      [disabled]="!canStartScanSession() || store.isLoading()">
     </p-button>
   </ng-template>
 </p-dialog>
@@ -82,8 +83,8 @@
 <div class="flex gap-2 items-center mb-4">
   @if (startedAt(); as date) {
     <div>
-      @if (store.tradeEventName()) {
-        <span>{{store.tradeEventName()}}, </span>
+      @if (store.dispatchSheetName()) {
+        <span>{{store.dispatchSheetName()}}, </span>
       }
       <span>Gestartet: {{date | germanDateTime}}</span>
     </div>

@@ -14,7 +14,7 @@
 export interface DtoScanSession { 
     id?: number | null;
     startedAt?: string | null;
-    loadingListId?: number | null;
+    dispatchSheetId?: number | null;
     updatedAt?: string | null;
 }
 
