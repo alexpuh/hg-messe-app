@@ -26,6 +26,7 @@ const NO_DISPATCH_SHEET_VALUE = -2;
   styleUrl: './scan-session.component.scss',
 })
 export class ScanSession {
+  protected title: string = 'Beladung';
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
 

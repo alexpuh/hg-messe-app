@@ -2,18 +2,18 @@
   <div class="workplace-header flex items-center gap-2">
     <h1>Konfiguration ({{messeName()}})</h1>
     <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
-    <h2 class="ml-auto">Messe</h2>
+    <h2 class="ml-auto">Beladeliste</h2>
     <div class="flex gap-2 align-items-center">
       <p-select
         [options]="dispatchSheetOptions()"
         [ngModel]="selectedDispatchSheetId()"
         (onChange)="onDispatchSheetChange($event)"
-        placeholder="Messe auswählen..."
+        placeholder="Beladeliste auswählen..."
         [style]="{ 'min-width': '300px' }"
       />
       <p-button
         icon="pi pi-plus"
-        label="Neue Messe"
+        label="Neue Beladeliste"
         (onClick)="openNewDispatchSheetDialog()"
         severity="secondary"
       />
