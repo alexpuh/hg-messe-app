@@ -2,7 +2,7 @@
   <div class="workplace-header flex items-center gap-2">
     <h1>Konfiguration ({{messeName()}})</h1>
     <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
-    <h2 class="ml-auto">Beladeliste</h2>
+    <h2>Beladeliste</h2>
     <div class="flex gap-2 align-items-center">
       <p-select
         [options]="dispatchSheetOptions()"
@@ -19,6 +19,7 @@
       />
       <p-button icon="pi pi-save" label="Speichern als..." severity="secondary">
       </p-button>
+      <p-button class="ml-auto" icon="pi pi-upload" label="Upload" severity="secondary" (onClick)="uploadArticles()"></p-button>
     </div>
   </div>
 

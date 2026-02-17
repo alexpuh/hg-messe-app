@@ -210,4 +210,7 @@ export class RequiredStockSetup {
     const bName = b.articleDisplayName ?? '';
     return aName.localeCompare(bName);
   }
+
+  protected uploadArticles() {
+  }
 }
