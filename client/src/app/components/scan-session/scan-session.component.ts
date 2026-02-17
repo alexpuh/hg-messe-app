@@ -30,7 +30,8 @@ export class ScanSession {
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
 
-  protected showNewScanSessionDialog = signal(false);
+  protected showBeladungDialog = signal(false);
+  protected showBestandsaufnahmeDialog = signal(false);
   protected selectedDispatchSheetId = signal<number | null>(null);
   protected readonly newDispatchSheetName = signal<string>('');
   protected items = computed(() => {
@@ -68,10 +69,9 @@ export class ScanSession {
       value: event.id
     }));
 
-    // Add special options at the beginning
+    // Add option to create new dispatch sheet
     return [
       { label: 'Neue Messe erstellen', value: NEW_DISPATCH_SHEET_VALUE },
-      { label: 'Ohne Messezuordnung starten', value: NO_DISPATCH_SHEET_VALUE },
       ...options
     ];
   });
@@ -92,14 +92,22 @@ export class ScanSession {
     return true;
   });
 
-  protected openNewScanSessionDialog() {
-    this.showNewScanSessionDialog.set(true);
+  protected openBeladungDialog() {
+    this.showBeladungDialog.set(true);
   }
 
-  protected closeNewScanSessionDialog() {
-    this.showNewScanSessionDialog.set(false);
+  protected closeBeladungDialog() {
+    this.showBeladungDialog.set(false);
     this.selectedDispatchSheetId.set(null);
     this.newDispatchSheetName.set('');
+  }
+
+  protected openBestandsaufnahmeDialog() {
+    this.showBestandsaufnahmeDialog.set(true);
+  }
+
+  protected closeBestandsaufnahmeDialog() {
+    this.showBestandsaufnahmeDialog.set(false);
   }
 
   protected onDispatchSheetChange(event: SelectChangeEvent) {
@@ -115,7 +123,7 @@ export class ScanSession {
     this.newDispatchSheetName.set(input.value);
   }
 
-  protected startNewScanSession() {
+  protected startBeladung() {
     const selectedId = this.selectedDispatchSheetId();
 
     if (selectedId === NEW_DISPATCH_SHEET_VALUE) {
@@ -124,22 +132,24 @@ export class ScanSession {
       if (name) {
         this.createDispatchSheetAndStartScanSession(name);
       }
-    } else if (selectedId === NO_DISPATCH_SHEET_VALUE) {
-      // Start inventory without a dispatch sheet
-      this.store.startNewScanSession(undefined);
-      this.closeNewScanSessionDialog();
     } else if (selectedId) {
       console.log('Start scan session with dispatch sheet', selectedId);
-      // Start inventory with an existing dispatch sheet
+      // Start loading with an existing dispatch sheet
       this.store.startNewScanSession(selectedId);
-      this.closeNewScanSessionDialog();
+      this.closeBeladungDialog();
     }
+  }
+
+  protected startBestandsaufnahme() {
+    // Start inventory without a dispatch sheet
+    this.store.startNewScanSession(undefined);
+    this.closeBestandsaufnahmeDialog();
   }
 
   private createDispatchSheetAndStartScanSession(name: string) {
     // Use the store method that will handle both creation and inventory start
     this.store.createDispatchSheetAndStartScanSession(name);
-    this.closeNewScanSessionDialog();
+    this.closeBeladungDialog();
   }
 
   protected doTest() {
