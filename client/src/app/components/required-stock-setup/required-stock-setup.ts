@@ -9,6 +9,8 @@ import { ScanSessionStore } from '../../store';
 import { DispatchSheetsService } from '../../api/dispatch-sheets.service';
 import {TableModule} from 'primeng/table';
 import {DtoDispatchSheetArticleUnit} from '../../api/openapi/backend';
+import { ArticlesService } from '../../api/articles.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -31,6 +33,8 @@ import {DtoDispatchSheetArticleUnit} from '../../api/openapi/backend';
 export class RequiredStockSetup {
   private readonly store = inject(ScanSessionStore);
   private readonly dispatchSheetsService = inject(DispatchSheetsService);
+  private readonly articlesService = inject(ArticlesService);
+  private readonly messageService = inject(MessageService);
 
   protected selectedDispatchSheetId = signal<number | null>(this.store.selectedScanSession()?.dispatchSheetId ?? null);
   protected showNewDispatchSheetDialog = signal(false);
@@ -62,9 +66,9 @@ export class RequiredStockSetup {
     });
   }
 
-  protected messeName = computed(() => {
+  protected dispatchSheetName = computed(() => {
     const selectedId = this.selectedDispatchSheetId();
-    if (!selectedId) return 'Keine Messe ausgewählt';
+    if (!selectedId) return 'Keine Beladeliste ausgewählt';
 
     const dispatchSheet = this.store.dispatchSheets().find(te => te.id === selectedId);
     return dispatchSheet?.name ?? 'Unbekannt';
@@ -212,5 +216,65 @@ export class RequiredStockSetup {
   }
 
   protected uploadArticles() {
+    // Create a file input element programmatically
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json,application/json';
+
+    fileInput.onchange = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      // Validate that it's a JSON file
+      if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Ungültiger Dateityp',
+          detail: 'Bitte wählen Sie eine JSON-Datei aus.',
+          life: 3000
+        });
+        return;
+      }
+
+      // Upload the file
+      this.articlesService.uploadArticles(file).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Upload erfolgreich',
+            detail: 'Die Artikelliste wurde erfolgreich hochgeladen.',
+            life: 3000
+          });
+          // Reload articles if a dispatch sheet is selected
+          const dispatchSheetId = this.selectedDispatchSheetId();
+          if (dispatchSheetId) {
+            this.dispatchSheetsService.getDispatchSheetArticleUnits(dispatchSheetId).subscribe({
+              next: (articles) => {
+                this.articlesData.set(articles);
+              },
+              error: (error) => {
+                console.error('Error reloading articles:', error);
+              }
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error uploading articles:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Upload fehlgeschlagen',
+            detail: 'Fehler beim Hochladen der Artikelliste.',
+            life: 5000
+          });
+        }
+      });
+    };
+
+    // Trigger the file input click
+    fileInput.click();
   }
 }
