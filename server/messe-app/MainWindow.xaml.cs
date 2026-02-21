@@ -59,8 +59,8 @@ public partial class MainWindow
                     FileName = serverPath,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
+                    RedirectStandardOutput = false,
+                    RedirectStandardError = false,
                     WorkingDirectory = Path.GetDirectoryName(serverPath)
                 }
             };

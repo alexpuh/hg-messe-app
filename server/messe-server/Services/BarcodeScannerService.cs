@@ -74,13 +74,12 @@ public class BarcodeScannerService(ILogger<BarcodeScannerService> logger) : IDis
                 
                 // Erfolgreiche Daten empfangen - Timeout-Zähler zurücksetzen
                 consecutiveTimeouts = 0;
+                logger.LogInformation("Barcode gescannt: {Barcode}", barcode);
                 
                 if (string.IsNullOrWhiteSpace(barcode))
                 {
                     continue;
                 }
-
-                logger.LogInformation("Barcode gescannt: {Barcode}", barcode);
                 
                 if (BarcodeScanned == null)
                 {
