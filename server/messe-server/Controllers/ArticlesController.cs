@@ -83,9 +83,9 @@ public class ArticlesController(
             return BadRequest("No file uploaded.");
         }
         
+        var tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
         try
         {
-            var tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
             await using (var fs = new FileStream(
                              tempFileName,
                              FileMode.CreateNew,
@@ -97,12 +97,15 @@ public class ArticlesController(
             }
 
             var count = await articlesService.ImportFromJsonFileAsync(tempFileName);
-            System.IO.File.Delete(tempFileName);
             return Ok(new { ImportedCount = count, Message = $"{count} Artikel erfolgreich importiert" });
         }
         catch (Exception ex)
         {
             return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+        finally
+        {
+            System.IO.File.Delete(tempFileName);
         }
     }
 }

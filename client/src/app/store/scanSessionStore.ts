@@ -78,6 +78,10 @@ export const ScanSessionStore = signalStore(
               return scanSessionsService.getScanSessionArticles(scanSessionId);
             }
             else {
+              patchState(store, {
+                scanSessionArticles: [],
+                isLoading: false,
+              });
               return EMPTY;
             }
           }),

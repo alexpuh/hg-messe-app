@@ -99,7 +99,7 @@ public class DispatchSheetService(MesseAppDbContext dbContext, ILogger<DispatchS
     {
         if (count <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative");
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive");
         }
         
         // Prüfe ob Verladeschein existiert
