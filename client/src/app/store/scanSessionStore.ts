@@ -70,7 +70,7 @@ export const ScanSessionStore = signalStore(
                   });
                 },
                 error: (error: Error) => {
-                  console.error('Error loading stock items:', error);
+                  messageService.add({ severity: 'error', summary: 'Fehler', detail: `Artikel konnten nicht geladen werden: ${error.message}` });
                   patchState(store, {
                     isLoading: false,
                     error: error.message,
@@ -89,7 +89,7 @@ export const ScanSessionStore = signalStore(
             patchState(store, { barcodeScannerStatus: status });
           },
           error: (error: Error) => {
-            console.error('Error loading barcode scanner status:', error);
+            messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scanner-Status konnte nicht geladen werden: ${error.message}` });
             patchState(store, {
               barcodeScannerStatus: {
                 isConnected: false,
@@ -135,7 +135,7 @@ export const ScanSessionStore = signalStore(
                     }
                   },
                   error: (error: Error) => {
-                    console.error('Error loading scan session:', error);
+                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht geladen werden: ${error.message}` });
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -164,7 +164,7 @@ export const ScanSessionStore = signalStore(
                     });
                   },
                   error: (error: Error) => {
-                    console.error('Error reading dispatch sheets:', error);
+                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladelisten konnten nicht geladen werden: ${error.message}` });
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -179,57 +179,21 @@ export const ScanSessionStore = signalStore(
         // Load barcode scanner status
         loadBarcodeScannerStatus: rxMethod<void>(
           pipe(
-            switchMap(() =>
-              barcodeScannerService.getStatus().pipe(
-                tapResponse({
-                  next: (status) => {
-                    patchState(store, { barcodeScannerStatus: status });
+            switchMap(() => barcodeScannerService.getStatus()),
+            tapResponse({
+              next: (status) => {
+                patchState(store, { barcodeScannerStatus: status });
+              },
+              error: (error: Error) => {
+                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scanner-Status konnte nicht geladen werden: ${error.message}` });
+                patchState(store, {
+                  barcodeScannerStatus: {
+                    isConnected: false,
+                    status: 'Error loading status',
                   },
-                  error: (error: Error) => {
-                    console.error('Error loading barcode scanner status:', error);
-                    patchState(store, {
-                      barcodeScannerStatus: {
-                        isConnected: false,
-                        status: 'Error loading status',
-                      },
-                    });
-                  },
-                })
-              )
-            )
-          )
-        ),
-
-        // Select a scan session by ID and reload its data
-        selectScanSession: rxMethod<number>(
-          pipe(
-            tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((scanSessionId) =>
-              scanSessionsService.getScanSession(scanSessionId).pipe(
-                tapResponse({
-                  next: (scanSession) => {
-                    // Find the dispatch sheet name for this scanSession
-                    const dispatchSheetName = scanSession.dispatchSheetId
-                      ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
-                      : null;
-
-                    patchState(store, {
-                      selectedScanSession: scanSession,
-                      dispatchSheetName: dispatchSheetName,
-                      isLoading: false,
-                    });
-                    loadScanSessionArticlesInternal(scanSessionId);
-                  },
-                  error: (error: Error) => {
-                    console.error('Error selecting scan session:', error);
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+                });
+              },
+            })
           )
         ),
 
@@ -252,7 +216,7 @@ export const ScanSessionStore = signalStore(
                 });
               },
               error: (error: Error) => {
-                console.error('Error starting new scan session:', error);
+                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht gestartet werden: ${error.message}` });
                 patchState(store, {
                   isLoading: false,
                   error: error.message,
@@ -273,7 +237,7 @@ export const ScanSessionStore = signalStore(
                     patchState(store, { isLoading: false });
                   },
                   error: (error: Error) => {
-                    console.error('Error creating dispatch sheet:', error);
+                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
@@ -308,7 +272,7 @@ export const ScanSessionStore = signalStore(
                           }
                         },
                         error: (error: Error) => {
-                          console.error('Error starting scan session:', error);
+                          messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht gestartet werden: ${error.message}` });
                           patchState(store, {
                             isLoading: false,
                             error: error.message,
@@ -327,7 +291,7 @@ export const ScanSessionStore = signalStore(
                 tapResponse({
                   next: () => {},
                   error: (error: Error) => {
-                    console.error('Error creating dispatch sheet:', error);
+                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
                     patchState(store, {
                       isLoading: false,
                       error: error.message,
