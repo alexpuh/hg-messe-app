@@ -11,6 +11,7 @@ import {ScanSessionsService} from '../../api/scan-sessions.service';
 // Special values for new options
 const NEW_DISPATCH_SHEET_VALUE = -1;
 const NO_DISPATCH_SHEET_VALUE = -2;
+type ScanMode = 'Beladung' | 'Bestandsaufnahme';
 
 @Component({
   selector: 'app-scan-session',
@@ -26,7 +27,7 @@ const NO_DISPATCH_SHEET_VALUE = -2;
   styleUrl: './scan-session.component.scss',
 })
 export class ScanSession {
-  protected title: string = 'Beladung';
+  protected scanMode: ScanMode = 'Beladung';
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
 
@@ -124,6 +125,7 @@ export class ScanSession {
   }
 
   protected startBeladung() {
+    this.scanMode = 'Beladung';
     const selectedId = this.selectedDispatchSheetId();
 
     if (selectedId === NEW_DISPATCH_SHEET_VALUE) {
@@ -141,6 +143,7 @@ export class ScanSession {
   }
 
   protected startBestandsaufnahme() {
+    this.scanMode = 'Bestandsaufnahme';
     // Start inventory without a dispatch sheet
     this.store.startNewScanSession(undefined);
     this.closeBestandsaufnahmeDialog();
