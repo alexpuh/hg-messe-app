@@ -16,11 +16,27 @@ body {
 
 .workplace-header {
   @apply flex;
-  @apply p-1;
+  @apply flex-col;
+  @apply gap-3;
   h1 {
     font-size: 2rem;
     font-weight: 500;
   }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+  }
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+  .workplace-header-line {
+    @apply flex;
+    @apply gap-2;
+    @apply items-center;
+  }
+  margin-bottom: 1.5rem;
 }
 
 .workplace-unusedspace-column {

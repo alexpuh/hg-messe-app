@@ -4,13 +4,9 @@ import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
 import {Dialog} from 'primeng/dialog';
 import {ScanSessionStore} from '../../store';
-import {InputText} from 'primeng/inputtext';
 import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
 import {ScanSessionsService} from '../../api/scan-sessions.service';
 
-// Special values for new options
-const NEW_DISPATCH_SHEET_VALUE = -1;
-const NO_DISPATCH_SHEET_VALUE = -2;
 type ScanMode = 'Beladung' | 'Bestandsaufnahme';
 
 @Component({
@@ -20,7 +16,6 @@ type ScanMode = 'Beladung' | 'Bestandsaufnahme';
     Button,
     RouterLink,
     Dialog,
-    InputText,
     GermanDateTimePipe
   ],
   templateUrl: './scan-session.component.html',
@@ -34,7 +29,6 @@ export class ScanSession {
   protected showBeladungDialog = signal(false);
   protected showBestandsaufnahmeDialog = signal(false);
   protected selectedDispatchSheetId = signal<number | null>(null);
-  protected readonly newDispatchSheetName = signal<string>('');
   protected items = computed(() => {
     const items = this.store.scanSessionArticles();
     return [...items].sort((a, b) => {
@@ -65,32 +59,14 @@ export class ScanSession {
   });
 
   protected dispatchSheetOptions = computed(() => {
-    const options = this.store.dispatchSheets().map(event => ({
+    return this.store.dispatchSheets().map(event => ({
       label: event.name || 'Unbekannt',
       value: event.id
     }));
-
-    // Add option to create new dispatch sheet
-    return [
-      { label: 'Neue Messe erstellen', value: NEW_DISPATCH_SHEET_VALUE },
-      ...options
-    ];
-  });
-
-  protected showNewDispatchSheetNameField = computed(() => {
-    return this.selectedDispatchSheetId() === NEW_DISPATCH_SHEET_VALUE;
   });
 
   protected canStartScanSession = computed(() => {
-    const selectedId = this.selectedDispatchSheetId();
-    if (selectedId === null) {
-      return false;
-    }
-    if (selectedId === NEW_DISPATCH_SHEET_VALUE) {
-      // Check if a name is provided
-      return this.newDispatchSheetName().trim().length > 0;
-    }
-    return true;
+    return this.selectedDispatchSheetId() !== null;
   });
 
   protected openBeladungDialog() {
@@ -100,7 +76,6 @@ export class ScanSession {
   protected closeBeladungDialog() {
     this.showBeladungDialog.set(false);
     this.selectedDispatchSheetId.set(null);
-    this.newDispatchSheetName.set('');
   }
 
   protected openBestandsaufnahmeDialog() {
@@ -113,30 +88,14 @@ export class ScanSession {
 
   protected onDispatchSheetChange(event: SelectChangeEvent) {
     this.selectedDispatchSheetId.set(event.value);
-    // Reset the name field when changing selection
-    if (event.value !== NEW_DISPATCH_SHEET_VALUE) {
-      this.newDispatchSheetName.set('');
-    }
-  }
-
-  protected onDispatchSheetNameChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.newDispatchSheetName.set(input.value);
   }
 
   protected startBeladung() {
     this.scanMode = 'Beladung';
     const selectedId = this.selectedDispatchSheetId();
 
-    if (selectedId === NEW_DISPATCH_SHEET_VALUE) {
-      // Create a new dispatch sheet first, then create a scan session
-      const name = this.newDispatchSheetName().trim();
-      if (name) {
-        this.createDispatchSheetAndStartScanSession(name);
-      }
-    } else if (selectedId) {
+    if (selectedId) {
       console.log('Start scan session with dispatch sheet', selectedId);
-      // Start loading with an existing dispatch sheet
       this.store.startNewScanSession(selectedId);
       this.closeBeladungDialog();
     }
@@ -149,11 +108,6 @@ export class ScanSession {
     this.closeBestandsaufnahmeDialog();
   }
 
-  private createDispatchSheetAndStartScanSession(name: string) {
-    // Use the store method that will handle both creation and inventory start
-    this.store.createDispatchSheetAndStartScanSession(name);
-    this.closeBeladungDialog();
-  }
 
   protected doTest() {
     console.log('Test button clicked');

@@ -1,28 +1,30 @@
 <div class="workplace-header">
-  <h1>{{scanMode}}</h1>
-  <p-button class="ml-auto mr-1" icon="pi pi-file-excel"
-            label="Excel exportieren"
-            severity="success"
-            (onClick)="exportToExcel()"
-            [disabled]="!store.selectedScanSession()"
-            ></p-button>
-  <p-button class="mr-1" icon="pi pi-truck"
-            label="Neue Beladung starten"
-            severity="danger"
-            (onClick)="openBeladungDialog()"></p-button>
-  <p-button class="mr-1" icon="pi pi-list"
-            label="Bestandsaufnahme starten"
-            severity="secondary"
-            (onClick)="openBestandsaufnahmeDialog()"></p-button>
-  <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
-  <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
-  <p-button
-    [label]="barcodeScannerStatusText()"
-    [severity]="barcodeScannerStatusSeverity()"
-    icon="pi pi-qrcode"
-    [outlined]="true"
-    size="small"
-  ></p-button>
+  <div class="workplace-header-line">
+    <h1>{{scanMode}}</h1>
+    <p-button class="ml-auto mr-1" icon="pi pi-file-excel"
+              label="Excel exportieren"
+              severity="success"
+              (onClick)="exportToExcel()"
+              [disabled]="!store.selectedScanSession()"
+    ></p-button>
+    <p-button class="mr-1" icon="pi pi-truck"
+              label="Neue Beladung starten"
+              severity="danger"
+              (onClick)="openBeladungDialog()"></p-button>
+    <p-button class="mr-1" icon="pi pi-list"
+              label="Bestandsaufnahme starten"
+              severity="secondary"
+              (onClick)="openBestandsaufnahmeDialog()"></p-button>
+    <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
+    <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
+    <p-button
+      [label]="barcodeScannerStatusText()"
+      [severity]="barcodeScannerStatusSeverity()"
+      icon="pi pi-qrcode"
+      [outlined]="true"
+      size="small"
+    ></p-button>
+  </div>
 </div>
 
 <!-- Dialog für Beladung mit Beladeliste -->
@@ -47,20 +49,6 @@
         appendTo="body">
       </p-select>
     </div>
-    @if (showNewDispatchSheetNameField()) {
-      <div>
-        <label for="dispatchSheetName" class="block mb-2">Messe-Name:</label>
-        <input
-          id="dispatchSheetName"
-          type="text"
-          pInputText
-          [value]="newDispatchSheetName()"
-          (input)="onDispatchSheetNameChange($event)"
-          placeholder="Name der neuen Messe"
-          [style]="{width: '100%'}"
-        />
-      </div>
-    }
     @if (store.isLoading()) {
       <div class="text-center">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>

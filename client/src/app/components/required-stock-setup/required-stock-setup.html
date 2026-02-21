@@ -1,11 +1,8 @@
 <div class="h-full flex flex-col">
-  <div class="workplace-header flex flex-col gap-2">
-    <div class="flex items-center gap-2">
+  <div class="workplace-header">
+    <div class="workplace-header-line">
       <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
-      <h1>Konfiguration ({{dispatchSheetName()}})</h1>
-    </div>
-    <div class="flex items-center gap-2">
-      <h2>Beladeliste</h2>
+      <h2 class="mr-2">Beladeliste</h2>
       <p-select
         [options]="dispatchSheetOptions()"
         [ngModel]="selectedDispatchSheetId()"
@@ -21,7 +18,9 @@
       />
       <p-button icon="pi pi-save" label="Kopieren als..." severity="secondary">
       </p-button>
-      <p-button class="ml-auto" icon="pi pi-upload" label="Artikelliste" severity="danger" (onClick)="uploadArticles()"></p-button>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-button icon="pi pi-upload" label="Artikelliste" severity="danger" (onClick)="uploadArticles()"></p-button>
       <p-button icon="pi pi-download" label="Konfiguration" severity="secondary"></p-button>
       <p-button icon="pi pi-upload" label="Konfiguration" severity="danger"></p-button>
     </div>
@@ -31,7 +30,7 @@
     <h2>Artikelliste mit Sollbeständen</h2>
 
     @if (selectedDispatchSheetId() === null) {
-      <div class="no-selection">Bitte wählen Sie eine Messe aus, um die Artikelliste anzuzeigen.</div>
+      <div class="no-selection">Bitte wählen Sie eine Beladeliste aus, um die Artikelliste anzuzeigen.</div>
     } @else if (articles().length > 0) {
       <p-table [value]="articles()"
                [scrollable]="true"
@@ -115,28 +114,28 @@
         </ng-template>
       </p-table>
     } @else {
-      <div class="no-articles">Keine Artikel für diese Messe vorhanden</div>
+      <div class="no-articles">Keine Artikel für diese Beladeliste vorhanden</div>
     }
   </div>
 </div>
 
-<!-- Dialog für neue Messe -->
+<!-- Dialog für neue Beladeliste -->
 <p-dialog
-  header="Neue Messe erstellen"
+  header="Neue Beladeliste erstellen"
   [visible]="showNewDispatchSheetDialog()"
   (visibleChange)="showNewDispatchSheetDialog.set($event)"
   [modal]="true"
   [style]="{ width: '450px' }"
 >
   <div class="dialog-content">
-    <label for="newTradeEventName" class="block mb-2">Messe-Name</label>
+    <label for="newTradeEventName" class="block mb-2">Beladeliste-Name</label>
     <input
       pInputText
       id="newTradeEventName"
       type="text"
       [value]="newDispatchSheetName()"
       (input)="onNewDispatchSheetNameChange($event)"
-      placeholder="Messe-Name eingeben..."
+      placeholder="Beladeliste-Name eingeben..."
       class="w-full"
     />
   </div>
