@@ -1,2 +1,2 @@
-export * from './inventory.store';
+export * from './scanSessionStore';
 

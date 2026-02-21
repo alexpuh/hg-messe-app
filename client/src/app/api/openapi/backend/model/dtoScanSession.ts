@@ -11,8 +11,10 @@
  */
 
 
-export interface DtoTradeEvent { 
+export interface DtoScanSession { 
     id?: number | null;
-    name?: string | null;
+    startedAt?: string | null;
+    dispatchSheetId?: number | null;
+    updatedAt?: string | null;
 }
 

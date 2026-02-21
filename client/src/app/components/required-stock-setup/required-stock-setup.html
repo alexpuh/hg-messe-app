@@ -1,32 +1,36 @@
 <div class="h-full flex flex-col">
-  <div class="workplace-header flex items-center gap-2">
-    <h1>Konfiguration ({{messeName()}})</h1>
-    <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/inventory" severity="secondary"></p-button>
-    <h2 class="ml-auto">Messe</h2>
-    <div class="flex gap-2 align-items-center">
+  <div class="workplace-header">
+    <div class="workplace-header-line">
+      <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
+      <h2 class="mr-2">Beladeliste</h2>
       <p-select
-        [options]="tradeEventOptions()"
-        [ngModel]="selectedTradeEventId()"
-        (onChange)="onTradeEventChange($event)"
-        placeholder="Messe auswählen..."
+        [options]="dispatchSheetOptions()"
+        [ngModel]="selectedDispatchSheetId()"
+        (onChange)="onDispatchSheetChange($event)"
+        placeholder="Beladeliste auswählen..."
         [style]="{ 'min-width': '300px' }"
       />
       <p-button
         icon="pi pi-plus"
-        label="Neue Messe"
-        (onClick)="openNewTradeEventDialog()"
+        label="Neue Beladeliste"
+        (onClick)="openNewDispatchSheetDialog()"
         severity="secondary"
       />
-      <p-button icon="pi pi-save" label="Speichern als..." severity="secondary">
+      <p-button icon="pi pi-save" label="Kopieren als..." severity="secondary">
       </p-button>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-button icon="pi pi-upload" label="Artikelliste" severity="danger" (onClick)="uploadArticles()"></p-button>
+      <p-button icon="pi pi-download" label="Konfiguration" severity="secondary"></p-button>
+      <p-button icon="pi pi-upload" label="Konfiguration" severity="danger"></p-button>
     </div>
   </div>
 
   <div class="articles-container flex flex-col grow">
     <h2>Artikelliste mit Sollbeständen</h2>
 
-    @if (selectedTradeEventId() === null) {
-      <div class="no-selection">Bitte wählen Sie eine Messe aus, um die Artikelliste anzuzeigen.</div>
+    @if (selectedDispatchSheetId() === null) {
+      <div class="no-selection">Bitte wählen Sie eine Beladeliste aus, um die Artikelliste anzuzeigen.</div>
     } @else if (articles().length > 0) {
       <p-table [value]="articles()"
                [scrollable]="true"
@@ -110,28 +114,28 @@
         </ng-template>
       </p-table>
     } @else {
-      <div class="no-articles">Keine Artikel für diese Messe vorhanden</div>
+      <div class="no-articles">Keine Artikel für diese Beladeliste vorhanden</div>
     }
   </div>
 </div>
 
-<!-- Dialog für neue Messe -->
+<!-- Dialog für neue Beladeliste -->
 <p-dialog
-  header="Neue Messe erstellen"
-  [visible]="showNewTradeEventDialog()"
-  (visibleChange)="showNewTradeEventDialog.set($event)"
+  header="Neue Beladeliste erstellen"
+  [visible]="showNewDispatchSheetDialog()"
+  (visibleChange)="showNewDispatchSheetDialog.set($event)"
   [modal]="true"
   [style]="{ width: '450px' }"
 >
   <div class="dialog-content">
-    <label for="newTradeEventName" class="block mb-2">Messe-Name</label>
+    <label for="newTradeEventName" class="block mb-2">Beladeliste-Name</label>
     <input
       pInputText
       id="newTradeEventName"
       type="text"
-      [value]="newTradeEventName()"
-      (input)="onNewTradeEventNameChange($event)"
-      placeholder="Messe-Name eingeben..."
+      [value]="newDispatchSheetName()"
+      (input)="onNewDispatchSheetNameChange($event)"
+      placeholder="Beladeliste-Name eingeben..."
       class="w-full"
     />
   </div>
@@ -140,12 +144,12 @@
     <p-button
       label="Abbrechen"
       severity="secondary"
-      (onClick)="closeNewTradeEventDialog()"
+      (onClick)="closeNewDispatchSheetDialog()"
     />
     <p-button
       label="Erstellen"
-      (onClick)="createNewTradeEvent()"
-      [disabled]="!canCreateTradeEvent()"
+      (onClick)="createNewDispatchSheet()"
+      [disabled]="!canCreateDispatchSheet()"
     />
   </div>
 </p-dialog>

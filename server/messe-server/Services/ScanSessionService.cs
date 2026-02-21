@@ -4,28 +4,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class InventoryService(
+public class ScanSessionService(
     MesseAppDbContext dbContext,
     ArticlesService articlesService,
-    ILogger<InventoryService> logger)
+    ILogger<ScanSessionService> logger)
 {
     /// <summary>
-    /// Fügt einen gescannten Barcode zum Inventory hinzu
+    /// Fügt einen gescannten Barcode zur Scan Session hinzu
     /// </summary>
-    /// <param name="inventoryId">ID des Inventars</param>
+    /// <param name="sessionId">ID der Scan Session</param>
     /// <param name="ean">Gescannter EAN-Code</param>
-    /// <returns>true wenn erfolgreich, false wenn Inventory nicht gefunden oder EAN unbekannt</returns>
-    public async Task<(bool, string)> AddBarcodeAsync(int inventoryId, string ean)
+    /// <returns>true wenn erfolgreich, false wenn Scan Session nicht gefunden oder EAN unbekannt</returns>
+    public async Task<(bool, string)> AddBarcodeAsync(int sessionId, string ean)
     {
-        // Prüfe ob Inventory existiert
-        var inventory = await dbContext.Inventories
-            .Include(i => i.StockItems)
-            .FirstOrDefaultAsync(i => i.Id == inventoryId);
+        // Prüfe ob Scan Session existiert
+        var scanSession = await dbContext.ScanSessions
+            .Include(i => i.ScannedArticles)
+            .FirstOrDefaultAsync(i => i.Id == sessionId);
         
-        if (inventory == null)
+        if (scanSession == null)
         {
-            logger.LogWarning("Inventory {InventoryId} nicht gefunden", inventoryId);
-            return (false, $"Inventory {inventoryId} nicht gefunden");
+            logger.LogWarning("ScanSession {SessionId} nicht gefunden", sessionId);
+            return (false, $"Session {sessionId} nicht gefunden");
         }
 
         // Suche Artikel anhand des EAN-Codes
@@ -38,21 +38,21 @@ public class InventoryService(
         var unitId = articleUnit!.UnitId;
         var now = DateTime.Now;
 
-        // Suche oder erstelle StockItem
-        var stockItem = inventory.StockItems.FirstOrDefault(s => s.UnitId == unitId);
+        // Suche oder erstelle ScannedArticle
+        var scannedArticle = scanSession.ScannedArticles.FirstOrDefault(s => s.UnitId == unitId);
         
-        if (stockItem == null)
+        if (scannedArticle == null)
         {
-            // Erstelle neues StockItem
-            stockItem = new StockItem
+            // Erstelle neue ScannedArticle
+            scannedArticle = new ScannedArticle
             {
                 UnitId = unitId,
                 QuantityUnits = 0,
                 UpdatedAt = now
             };
-            inventory.StockItems.Add(stockItem); // EF Core setzt InventoryId automatisch
+            scanSession.ScannedArticles.Add(scannedArticle); // EF Core setzt SessionId automatisch
             
-            logger.LogInformation("Neues StockItem erstellt: InventoryId={InventoryId}, UnitId={UnitId}", inventoryId, unitId);
+            logger.LogInformation("Neues ScanedArticle erstellt: SessionId={SessionId}, UnitId={UnitId}", sessionId, unitId);
         }
 
         // Erstelle BarcodeScan und füge als related entity zum StockItem hinzu
@@ -61,116 +61,93 @@ public class InventoryService(
             Ean = ean,
             ScannedAt = now
         };
-        stockItem.BarcodeScans.Add(barcodeScan);
+        scannedArticle.BarcodeScans.Add(barcodeScan);
 
         // Aktualisiere Quantity (ein Scan = eine Einheit)
-        stockItem.QuantityUnits++;
-        stockItem.UpdatedAt = now;
+        scannedArticle.QuantityUnits++;
+        scannedArticle.UpdatedAt = now;
 
-        // Setze UpdatedAt des Inventory auf den Timestamp des StockItems
-        inventory.UpdatedAt = now;
+        // Setze UpdatedAt des Scan Session auf den Timestamp des letzten Scans
+        scanSession.UpdatedAt = now;
 
         await dbContext.SaveChangesAsync();
 
         logger.LogInformation(
-            "Barcode gescannt: InventoryId={InventoryId}, EAN={Ean}, UnitId={UnitId}, Quantity={Quantity}", 
-            inventoryId, ean, unitId, stockItem.QuantityUnits);
+            "Barcode gescannt: SessionId={SessionId}, EAN={Ean}, UnitId={UnitId}, Quantity={Quantity}", 
+            sessionId, ean, unitId, scannedArticle.QuantityUnits);
 
         return (true, string.Empty);
     }
 
     /// <summary>
-    /// Erstellt ein neues Inventory
+    /// Erstellt ein neue Scan Session
     /// </summary>
-    public async Task<int> CreateInventoryAsync(int? tradeEventId = null)
+    public async Task<int> CreateScanSessionAsync(int? dispatchSheetId = null)
     {
-        var inventory = new Inventory
+        var scanSession = new ScanSession
         {
             StartedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
-            TradeEventId = tradeEventId
+            DispatchSheetId = dispatchSheetId
         };
 
-        dbContext.Inventories.Add(inventory);
+        dbContext.ScanSessions.Add(scanSession);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Inventory erstellt: Id={Id}, TradeEventId={TradeEventId}", inventory.Id, tradeEventId);
+        logger.LogInformation("Scan session erstellt: Id={SessionId}, DispatchSheetId={DispatchSheetId}", scanSession.Id, dispatchSheetId);
 
-        return inventory.Id;
+        return scanSession.Id;
     }
 
     /// <summary>
-    /// Holt ein Inventory mit allen StockItems
+    /// Holt eine ScanSession mit allen ScannedArticles
     /// </summary>
-    public async Task<Inventory?> GetInventoryAsync(int inventoryId)
+    public async Task<ScanSession?> GetScanSessionAsync(int sessionId)
     {
-        return await dbContext.Inventories
-            .Include(i => i.StockItems)
+        return await dbContext.ScanSessions
+            .Include(i => i.ScannedArticles)
             .ThenInclude(s => s.BarcodeScans)
-            .FirstOrDefaultAsync(i => i.Id == inventoryId);
+            .FirstOrDefaultAsync(i => i.Id == sessionId);
     }
 
     /// <summary>
-    /// Holt das aktuelle Inventory (mit dem neuesten UpdatedAt-Wert)
+    /// Holt das aktuelle Scan Session (mit dem neuesten UpdatedAt-Wert)
     /// </summary>
-    public async Task<Inventory?> GetCurrentInventoryAsync()
+    public async Task<ScanSession?> GetCurrentScanSessionAsync()
     {
-        return await dbContext.Inventories
+        return await dbContext.ScanSessions
             .OrderByDescending(i => i.UpdatedAt)
             .FirstOrDefaultAsync();
     }
-
+    
     /// <summary>
-    /// Holt alle StockItems für ein Inventory
-    /// </summary>
-    public async Task<List<StockItem>> GetStockItemsAsync(int inventoryId)
-    {
-        return await dbContext.StockItems
-            .Where(s => s.InventoryId == inventoryId)
-            .OrderByDescending(s => s.UpdatedAt)
-            .ToListAsync();
-    }
-
-    /// <summary>
-    /// Holt alle BarcodeScans für ein StockItem
-    /// </summary>
-    public async Task<List<BarcodeScan>> GetBarcodeScansAsync(int stockItemId)
-    {
-        return await dbContext.BarcodeScans
-            .Where(b => b.StockItemId == stockItemId)
-            .OrderByDescending(b => b.ScannedAt)
-            .ToListAsync();
-    }
-
-    /// <summary>
-    /// Holt Inventory-Ergebnisse als DTO mit RequiredCount aus TradeEvent
+    /// Holt Scan Session-Ergebnisse als DTO mit RequiredCount aus der Verladeschein
     /// Gibt sowohl gescannte Items als auch nicht-gescannte Items mit RequiredCount > 0 zurück
     /// </summary>
-    /// <param name="inventoryId">ID des Inventars</param>
-    /// <returns>Null if inventoryId not found or collection</returns>
-    public async Task<(string? tradeEventName, DtoInventoryStockItem[] items)?> GetInventoryResultsAsync(int inventoryId)
+    /// <param name="sessionId">ID der ScanSession</param>
+    /// <returns>Null if sessionId not found</returns>
+    public async Task<(string? dispatchSheetName, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
     {
-        // Lade Inventory mit StockItems
-        var inventory = await dbContext.Inventories
-            .Include(i => i.StockItems)
-            .Include(i => i.TradeEvent)
-            .FirstOrDefaultAsync(i => i.Id == inventoryId);
+        // Lade Scan Session mit Articles
+        var scanSession = await dbContext.ScanSessions
+            .Include(i => i.ScannedArticles)
+            .Include(i => i.DispatchSheet)
+            .FirstOrDefaultAsync(i => i.Id == sessionId);
 
-        if (inventory == null)
+        if (scanSession == null)
         {
             return null;
         }
 
         // Sammle alle UnitIds (gescannte + required)
-        var scannedUnitIds = inventory.StockItems.Select(s => s.UnitId).ToHashSet();
+        var scannedUnitIds = scanSession.ScannedArticles.Select(s => s.UnitId).ToHashSet();
         var allUnitIds = new HashSet<int>(scannedUnitIds);
 
-        // Lade RequiredUnits für das TradeEvent (falls vorhanden)
         Dictionary<int, int>? requiredUnits = null;
-        if (inventory.TradeEventId.HasValue)
+        if (scanSession.DispatchSheetId.HasValue)
         {
-            requiredUnits = await dbContext.TradeEventRequiredUnits
-                .Where(r => r.TradeEventId == inventory.TradeEventId.Value && r.RequiredCount > 0)
+            requiredUnits = await dbContext.DispatchSheetRequiredUnits
+                .Where(r => r.DispatchSheetId == scanSession.DispatchSheetId.Value && r.RequiredCount > 0)
                 .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
             
             // Füge alle UnitIds mit RequiredCount > 0 hinzu
@@ -182,7 +159,7 @@ public class InventoryService(
 
         if (allUnitIds.Count == 0)
         {
-            return (inventory.TradeEvent?.Name, []);
+            return (scanSession.DispatchSheet?.Name, []);
         }
 
         // Lade ArticleUnits für alle UnitIds (gescannte + required)
@@ -191,9 +168,9 @@ public class InventoryService(
             .ToDictionaryAsync(a => a.UnitId);
 
         // Erstelle DTOs für gescannte Items
-        var results = new List<DtoInventoryStockItem>();
+        var results = new List<DtoScanSessionArticle>();
         
-        foreach (var stockItem in inventory.StockItems)
+        foreach (var stockItem in scanSession.ScannedArticles)
         {
             articleUnits.TryGetValue(stockItem.UnitId, out var articleUnit);
             
@@ -203,7 +180,7 @@ public class InventoryService(
                 requiredCount = required;
             }
 
-            results.Add(new DtoInventoryStockItem
+            results.Add(new DtoScanSessionArticle
             {
                 Id = stockItem.Id,
                 UnitId = stockItem.UnitId,
@@ -230,7 +207,7 @@ public class InventoryService(
 
                 articleUnits.TryGetValue(unitId, out var articleUnit);
 
-                results.Add(new DtoInventoryStockItem
+                results.Add(new DtoScanSessionArticle
                 {
                     Id = 0, // Kein StockItem vorhanden
                     UnitId = unitId,
@@ -245,6 +222,6 @@ public class InventoryService(
             }
         }
 
-        return (inventory.TradeEvent?.Name, results.ToArray());
+        return (scanSession.DispatchSheet?.Name, results.ToArray());
     }
 }
