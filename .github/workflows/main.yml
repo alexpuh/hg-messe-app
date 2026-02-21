@@ -80,10 +80,19 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore server/messe-app/messe-app.csproj
+        run: dotnet restore server/server.sln
 
-      - name: Publish
-        run: dotnet publish server/messe-app/messe-app.csproj --output publish-app -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:SelfContained=false -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --configuration ${{ env.BUILD_CONFIGURATION }}
+      - name: Publish messe-server
+        run: dotnet publish server/messe-server/messe-server.csproj --output publish-server -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Publish messe-app
+        run: dotnet publish server/messe-app/messe-app.csproj --output publish-app -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:SelfContained=false -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Upload Server Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hg-messe-app-server-${{ github.run_number }}
+          path: publish-server
 
       - name: Upload App Artifacts
         uses: actions/upload-artifact@v4
@@ -112,11 +121,17 @@ jobs:
           name: hg-messe-app-app-${{ github.run_number }}
           path: publish
 
+      - name: Download Server Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: hg-messe-app-server-${{ github.run_number }}
+          path: publish/server
+
       - name: Download Client Artifacts
         uses: actions/download-artifact@v4
         with:
           name: hg-messe-app-client-${{ github.run_number }}
-          path: publish/wwwroot
+          path: publish/server/wwwroot
 
       - name: List publish directory
         run: ls -R publish
@@ -152,6 +167,11 @@ jobs:
         uses: geekyeggo/delete-artifact@v5
         with:
           name: hg-messe-app-client-${{ github.run_number }}
+
+      - name: Delete server artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: hg-messe-app-server-${{ github.run_number }}
 
       - name: Delete app artifacts
         uses: geekyeggo/delete-artifact@v5

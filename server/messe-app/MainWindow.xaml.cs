@@ -98,7 +98,7 @@ public partial class MainWindow
         // Mögliche Pfade zur Server-Anwendung
         var possiblePaths = new[]
         {
-            Path.Combine(BasePath, "messe-server.exe"),
+            Path.Combine(BasePath, "server", "messe-server.exe"),
         };
         return possiblePaths.Select(Path.GetFullPath).FirstOrDefault(File.Exists);
     }
