@@ -11,16 +11,6 @@ public class ArticlesController(
     ILogger<ArticlesController> logger
     ) : ControllerBase
 {
-    [HttpGet(Name = "GetArticles")]
-    public IEnumerable<DtoArticle> Get()
-    {
-        return [
-            new DtoArticle{ Id = 1, Name = "Test", ArNr = "1234567890"},
-            new DtoArticle{ Id = 2, Name = "Test2", ArNr = "1234567891"},
-            new DtoArticle{ Id = 3, Name = "Test3", ArNr = "1234567892"}
-        ];
-    }
-
     /// <summary>
     /// Importiert Artikel aus einer JSON-Datei
     /// </summary>
@@ -72,9 +62,6 @@ public class ArticlesController(
         return articlesService.GetAllEanUnits().ToArray();
     }
 
-    
-    
-
     /// <summary>
     /// Holt einen Artikel anhand seiner UnitId
     /// </summary>
@@ -87,5 +74,45 @@ public class ArticlesController(
         }
         return NotFound(new { Message = "Artikel mit dieser UnitId nicht gefunden", UnitId = unitId });
     }
+
+    [HttpPost("upload-articles", Name = nameof(UploadArticleList))]
+    public async Task<ActionResult> UploadArticleList([FromForm] DtoArticlesFile articlesFile)
+    {
+        if (articlesFile.File == null || articlesFile.File.Length == 0)
+        {
+            return BadRequest("No file uploaded.");
+        }
+        
+        var tempFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".json");
+        try
+        {
+            await using (var fs = new FileStream(
+                             tempFileName,
+                             FileMode.CreateNew,
+                             FileAccess.ReadWrite,
+                             FileShare.ReadWrite,
+                             bufferSize: 4096))
+            {
+                await articlesFile.File.CopyToAsync(fs);
+            }
+
+            var count = await articlesService.ImportFromJsonFileAsync(tempFileName);
+            return Ok(new { ImportedCount = count, Message = $"{count} Artikel erfolgreich importiert" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+        finally
+        {
+            System.IO.File.Delete(tempFileName);
+        }
+    }
+}
+
+public class DtoArticlesFile
+{
+    public string FileName { get; set; } = string.Empty;
+    public IFormFile? File { get; set; }
 }
 

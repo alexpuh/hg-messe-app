@@ -5,10 +5,12 @@ import { Select, SelectChangeEvent } from 'primeng/select';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import { InventoryStore } from '../../store';
-import { TradeEventsService } from '../../api/trade-events.service';
-import { DtoTradeEventArticleUnit } from '../../api/openapi/backend';
+import { ScanSessionStore } from '../../store';
+import { DispatchSheetsService } from '../../api/dispatch-sheets.service';
 import {TableModule} from 'primeng/table';
+import {DtoDispatchSheetArticleUnit} from '../../api/openapi/backend';
+import { ArticlesService } from '../../api/articles.service';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'app-required-stock-setup',
@@ -29,28 +31,30 @@ import {TableModule} from 'primeng/table';
   }
 })
 export class RequiredStockSetup {
-  private readonly store = inject(InventoryStore);
-  private readonly tradeEventsService = inject(TradeEventsService);
+  private readonly store = inject(ScanSessionStore);
+  private readonly dispatchSheetsService = inject(DispatchSheetsService);
+  private readonly articlesService = inject(ArticlesService);
+  private readonly messageService = inject(MessageService);
 
-  protected selectedTradeEventId = signal<number | null>(this.store.selectedInventory()?.tradeEventId ?? null);
-  protected showNewTradeEventDialog = signal(false);
-  protected newTradeEventName = signal('');
-  private articlesData = signal<DtoTradeEventArticleUnit[]>([]);
+  protected selectedDispatchSheetId = signal<number | null>(this.store.selectedScanSession()?.dispatchSheetId ?? null);
+  protected showNewDispatchSheetDialog = signal(false);
+  protected newDispatchSheetName = signal('');
+  private articlesData = signal<DtoDispatchSheetArticleUnit[]>([]);
 
   // Editing state for required counts
   protected editingUnitId = signal<number | null>(null);
   protected editingValue = signal<string>('');
 
   constructor() {
-    // Load articles when trade event changes
+    // Load articles when the dispatch sheet changes
     effect(() => {
-      const tradeEventId = this.selectedTradeEventId();
-      if (!tradeEventId) {
+      const dispatchSheetId = this.selectedDispatchSheetId();
+      if (!dispatchSheetId) {
         this.articlesData.set([]);
         return;
       }
 
-      this.tradeEventsService.getTradeEventArticleUnits(tradeEventId).subscribe({
+      this.dispatchSheetsService.getDispatchSheetArticleUnits(dispatchSheetId).subscribe({
         next: (articles) => {
           this.articlesData.set(articles);
         },
@@ -62,18 +66,18 @@ export class RequiredStockSetup {
     });
   }
 
-  protected messeName = computed(() => {
-    const selectedId = this.selectedTradeEventId();
-    if (!selectedId) return 'Keine Messe ausgewählt';
+  protected dispatchSheetName = computed(() => {
+    const selectedId = this.selectedDispatchSheetId();
+    if (!selectedId) return 'Keine Beladeliste ausgewählt';
 
-    const tradeEvent = this.store.tradeEvents().find(te => te.id === selectedId);
-    return tradeEvent?.name ?? 'Unbekannt';
+    const dispatchSheet = this.store.dispatchSheets().find(te => te.id === selectedId);
+    return dispatchSheet?.name ?? 'Unbekannt';
   });
 
-  protected tradeEventOptions = computed(() => {
-    return this.store.tradeEvents().map(event => ({
-      label: event.name || 'Unbekannt',
-      value: event.id
+  protected dispatchSheetOptions = computed(() => {
+    return this.store.dispatchSheets().map(dispatchSheet => ({
+      label: dispatchSheet.name || 'Unbekannt',
+      value: dispatchSheet.id
     }));
   });
 
@@ -83,45 +87,45 @@ export class RequiredStockSetup {
     return [...items].sort(this.compareArticles);
   });
 
-  protected onTradeEventChange(event: SelectChangeEvent) {
-    this.selectedTradeEventId.set(event.value);
+  protected onDispatchSheetChange(event: SelectChangeEvent) {
+    this.selectedDispatchSheetId.set(event.value);
   }
 
-  protected openNewTradeEventDialog() {
-    this.showNewTradeEventDialog.set(true);
-    this.newTradeEventName.set('');
+  protected openNewDispatchSheetDialog() {
+    this.showNewDispatchSheetDialog.set(true);
+    this.newDispatchSheetName.set('');
   }
 
-  protected closeNewTradeEventDialog() {
-    this.showNewTradeEventDialog.set(false);
-    this.newTradeEventName.set('');
+  protected closeNewDispatchSheetDialog() {
+    this.showNewDispatchSheetDialog.set(false);
+    this.newDispatchSheetName.set('');
   }
 
-  protected onNewTradeEventNameChange(event: Event) {
+  protected onNewDispatchSheetNameChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    this.newTradeEventName.set(input.value);
+    this.newDispatchSheetName.set(input.value);
   }
 
-  protected canCreateTradeEvent = computed(() => {
-    return this.newTradeEventName().trim().length > 0;
+  protected canCreateDispatchSheet = computed(() => {
+    return this.newDispatchSheetName().trim().length > 0;
   });
 
-  protected createNewTradeEvent() {
-    const name = this.newTradeEventName().trim();
+  protected createNewDispatchSheet() {
+    const name = this.newDispatchSheetName().trim();
     if (!name) return;
 
-    this.tradeEventsService.addTradeEvent({ name }).subscribe({
-      next: (tradeEvent) => {
-        // Reload trade events from store
-        this.store.loadTradeEvents();
-        // Select the newly created trade event
-        if (tradeEvent.id) {
-          this.selectedTradeEventId.set(tradeEvent.id);
+    this.dispatchSheetsService.addDispatchSheet({ name }).subscribe({
+      next: (dispatchSheet) => {
+        // Reload dispatch sheets from the store
+        this.store.loadDispatchSheets();
+        // Select the newly created dispatch sheet
+        if (dispatchSheet.id) {
+          this.selectedDispatchSheetId.set(dispatchSheet.id);
         }
-        this.closeNewTradeEventDialog();
+        this.closeNewDispatchSheetDialog();
       },
       error: (error) => {
-        console.error('Error creating trade event:', error);
+        console.error('Error creating dispatch sheet:', error);
       }
     });
   }
@@ -140,8 +144,8 @@ export class RequiredStockSetup {
   protected saveRequiredCount(unitId: number | undefined) {
     if (!unitId) return;
 
-    const tradeEventId = this.selectedTradeEventId();
-    if (!tradeEventId) return;
+    const dispatchSheetId = this.selectedDispatchSheetId();
+    if (!dispatchSheetId) return;
 
     const value = parseInt(this.editingValue(), 10);
     if (isNaN(value) || value < 0) {
@@ -149,7 +153,7 @@ export class RequiredStockSetup {
       return;
     }
 
-    this.tradeEventsService.setRequiredUnits(tradeEventId, {
+    this.dispatchSheetsService.setRequiredUnits(dispatchSheetId, {
       unitId,
       count: value
     }).subscribe({
@@ -171,10 +175,10 @@ export class RequiredStockSetup {
   protected deleteRequiredCount(unitId: number | undefined) {
     if (!unitId) return;
 
-    const tradeEventId = this.selectedTradeEventId();
-    if (!tradeEventId) return;
+    const dispatchSheetId = this.selectedDispatchSheetId();
+    if (!dispatchSheetId) return;
 
-    this.tradeEventsService.deleteRequiredUnit(tradeEventId, unitId).subscribe({
+    this.dispatchSheetsService.deleteRequiredUnit(dispatchSheetId, unitId).subscribe({
       next: () => {
         // Update local data
         const articles = this.articlesData();
@@ -209,5 +213,68 @@ export class RequiredStockSetup {
     const aName = a.articleDisplayName ?? '';
     const bName = b.articleDisplayName ?? '';
     return aName.localeCompare(bName);
+  }
+
+  protected uploadArticles() {
+    // Create a file input element programmatically
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json,application/json';
+
+    fileInput.onchange = (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+
+      if (!file) {
+        return;
+      }
+
+      // Validate that it's a JSON file
+      if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Ungültiger Dateityp',
+          detail: 'Bitte wählen Sie eine JSON-Datei aus.',
+          life: 3000
+        });
+        return;
+      }
+
+      // Upload the file
+      this.articlesService.uploadArticles(file).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Upload erfolgreich',
+            detail: 'Die Artikelliste wurde erfolgreich hochgeladen.',
+            life: 3000
+          });
+          // Reload articles if a dispatch sheet is selected
+          const dispatchSheetId = this.selectedDispatchSheetId();
+          if (dispatchSheetId) {
+            this.dispatchSheetsService.getDispatchSheetArticleUnits(dispatchSheetId).subscribe({
+              next: (articles) => {
+                this.articlesData.set(articles);
+              },
+              error: (error) => {
+                console.error('Error reloading articles:', error);
+              }
+            });
+          }
+        },
+        error: (error) => {
+          console.error('Error uploading articles:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Upload fehlgeschlagen',
+            detail: 'Fehler beim Hochladen der Artikelliste.',
+            life: 5000
+          });
+        }
+      });
+    };
+
+    // Trigger the file input click
+    fileInput.click();
   }
 }

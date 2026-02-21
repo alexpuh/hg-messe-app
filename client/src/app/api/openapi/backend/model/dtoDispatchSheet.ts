@@ -11,10 +11,8 @@
  */
 
 
-export interface DtoEventInventory { 
+export interface DtoDispatchSheet { 
     id?: number | null;
-    startedAt?: string | null;
-    tradeEventId?: number | null;
-    updatedAt?: string | null;
+    name?: string | null;
 }
 

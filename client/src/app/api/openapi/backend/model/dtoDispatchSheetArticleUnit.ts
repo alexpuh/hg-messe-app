@@ -11,15 +11,13 @@
  */
 
 
-export interface DtoInventoryStockItem { 
+export interface DtoDispatchSheetArticleUnit { 
     id?: number;
     unitId?: number;
     articleNr?: string | null;
     articleDisplayName?: string | null;
     unitWeight?: number;
-    updatedAt?: string | null;
     ean?: string | null;
-    count?: number;
     requiredCount?: number | null;
 }
 

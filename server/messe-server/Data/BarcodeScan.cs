@@ -19,6 +19,6 @@ public class BarcodeScan
     public int StockItemId { get; set; }
     
     // Navigation Property
-    public StockItem? StockItem { get; set; }
+    public ScannedArticle? StockItem { get; set; }
 }
 

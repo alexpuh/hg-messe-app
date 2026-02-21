@@ -1,14 +1,15 @@
-import { Injectable } from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {ArticlesOpenApi} from './openapi/backend';
+import {Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ArticlesService {
-  constructor(private articlesOpenApi: ArticlesOpenApi) {
-  }
+  private api = inject(ArticlesOpenApi);
 
-  public getArticles() {
-    return this.articlesOpenApi.getArticles();
+  uploadArticles(file: File): Observable<void> {
+    const fileName = file.name;
+    return this.api.uploadArticleList(fileName, file);
   }
 }

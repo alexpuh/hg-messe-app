@@ -4,19 +4,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Herrmann.MesseApp.Server.Data;
 
 /// <summary>
-/// Verknüpfung zwischen TradeEvent und ArticleUnit mit erforderlicher Menge
+/// Verknüpfung zwischen DispatchSheet und ArticleUnit mit erforderlicher Menge
 /// </summary>
-[Table("TradeEventRequiredUnits")]
-public class TradeEventRequiredUnit
+[Table("DispatchSheetRequiredUnits")]
+public class DispatchSheetRequiredUnit
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int Id { get; set; }
     
     /// <summary>
-    /// ID des Trade Events
+    /// ID der Verladeschein
     /// </summary>
-    public int TradeEventId { get; set; }
+    public int DispatchSheetId { get; set; }
     
     /// <summary>
     /// ID der Artikeleinheit
@@ -24,13 +24,12 @@ public class TradeEventRequiredUnit
     public int UnitId { get; set; }
     
     /// <summary>
-    /// Erforderliche Anzahl dieser Einheiten für das Event
+    /// Erforderliche Anzahl dieser Einheiten für die Verladeschein
     /// </summary>
     public int RequiredCount { get; set; }
     
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
     
-    // Navigation Property
-    public TradeEvent? TradeEvent { get; set; }
+    public DispatchSheet? DispatchSheet { get; set; }
 }
 

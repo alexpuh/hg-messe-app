@@ -11,9 +11,15 @@
  */
 
 
-export interface DtoArticle { 
+export interface DtoScanSessionArticle { 
     id?: number;
-    name?: string | null;
-    arNr?: string | null;
+    unitId?: number;
+    articleNr?: string | null;
+    articleDisplayName?: string | null;
+    unitWeight?: number;
+    updatedAt?: string | null;
+    ean?: string | null;
+    count?: number;
+    requiredCount?: number | null;
 }
 

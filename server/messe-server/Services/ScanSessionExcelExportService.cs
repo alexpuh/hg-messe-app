@@ -3,14 +3,14 @@ using Herrmann.MesseApp.Server.Dto;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class InventoryExcelExportService(ILogger<InventoryExcelExportService> logger)
+public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService> logger)
 {
-    public void Generate(Stream stream, string? tradeEventName, IEnumerable<DtoInventoryStockItem> inventory, string workbookName)
+    public void Generate(Stream stream, string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> scanSessionArticles, string workbookName)
     {
         logger.LogDebug("Excel Export started: {WorkbookName}", workbookName);
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add(workbookName);
-        GenerateExcel(tradeEventName, inventory.OrderBy(i => i.ArticleNr), ws);
+        GenerateExcel(dispatchSheetName, scanSessionArticles.OrderBy(i => i.ArticleNr), ws);
         workbook.SaveAs(stream);
         if (stream.CanSeek)
         {
@@ -18,7 +18,7 @@ public class InventoryExcelExportService(ILogger<InventoryExcelExportService> lo
         }
     }
 
-    private static void GenerateExcel(string? tradeEventName, IEnumerable<DtoInventoryStockItem> items, IXLWorksheet ws)
+    private static void GenerateExcel(string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> items, IXLWorksheet ws)
     {
         const int maxCol = 7;
         ws.Column(1).Width = 10;
@@ -40,7 +40,7 @@ public class InventoryExcelExportService(ILogger<InventoryExcelExportService> lo
         ws.Range(zeile, 1, zeile, 4).Merge();
         SetCell(ws, zeile, 1, cell =>
         {
-            cell.Value = tradeEventName;
+            cell.Value = dispatchSheetName;
             SetHeader2Style(cell, XLAlignmentHorizontalValues.Left);
         });
         
