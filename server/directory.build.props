@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<DebugType>embedded</DebugType>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    </PropertyGroup>
+</Project>
