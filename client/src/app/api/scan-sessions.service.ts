@@ -24,8 +24,8 @@ export class ScanSessionsService {
     return this.api.getScanSessionArticlesExcel(sessionId);
   }
 
-  createScanSession(loadingListId?: number): Observable<DtoScanSession> {
-    return this.api.createScanSession(loadingListId);
+  createScanSession(loadingListId: number | null): Observable<DtoScanSession> {
+    return this.api.createScanSession(loadingListId ?? undefined);
   }
 }
 

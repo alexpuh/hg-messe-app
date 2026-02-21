@@ -1,4 +1,4 @@
-import {Component, computed, inject, signal} from '@angular/core';
+import {AfterViewInit, Component, computed, inject, OnInit, signal} from '@angular/core';
 import {Select, SelectChangeEvent} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
@@ -21,7 +21,7 @@ type ScanMode = 'Beladung' | 'Bestandsaufnahme';
   templateUrl: './scan-session.component.html',
   styleUrl: './scan-session.component.scss',
 })
-export class ScanSession {
+export class ScanSession implements AfterViewInit, OnInit {
   protected scanMode: ScanMode = 'Beladung';
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
@@ -104,7 +104,7 @@ export class ScanSession {
   protected startBestandsaufnahme() {
     this.scanMode = 'Bestandsaufnahme';
     // Start inventory without a dispatch sheet
-    this.store.startNewScanSession(undefined);
+    this.store.startNewScanSession(null);
     this.closeBestandsaufnahmeDialog();
   }
 
@@ -143,4 +143,14 @@ export class ScanSession {
       }
     });
   }
+
+  ngAfterViewInit(): void {
+    console.log('ngAfterViewInit');
+    this.store.reloadScanSessionArticles();
+  }
+  ngOnInit(): void {
+    console.log('ngOnInit');
+    this.store.reloadScanSessionArticles();
+  }
+
 }

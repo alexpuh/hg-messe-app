@@ -8,7 +8,7 @@ import {
   withState,
 } from '@ngrx/signals';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { pipe, switchMap, tap } from 'rxjs';
+import {catchError, EMPTY, map, mergeWith, pipe, switchMap, tap} from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { ScanSessionsService } from '../api/scan-sessions.service';
 import { DispatchSheetsService } from '../api/dispatch-sheets.service';
@@ -16,6 +16,7 @@ import { BarcodeScannerService, BarcodeScannerStatus } from '../api/barcode-scan
 import { SignalrService } from '../api/notifications/signalr.service';
 import { MessageService } from 'primeng/api';
 import {DtoDispatchSheet, DtoScanSession, DtoScanSessionArticle} from '../api/openapi/backend';
+import {HttpErrorResponse} from '@angular/common/http';
 
 export interface ScanSessionState {
   selectedScanSession: DtoScanSession | null;
@@ -56,31 +57,42 @@ export const ScanSessionStore = signalStore(
       signalrService = inject(SignalrService),
       messageService = inject(MessageService)
     ) => {
-      // Helper function to load stock items
-      const loadScanSessionArticlesInternal = rxMethod<number>(
+
+
+      const displayErrorAndStopLoading = (error: Error, detail: string)=> {
+        {
+          messageService.add({ severity: 'error', summary: 'Fehler', detail: `${detail}: ${error.message}` });
+          patchState(store, {
+            isLoading: false,
+            error: error.message,
+          });
+        }
+      }
+
+      const reloadScanSessionArticlesInternal = rxMethod<void>(
         pipe(
           tap(() => patchState(store, { isLoading: true, error: null })),
-          switchMap((scanSessionId) =>
-            scanSessionsService.getScanSessionArticles(scanSessionId).pipe(
-              tapResponse({
-                next: (items) => {
-                  patchState(store, {
-                    scanSessionArticles: items,
-                    isLoading: false,
-                  });
-                },
-                error: (error: Error) => {
-                  messageService.add({ severity: 'error', summary: 'Fehler', detail: `Artikel konnten nicht geladen werden: ${error.message}` });
-                  patchState(store, {
-                    isLoading: false,
-                    error: error.message,
-                  });
-                },
-              })
-            )
-          )
+          switchMap(() => {
+            const scanSessionId = store.scanSessionId();
+            if (scanSessionId) {
+              return scanSessionsService.getScanSessionArticles(scanSessionId);
+            }
+            else {
+              return EMPTY;
+            }
+          }),
+          tapResponse({
+            next: articles => {
+              patchState(store, {
+                scanSessionArticles: articles,
+                isLoading: false,
+              });
+            },
+            error: (error: Error) => displayErrorAndStopLoading(error, 'Scan-Session konnte nicht geladen werden')
+          })
         )
-      );
+      )
+
 
       // Helper function to load barcode scanner status
       const loadBarcodeScannerStatusInternal = () => {
@@ -100,49 +112,53 @@ export const ScanSessionStore = signalStore(
         });
       };
 
-      // Helper function to create a dispatch sheet and add it to the list
-      const createDispatchSheetInternal = (name: string) => {
-        return dispatchSheetsService.addDispatchSheet({ name }).pipe(
-          tap((dispatchSheet) => {
-            patchState(store, {
-              dispatchSheets: [...store.dispatchSheets(), dispatchSheet],
-            });
-          })
-        );
-      };
+      const setupSessionAndStopLoading = (scanSession: DtoScanSession, articles: DtoScanSessionArticle[]) => {
+        const dispatchSheetName = scanSession.dispatchSheetId
+          ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
+          : null;
+        patchState(store, {
+          selectedScanSession: scanSession,
+          scanSessionArticles: articles,
+          dispatchSheetName: dispatchSheetName,
+          isLoading: false,
+        });
+      }
 
       return {
-        // Load the current scan session and its stock items
+        reloadScanSessionArticles: reloadScanSessionArticlesInternal,
         loadCurrentScanSession: rxMethod<void>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap(() => scanSessionsService.getCurrentScanSession()),
-            tapResponse({
-              next: (scanSession) => {
-                // Find the dispatch sheet name for this scanSession
-                const dispatchSheetName = scanSession.dispatchSheetId
-                  ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
-                  : null;
-
-                patchState(store, {
-                  selectedScanSession: scanSession,
-                  dispatchSheetName: dispatchSheetName,
-                  isLoading: false,
-                });
-                if (scanSession.id) {
-                  loadScanSessionArticlesInternal(scanSession.id);
+            switchMap(() => scanSessionsService.getCurrentScanSession().pipe(
+              catchError(err => {
+                if (err instanceof HttpErrorResponse && err.status === 404) {
+                  patchState(store, { selectedScanSession: null, isLoading: false, scanSessionArticles: [] });
+                  return EMPTY;
+                } else {
+                  throw err;
                 }
-              },
-              error: (error: Error) => {
-                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht geladen werden: ${error.message}` });
-                patchState(store, {
-                  isLoading: false,
-                  error: error.message,
-                });
-              },
+              })
+            )),
+            switchMap(scanSession => scanSessionsService.getScanSessionArticles(scanSession.id!).pipe(map(articles => ({scanSession, articles})))),
+            tapResponse({
+              next: (r) => setupSessionAndStopLoading(r.scanSession, r.articles),
+              error: (error: Error) => displayErrorAndStopLoading(error, 'Scan-Session konnte nicht geladen werden')
             })
           )
         ),
+
+        startNewScanSession: rxMethod<number | null>(
+          pipe(
+            tap(() => patchState(store, { isLoading: true, error: null })),
+            switchMap((dispatchSheetId) => scanSessionsService.createScanSession(dispatchSheetId)),
+            switchMap(scanSession => scanSessionsService.getScanSessionArticles(scanSession.id!).pipe(map(articles => ({scanSession, articles})))),
+            tapResponse({
+              next: (r) => setupSessionAndStopLoading(r.scanSession, r.articles),
+              error: (error: Error) => displayErrorAndStopLoading(error, 'Scan-Session konnte nicht gestartet werden')
+            })
+          )
+        ),
+
 
         // Load all dispatch sheets
         loadDispatchSheets: rxMethod<void>(
@@ -188,51 +204,19 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        // Start a new scan session for a dispatch sheet
-        startNewScanSession: rxMethod<number | undefined>(
-          pipe(
-            tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((dispatchSheetId) => scanSessionsService.createScanSession(dispatchSheetId)),
-            tapResponse({
-              next: (scanSession) => {
-                const dispatchSheetName = scanSession.dispatchSheetId
-                  ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
-                  : "Unbekannt";
-
-                patchState(store, {
-                  selectedScanSession: scanSession,
-                  dispatchSheetName: dispatchSheetName,
-                  scanSessionArticles: [],
-                  isLoading: false,
-                });
-              },
-              error: (error: Error) => {
-                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht gestartet werden: ${error.message}` });
-                patchState(store, {
-                  isLoading: false,
-                  error: error.message,
-                });
-              },
-            })
-          )
-        ),
-
         // Create a new dispatch sheet
         createDispatchSheet: rxMethod<string>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((name) => createDispatchSheetInternal(name)),
+            switchMap(name => dispatchSheetsService.addDispatchSheet({name})),
             tapResponse({
-              next: () => {
-                patchState(store, { isLoading: false });
-              },
-              error: (error: Error) => {
-                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
+              next: dispatchSheet => {
                 patchState(store, {
                   isLoading: false,
-                  error: error.message,
+                  dispatchSheets: [...store.dispatchSheets(), dispatchSheet]
                 });
               },
+              error: (error: Error) => displayErrorAndStopLoading(error, 'Beladeliste konnte nicht erstellt werden'),
             })
           )
         ),
@@ -241,72 +225,21 @@ export const ScanSessionStore = signalStore(
         createDispatchSheetAndStartScanSession: rxMethod<string>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((name) =>
-              createDispatchSheetInternal(name).pipe(
-                switchMap((dispatchSheet) => {
-                  // Start a scan session for the new dispatch sheet
-                  if (dispatchSheet.id) {
-                    return scanSessionsService.createScanSession(dispatchSheet.id).pipe(
-                      tapResponse({
-                        next: (scanSession) => {
-                          patchState(store, {
-                            selectedScanSession: scanSession,
-                            dispatchSheetName: dispatchSheet.name ?? null,
-                            scanSessionArticles: [],
-                            isLoading: false,
-                          });
-                          if (scanSession.id) {
-                            loadScanSessionArticlesInternal(scanSession.id);
-                          }
-                        },
-                        error: (error: Error) => {
-                          messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht gestartet werden: ${error.message}` });
-                          patchState(store, {
-                            isLoading: false,
-                            error: error.message,
-                          });
-                        },
-                      })
-                    );
-                  } else {
-                    patchState(store, {
-                      isLoading: false,
-                      error: 'Dispatch sheet created but no ID returned',
-                    });
-                    return [];
-                  }
-                }),
-                tapResponse({
-                  next: () => {},
-                  error: (error: Error) => {
-                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+            switchMap(name => dispatchSheetsService.addDispatchSheet({name})),
+            switchMap(dispatchSheet => scanSessionsService.createScanSession(dispatchSheet.id!)),
+            switchMap(scanSession => scanSessionsService.getScanSessionArticles(scanSession.id!).pipe(map(articles => ({scanSession, articles})))),
+            tapResponse({
+              next: (r) => setupSessionAndStopLoading(r.scanSession, r.articles),
+              error: (error: Error) => displayErrorAndStopLoading(error, 'Scan-Session konnte nicht gestartet werden')
+            })
           )
         ),
-
-        // Reload article units for a current scan session (e.g., after SignalR event)
-        reloadScanSessionArticleUnits: () => {
-          const scanSessionId = store.scanSessionId();
-          if (scanSessionId) {
-            loadScanSessionArticlesInternal(scanSessionId);
-          }
-        },
 
         // Setup SignalR listener for stock changes
         setupSignalRListener: () => {
           signalrService.onBarcodeScanned((msg) => {
             console.log('StockChanged event received:', msg);
-            const scanSessionId = store.scanSessionId();
-            if (scanSessionId) {
-              loadScanSessionArticlesInternal(scanSessionId);
-            }
+            reloadScanSessionArticlesInternal();
           });
         },
 
