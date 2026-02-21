@@ -116,63 +116,54 @@ export const ScanSessionStore = signalStore(
         loadCurrentScanSession: rxMethod<void>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap(() =>
-              scanSessionsService.getCurrentScanSession().pipe(
-                tapResponse({
-                  next: (scanSession) => {
-                    // Find the dispatch sheet name for this scanSession
-                    const dispatchSheetName = scanSession.dispatchSheetId
-                      ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
-                      : null;
+            switchMap(() => scanSessionsService.getCurrentScanSession()),
+            tapResponse({
+              next: (scanSession) => {
+                // Find the dispatch sheet name for this scanSession
+                const dispatchSheetName = scanSession.dispatchSheetId
+                  ? store.dispatchSheets().find(te => te.id === scanSession.dispatchSheetId)?.name ?? null
+                  : null;
 
-                    patchState(store, {
-                      selectedScanSession: scanSession,
-                      dispatchSheetName: dispatchSheetName,
-                      isLoading: false,
-                    });
-                    if (scanSession.id) {
-                      loadScanSessionArticlesInternal(scanSession.id);
-                    }
-                  },
-                  error: (error: Error) => {
-                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht geladen werden: ${error.message}` });
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+                patchState(store, {
+                  selectedScanSession: scanSession,
+                  dispatchSheetName: dispatchSheetName,
+                  isLoading: false,
+                });
+                if (scanSession.id) {
+                  loadScanSessionArticlesInternal(scanSession.id);
+                }
+              },
+              error: (error: Error) => {
+                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Scan-Session konnte nicht geladen werden: ${error.message}` });
+                patchState(store, {
+                  isLoading: false,
+                  error: error.message,
+                });
+              },
+            })
           )
         ),
-
-        // Load scan session articles
-        loadScanSessionArticles: loadScanSessionArticlesInternal,
 
         // Load all dispatch sheets
         loadDispatchSheets: rxMethod<void>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap(() =>
-              dispatchSheetsService.getDispatchSheets().pipe(
-                tapResponse({
-                  next: (dispatchSheets) => {
-                    patchState(store, {
-                      dispatchSheets: dispatchSheets,
-                      isLoading: false,
-                    });
-                  },
-                  error: (error: Error) => {
-                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladelisten konnten nicht geladen werden: ${error.message}` });
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+            switchMap(() => dispatchSheetsService.getDispatchSheets()),
+            tapResponse({
+              next: (dispatchSheets) => {
+                patchState(store, {
+                  dispatchSheets: dispatchSheets,
+                  isLoading: false,
+                });
+              },
+              error: (error: Error) => {
+                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladelisten konnten nicht geladen werden: ${error.message}` });
+                patchState(store, {
+                  isLoading: false,
+                  error: error.message,
+                });
+              },
+            })
           )
         ),
 
@@ -230,22 +221,19 @@ export const ScanSessionStore = signalStore(
         createDispatchSheet: rxMethod<string>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((name) =>
-              createDispatchSheetInternal(name).pipe(
-                tapResponse({
-                  next: () => {
-                    patchState(store, { isLoading: false });
-                  },
-                  error: (error: Error) => {
-                    messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
-                    patchState(store, {
-                      isLoading: false,
-                      error: error.message,
-                    });
-                  },
-                })
-              )
-            )
+            switchMap((name) => createDispatchSheetInternal(name)),
+            tapResponse({
+              next: () => {
+                patchState(store, { isLoading: false });
+              },
+              error: (error: Error) => {
+                messageService.add({ severity: 'error', summary: 'Fehler', detail: `Beladeliste konnte nicht erstellt werden: ${error.message}` });
+                patchState(store, {
+                  isLoading: false,
+                  error: error.message,
+                });
+              },
+            })
           )
         ),
 
