@@ -80,13 +80,10 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore server/messe-app/messe-app.csproj -r win-x64
-
-      - name: Build
-        run: dotnet build server/messe-app/messe-app.csproj --no-restore -r win-x64 --no-self-contained -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --configuration ${{ env.BUILD_CONFIGURATION }}
+        run: dotnet restore server/messe-app/messe-app.csproj
 
       - name: Publish
-        run: dotnet publish server/messe-app/messe-app.csproj --output publish-app -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --no-self-contained --no-build --configuration ${{ env.BUILD_CONFIGURATION }}
+        run: dotnet publish server/messe-app/messe-app.csproj --output publish-app -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:SelfContained=false -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --configuration ${{ env.BUILD_CONFIGURATION }}
 
       - name: Upload App Artifacts
         uses: actions/upload-artifact@v4
