@@ -1,0 +1,163 @@
+﻿name: Build Herrmann Messe App
+
+on: push
+
+env:
+  NODE_VERSION: 20.x
+  RELEASE_VERSION: "1.0"
+  cache-name: cache-node-modules
+  VERSION_SUFFIX: ""
+  BUILD_CONFIGURATION: "Release"
+
+jobs:
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Time Zone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneWindows: "W. Europe Standard Time"
+          timezoneLinux: "Europe/Berlin"
+
+      - name: Cache node modules
+        id: cache-nodemodules
+        uses: actions/cache@v4
+        with:
+          path: client/node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Dependencies
+        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+        run: |
+          pushd client
+          npm ci
+          popd
+
+      - name: Build Client
+        run: |
+          pushd client
+          npm run build
+          popd
+
+      - name: Upload Client Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hg-messe-app-client-${{ github.run_number }}
+          path: client/dist/client/browser
+
+  build-app:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Time Zone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneWindows: "W. Europe Standard Time"
+          timezoneLinux: "Europe/Berlin"
+
+      - name: Set beta suffix
+        if: ${{ startsWith(github.ref, 'refs/heads/develop') }}
+        run: |
+          echo "VERSION_SUFFIX=beta" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "BUILD_CONFIGURATION=Debug" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore Dependencies
+        run: dotnet restore server/messe-app/messe-app.csproj -r win-x64
+
+      - name: Build
+        run: dotnet build server/messe-app/messe-app.csproj --no-restore -r win-x64 --no-self-contained -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --configuration ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Publish
+        run: dotnet publish server/messe-app/messe-app.csproj --output publish-app -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --no-self-contained --no-build --configuration ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Upload App Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hg-messe-app-app-${{ github.run_number }}
+          path: publish-app
+
+  create-release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/develop')
+    needs: [build-client, build-app]
+    steps:
+      - name: Set Time Zone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneWindows: "W. Europe Standard Time"
+          timezoneLinux: "Europe/Berlin"
+
+      - name: Set beta suffix
+        if: ${{ startsWith(github.ref, 'refs/heads/develop') }}
+        run: echo "VERSION_SUFFIX=-beta" >> $GITHUB_ENV
+
+      - name: Download App Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: hg-messe-app-app-${{ github.run_number }}
+          path: publish
+
+      - name: Download Client Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: hg-messe-app-client-${{ github.run_number }}
+          path: publish/wwwroot
+
+      - name: List publish directory
+        run: ls -R publish
+
+      - name: Zip Release
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: release.zip
+          directory: publish
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.RELEASE_VERSION }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}
+          release_name: Release ${{ env.RELEASE_VERSION }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}
+          draft: false
+          prerelease: ${{ startsWith(github.ref, 'refs/heads/develop') }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./publish/release.zip
+          asset_name: hg-messe-app-${{ env.RELEASE_VERSION }}.${{ github.run_number }}${{ env.VERSION_SUFFIX }}.zip
+          asset_content_type: application/zip
+
+      - name: Delete client artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: hg-messe-app-client-${{ github.run_number }}
+
+      - name: Delete app artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: hg-messe-app-app-${{ github.run_number }}
+
