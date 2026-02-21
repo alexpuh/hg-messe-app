@@ -21,7 +21,7 @@ type ScanMode = 'Beladung' | 'Bestandsaufnahme';
   templateUrl: './scan-session.component.html',
   styleUrl: './scan-session.component.scss',
 })
-export class ScanSession implements AfterViewInit, OnInit {
+export class ScanSession implements OnInit {
   protected scanMode: ScanMode = 'Beladung';
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
@@ -144,10 +144,6 @@ export class ScanSession implements AfterViewInit, OnInit {
     });
   }
 
-  ngAfterViewInit(): void {
-    console.log('ngAfterViewInit');
-    this.store.reloadScanSessionArticles();
-  }
   ngOnInit(): void {
     console.log('ngOnInit');
     this.store.reloadScanSessionArticles();
