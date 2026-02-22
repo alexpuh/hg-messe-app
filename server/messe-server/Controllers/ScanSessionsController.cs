@@ -71,6 +71,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
     [ProducesResponseType(typeof(FileContentResult), (int)HttpStatusCode.OK)]    
     public async Task<IActionResult> GetScanSessionArticlesExcel(
         int id,
+        [FromQuery] bool? showExpectation,
         [FromServices] ScanSessionExcelExportService excelReportService
         )
     {
@@ -80,7 +81,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
             return NotFound();
         }
         using var memoryStream = new MemoryStream();
-        excelReportService.Generate(memoryStream, result.Value.dispatchSheetName, result.Value.articles, DateTime.Today.ToString("yyyy-MM-dd"));
+        excelReportService.Generate(memoryStream, result.Value.dispatchSheetName, result.Value.articles, DateTime.Today.ToString("yyyy-MM-dd"), showExpectation ?? true);
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {

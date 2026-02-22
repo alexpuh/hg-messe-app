@@ -5,12 +5,12 @@ namespace Herrmann.MesseApp.Server.Services;
 
 public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService> logger)
 {
-    public void Generate(Stream stream, string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> scanSessionArticles, string workbookName)
+    public void Generate(Stream stream, string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> scanSessionArticles, string workbookName, bool showExpectation)
     {
         logger.LogDebug("Excel Export started: {WorkbookName}", workbookName);
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add(workbookName);
-        GenerateExcel(dispatchSheetName, scanSessionArticles.OrderBy(i => i.ArticleNr), ws);
+        GenerateExcel(dispatchSheetName, scanSessionArticles.OrderBy(i => i.ArticleNr).ThenBy(i => i.UnitWeight), ws, showExpectation);
         workbook.SaveAs(stream);
         if (stream.CanSeek)
         {
@@ -18,16 +18,19 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
         }
     }
 
-    private static void GenerateExcel(string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> items, IXLWorksheet ws)
+    private static void GenerateExcel(string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> items, IXLWorksheet ws, bool showExpectation)
     {
-        const int maxCol = 7;
+        var maxCol = showExpectation ? 7 : 5;
         ws.Column(1).Width = 10;
         ws.Column(2).Width = 35;
         ws.Column(3).Width = 12;
         ws.Column(4).Width = 20;
         ws.Column(5).Width = 10;
-        ws.Column(6).Width = 10;
-        ws.Column(7).Width = 10;
+        if (showExpectation)
+        {
+            ws.Column(6).Width = 10;
+            ws.Column(7).Width = 10;
+        }
         
         var zeile = 1;
         ws.Row(zeile).Height = 30;
@@ -79,16 +82,19 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
             cell.Value = "Bestand";
             SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
         });
-        SetCell(ws, zeile, 6, cell =>
+        if (showExpectation)
         {
-            cell.Value = "Soll";
-            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
-        });
-        SetCell(ws, zeile, 7, cell =>
-        {
-            cell.Value = "Fehlt";
-            SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
-        });
+            SetCell(ws, zeile, 6, cell =>
+            {
+                cell.Value = "Soll";
+                SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
+            });
+            SetCell(ws, zeile, 7, cell =>
+            {
+                cell.Value = "Fehlt";
+                SetTableHeaderStyle(cell, XLAlignmentHorizontalValues.Center);
+            });
+        }
         
         foreach (var item in items)
         {
@@ -119,19 +125,22 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
                 cell.Value = item.Count;
                 SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
             });
-            SetCell(ws, zeile, 6, cell =>
+            if (showExpectation)
             {
-                cell.Value = item.RequiredCount;
-                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
-            });
-            SetCell(ws, zeile, 7, cell =>
-            {
-                if (item.RequiredCount is not null && item.Count < item.RequiredCount)
+                SetCell(ws, zeile, 6, cell =>
                 {
-                    cell.Value = item.RequiredCount - item.Count;
-                }
-                SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
-            });
+                    cell.Value = item.RequiredCount;
+                    SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+                });
+                SetCell(ws, zeile, 7, cell =>
+                {
+                    if (item.RequiredCount is not null && item.Count < item.RequiredCount)
+                    {
+                        cell.Value = item.RequiredCount - item.Count;
+                    }
+                    SetTableDataStyle(cell, XLAlignmentHorizontalValues.Center);
+                });
+            }
         }
     }
     private static void SetHeaderStyle(IXLCell cell)
