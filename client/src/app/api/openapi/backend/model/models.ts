@@ -3,4 +3,5 @@ export * from './dtoDispatchSheetArticleUnit';
 export * from './dtoScanSession';
 export * from './dtoScanSessionArticle';
 export * from './eanUnit';
+export * from './scanSessionType';
 export * from './setRequiredUnitsRequest';

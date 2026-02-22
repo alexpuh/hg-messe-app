@@ -12,13 +12,13 @@
 
 
 export interface DtoScanSessionArticle { 
-    id?: number;
-    unitId?: number;
-    articleNr?: string | null;
-    articleDisplayName?: string | null;
+    id: number;
+    unitId: number;
+    articleNr: string | null;
+    articleDisplayName: string | null;
     unitWeight?: number;
     updatedAt?: string | null;
-    ean?: string | null;
+    ean: string | null;
     count?: number;
     requiredCount?: number | null;
 }

@@ -13,6 +13,6 @@
 
 export interface DtoDispatchSheet { 
     id?: number | null;
-    name?: string | null;
+    name: string | null;
 }
 

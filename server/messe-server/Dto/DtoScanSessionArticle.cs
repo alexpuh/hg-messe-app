@@ -2,13 +2,13 @@
 
 public class DtoScanSessionArticle
 {
-    public int Id { get; set; }
-    public int UnitId { get; set; }
-    public string? ArticleNr { get; set; }
-    public string? ArticleDisplayName { get; set; }
-    public int UnitWeight { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public string Ean { get; set; }
-    public int Count { get; set; }
-    public int? RequiredCount { get; set; }
+    public required int Id { get; init; }
+    public required int UnitId { get; init; }
+    public required string ArticleNr { get; init; }
+    public required string ArticleDisplayName { get; init; }
+    public int UnitWeight { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+    public required string Ean { get; init; }
+    public int Count { get; init; }
+    public int? RequiredCount { get; init; }
 }

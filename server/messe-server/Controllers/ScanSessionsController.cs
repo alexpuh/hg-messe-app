@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Herrmann.MesseApp.Server.Data;
 using Herrmann.MesseApp.Server.Dto;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,9 +11,21 @@ namespace Herrmann.MesseApp.Server.Controllers;
 public class ScanSessionsController(ScanSessionService scanSessionService, ILogger<ScanSessionsController> logger) : ControllerBase
 {
     [HttpPost(Name = nameof(CreateScanSession))]
-    public async Task<ActionResult<DtoScanSession>> CreateScanSession([FromQuery] int? dispatchSheetId = null)
+    public async Task<ActionResult<DtoScanSession>> CreateScanSession(
+        [FromQuery] ScanSessionType sessionType,
+        [FromQuery] int? dispatchSheetId = null)
     {
-        var scanSessionId = await scanSessionService.CreateScanSessionAsync(dispatchSheetId);
+        logger.LogDebug("Scan Session started: SessionType={SessionType}, DispatchSheetId={DispatchSheetId}", sessionType, dispatchSheetId);
+        // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
+        switch (sessionType)
+        {
+            case ScanSessionType.ProcessDispatchList when dispatchSheetId == null:
+                return BadRequest("dispatchSheetId ist erforderlich für SessionType 'ProcessDispatchList'.");
+            case ScanSessionType.Inventory when dispatchSheetId != null:
+                return BadRequest("dispatchSheetId darf nicht angegeben werden für SessionType 'Inventory'.");
+        }
+
+        var scanSessionId = await scanSessionService.CreateScanSessionAsync(sessionType, dispatchSheetId);
         var scanSession = await scanSessionService.GetScanSessionAsync(scanSessionId);
         
         if (scanSession == null)
@@ -23,7 +36,8 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         var dto = new DtoScanSession 
         { 
             Id = scanSession.Id, 
-            StartedAt = scanSession.StartedAt, 
+            StartedAt = scanSession.StartedAt,
+            SessionType = scanSession.SessionType,
             DispatchSheetId = scanSession.DispatchSheetId, 
             UpdatedAt = scanSession.UpdatedAt 
         };
@@ -39,7 +53,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         {
             return NotFound();
         }
-        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
+        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, SessionType = result.SessionType, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
     }
     
     [HttpGet("{id:int}", Name = nameof(GetScanSession))]
@@ -50,7 +64,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         {
             return NotFound();
         }
-        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
+        return new DtoScanSession { Id = result.Id, StartedAt = result.StartedAt, SessionType = result.SessionType, DispatchSheetId = result.DispatchSheetId, UpdatedAt = result.UpdatedAt};
     }
     
     [HttpGet("{id:int}/articles", Name = nameof(GetScanSessionArticles))]
@@ -71,7 +85,6 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
     [ProducesResponseType(typeof(FileContentResult), (int)HttpStatusCode.OK)]    
     public async Task<IActionResult> GetScanSessionArticlesExcel(
         int id,
-        [FromQuery] bool? showExpectation,
         [FromServices] ScanSessionExcelExportService excelReportService
         )
     {
@@ -81,7 +94,10 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
             return NotFound();
         }
         using var memoryStream = new MemoryStream();
-        excelReportService.Generate(memoryStream, result.Value.dispatchSheetName, result.Value.articles, DateTime.Today.ToString("yyyy-MM-dd"), showExpectation ?? true);
+        excelReportService.Generate(
+            memoryStream, result.Value.dispatchSheetName, result.Value.articles, 
+            DateTime.Today.ToString("yyyy-MM-dd"), 
+            result.Value.sessionType == ScanSessionType.ProcessDispatchList);
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {

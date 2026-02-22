@@ -17,6 +17,7 @@ model/dtoScanSession.ts
 model/dtoScanSessionArticle.ts
 model/eanUnit.ts
 model/models.ts
+model/scanSessionType.ts
 model/setRequiredUnitsRequest.ts
 param.ts
 variables.ts

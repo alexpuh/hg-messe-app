@@ -82,19 +82,20 @@ public class ScanSessionService(
     /// <summary>
     /// Erstellt ein neue Scan Session
     /// </summary>
-    public async Task<int> CreateScanSessionAsync(int? dispatchSheetId = null)
+    public async Task<int> CreateScanSessionAsync(ScanSessionType sessionType, int? dispatchSheetId = null)
     {
         var scanSession = new ScanSession
         {
             StartedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
+            SessionType = sessionType,
             DispatchSheetId = dispatchSheetId
         };
 
         dbContext.ScanSessions.Add(scanSession);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Scan session erstellt: Id={SessionId}, DispatchSheetId={DispatchSheetId}", scanSession.Id, dispatchSheetId);
+        logger.LogInformation("Scan session erstellt: Id={SessionId}, SessionType={SessionType}, DispatchSheetId={DispatchSheetId}", scanSession.Id, sessionType, dispatchSheetId);
 
         return scanSession.Id;
     }
@@ -126,7 +127,7 @@ public class ScanSessionService(
     /// </summary>
     /// <param name="sessionId">ID der ScanSession</param>
     /// <returns>Null if sessionId not found</returns>
-    public async Task<(string? dispatchSheetName, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
+    public async Task<(string? dispatchSheetName, ScanSessionType sessionType, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
     {
         // Lade Scan Session mit Articles
         var scanSession = await dbContext.ScanSessions
@@ -159,7 +160,7 @@ public class ScanSessionService(
 
         if (allUnitIds.Count == 0)
         {
-            return (scanSession.DispatchSheet?.Name, []);
+            return (scanSession.DispatchSheet?.Name, scanSession.SessionType, []);
         }
 
         // Lade ArticleUnits für alle UnitIds (gescannte + required)
@@ -172,7 +173,10 @@ public class ScanSessionService(
         
         foreach (var stockItem in scanSession.ScannedArticles)
         {
-            articleUnits.TryGetValue(stockItem.UnitId, out var articleUnit);
+            if (!articleUnits.TryGetValue(stockItem.UnitId, out var articleUnit))
+            {
+                throw new ApplicationException($"UnitId {stockItem.UnitId} nicht gefunden");
+            }
             
             int? requiredCount = null;
             if (requiredUnits != null && requiredUnits.TryGetValue(stockItem.UnitId, out var required))
@@ -184,8 +188,8 @@ public class ScanSessionService(
             {
                 Id = stockItem.Id,
                 UnitId = stockItem.UnitId,
-                ArticleNr = articleUnit?.ArtNr,
-                ArticleDisplayName = articleUnit?.DisplayName,
+                ArticleNr = articleUnit!.ArtNr,
+                ArticleDisplayName = articleUnit.DisplayName,
                 UnitWeight = articleUnit?.Weight ?? 0,
                 UpdatedAt = stockItem.UpdatedAt,
                 Ean = articleUnit?.EanUnit ?? string.Empty,
@@ -205,23 +209,26 @@ public class ScanSessionService(
                     continue;
                 }
 
-                articleUnits.TryGetValue(unitId, out var articleUnit);
+                if (!articleUnits.TryGetValue(unitId, out var articleUnit))
+                {
+                    throw new ApplicationException($"UnitId {unitId} nicht gefunden");
+                }
 
                 results.Add(new DtoScanSessionArticle
                 {
                     Id = 0, // Kein StockItem vorhanden
                     UnitId = unitId,
-                    ArticleNr = articleUnit?.ArtNr,
-                    ArticleDisplayName = articleUnit?.DisplayName,
-                    UnitWeight = articleUnit?.Weight ?? 0,
+                    ArticleNr = articleUnit!.ArtNr,
+                    ArticleDisplayName = articleUnit.DisplayName,
+                    UnitWeight = articleUnit.Weight,
                     UpdatedAt = null, // Noch nicht gescannt
-                    Ean = articleUnit?.EanUnit ?? string.Empty,
+                    Ean = articleUnit.EanUnit ?? string.Empty,
                     Count = 0, // Noch nicht gescannt
                     RequiredCount = requiredCount
                 });
             }
         }
 
-        return (scanSession.DispatchSheet?.Name, results.ToArray());
+        return (scanSession.DispatchSheet?.Name, scanSession.SessionType, results.ToArray());
     }
 }

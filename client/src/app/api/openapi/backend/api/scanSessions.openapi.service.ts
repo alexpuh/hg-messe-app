@@ -22,6 +22,8 @@ import { Observable }                                        from 'rxjs';
 import { DtoScanSession } from '../model/dtoScanSession';
 // @ts-ignore
 import { DtoScanSessionArticle } from '../model/dtoScanSessionArticle';
+// @ts-ignore
+import { ScanSessionType } from '../model/scanSessionType';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -94,16 +96,21 @@ export class ScanSessionsOpenApi {
     }
 
     /**
+     * @param sessionType 
      * @param dispatchSheetId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createScanSession(dispatchSheetId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
-    public createScanSession(dispatchSheetId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
-    public createScanSession(dispatchSheetId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
-    public createScanSession(dispatchSheetId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
+    public createScanSession(sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
+    public createScanSession(sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
+    public createScanSession(sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
+    public createScanSession(sessionType?: ScanSessionType, dispatchSheetId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (sessionType !== undefined && sessionType !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>sessionType, 'sessionType');
+        }
         if (dispatchSheetId !== undefined && dispatchSheetId !== null) {
           localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
             <any>dispatchSheetId, 'dispatchSheetId');

@@ -15,7 +15,7 @@ import { DispatchSheetsService } from '../api/dispatch-sheets.service';
 import { BarcodeScannerService, BarcodeScannerStatus } from '../api/barcode-scanner.service';
 import { SignalrService } from '../api/notifications/signalr.service';
 import { MessageService } from 'primeng/api';
-import {DtoDispatchSheet, DtoScanSession, DtoScanSessionArticle} from '../api/openapi/backend';
+import {DtoDispatchSheet, DtoScanSession, DtoScanSessionArticle, ScanSessionType} from '../api/openapi/backend';
 import {HttpErrorResponse} from '@angular/common/http';
 
 export interface ScanSessionState {
@@ -151,10 +151,10 @@ export const ScanSessionStore = signalStore(
           )
         ),
 
-        startNewScanSession: rxMethod<number | null>(
+        startNewScanSession: rxMethod<{ sessionType: ScanSessionType; dispatchSheetId: number | null }>(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
-            switchMap((dispatchSheetId) => scanSessionsService.createScanSession(dispatchSheetId)),
+            switchMap(({ sessionType, dispatchSheetId }) => scanSessionsService.createScanSession(sessionType, dispatchSheetId)),
             switchMap(scanSession => scanSessionsService.getScanSessionArticles(scanSession.id!).pipe(map(articles => ({scanSession, articles})))),
             tapResponse({
               next: (r) => setupSessionAndStopLoading(r.scanSession, r.articles),
@@ -230,7 +230,7 @@ export const ScanSessionStore = signalStore(
           pipe(
             tap(() => patchState(store, { isLoading: true, error: null })),
             switchMap(name => dispatchSheetsService.addDispatchSheet({name})),
-            switchMap(dispatchSheet => scanSessionsService.createScanSession(dispatchSheet.id!)),
+            switchMap(dispatchSheet => scanSessionsService.createScanSession(ScanSessionType.ProcessDispatchList, dispatchSheet.id!)),
             switchMap(scanSession => scanSessionsService.getScanSessionArticles(scanSession.id!).pipe(map(articles => ({scanSession, articles})))),
             tapResponse({
               next: (r) => setupSessionAndStopLoading(r.scanSession, r.articles),

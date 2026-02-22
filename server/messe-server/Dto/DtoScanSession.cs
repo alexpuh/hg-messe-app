@@ -1,9 +1,12 @@
-﻿namespace Herrmann.MesseApp.Server.Dto;
+﻿using Herrmann.MesseApp.Server.Data;
+
+namespace Herrmann.MesseApp.Server.Dto;
 
 public class DtoScanSession
 {
-    public int? Id { get; set; }
-    public DateTime? StartedAt { get; set; }
-    public int? DispatchSheetId { get; set; }
-    public DateTime? UpdatedAt { get; set; }
+    public required int Id { get; init; }
+    public required DateTime StartedAt { get; init; }
+    public required ScanSessionType SessionType { get; init; }
+    public required int? DispatchSheetId { get; init; }
+    public required DateTime UpdatedAt { get; set; }
 }

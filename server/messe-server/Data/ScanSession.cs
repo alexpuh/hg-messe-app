@@ -12,7 +12,9 @@ public class ScanSession
     
     public DateTime StartedAt { get; set; }
     
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    
+    public ScanSessionType SessionType { get; set; }
     
     public int? DispatchSheetId { get; set; }
     
