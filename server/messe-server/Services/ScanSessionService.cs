@@ -175,7 +175,7 @@ public class ScanSessionService(
         {
             if (!articleUnits.TryGetValue(stockItem.UnitId, out var articleUnit))
             {
-                throw new ApplicationException($"UnitId {stockItem.UnitId} nicht gefunden");
+                throw new ApplicationException($"UnitId {stockItem.UnitId} nicht gefunden"); //TODO: Review
             }
             
             int? requiredCount = null;
@@ -211,7 +211,7 @@ public class ScanSessionService(
 
                 if (!articleUnits.TryGetValue(unitId, out var articleUnit))
                 {
-                    throw new ApplicationException($"UnitId {unitId} nicht gefunden");
+                    throw new ApplicationException($"UnitId {unitId} nicht gefunden"); //TODO: Review
                 }
 
                 results.Add(new DtoScanSessionArticle
