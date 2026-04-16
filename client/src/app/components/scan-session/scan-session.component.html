@@ -1,0 +1,155 @@
+<div class="workplace-header">
+  <div class="workplace-header-line">
+    <h1>{{scanMode()}}</h1>
+    <p-button class="ml-auto mr-1" icon="pi pi-file-excel"
+              label="Excel exportieren"
+              severity="success"
+              (onClick)="exportToExcel()"
+              [disabled]="!store.selectedScanSession()"
+    ></p-button>
+    <p-button class="mr-1" icon="pi pi-truck"
+              label="Neue Beladung starten"
+              severity="danger"
+              (onClick)="openBeladungDialog()"></p-button>
+    <p-button class="mr-1" icon="pi pi-list"
+              label="Bestandsaufnahme starten"
+              severity="secondary"
+              (onClick)="openBestandsaufnahmeDialog()"></p-button>
+    <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
+    <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
+    <p-button
+      [label]="barcodeScannerStatusText()"
+      [severity]="barcodeScannerStatusSeverity()"
+      icon="pi pi-qrcode"
+      [outlined]="true"
+      size="small"
+    ></p-button>
+  </div>
+</div>
+
+<!-- Dialog für Beladung mit Beladeliste -->
+<p-dialog
+  [header]="'Neue Beladung starten'"
+  [visible]="showBeladungDialog()"
+  (visibleChange)="showBeladungDialog.set($event)"
+
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [draggable]="false"
+  [resizable]="false">
+  <div class="flex flex-col gap-4">
+    <div>
+      <label for="dispatchSheetSelect" class="block mb-2">Beladeliste auswählen:</label>
+      <p-select
+        id="dispatchSheetSelect"
+        [options]="dispatchSheetOptions()"
+        (onChange)="onDispatchSheetChange($event)"
+        placeholder="Bitte wählen Sie eine Beladeliste"
+        [style]="{width: '100%'}"
+        appendTo="body">
+      </p-select>
+    </div>
+    @if (store.isLoading()) {
+      <div class="text-center">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <p>Beladung wird gestartet...</p>
+      </div>
+    }
+  </div>
+  <!--suppress JSUnusedGlobalSymbols -->
+  <ng-template #footer>
+    <p-button
+      label="Abbrechen"
+      severity="secondary"
+      (onClick)="closeBeladungDialog()"
+      [disabled]="store.isLoading()">
+    </p-button>
+    <p-button
+      label="Starten"
+      (onClick)="startBeladung()"
+      [disabled]="!canStartScanSession() || store.isLoading()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog für Bestandsaufnahme ohne Beladeliste -->
+<p-dialog
+  [header]="'Bestandsaufnahme starten'"
+  [visible]="showBestandsaufnahmeDialog()"
+  (visibleChange)="showBestandsaufnahmeDialog.set($event)"
+
+  [modal]="true"
+  [style]="{width: '450px'}"
+  [draggable]="false"
+  [resizable]="false">
+  <div class="flex flex-col gap-4">
+    <p>Möchten Sie eine Bestandsaufnahme ohne Beladeliste starten?</p>
+    <p class="text-sm text-gray-600">Bei einer Bestandsaufnahme werden keine Sollwerte verglichen.</p>
+    @if (store.isLoading()) {
+      <div class="text-center">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        <p>Bestandsaufnahme wird gestartet...</p>
+      </div>
+    }
+  </div>
+  <!--suppress JSUnusedGlobalSymbols -->
+  <ng-template #footer>
+    <p-button
+      label="Abbrechen"
+      severity="secondary"
+      (onClick)="closeBestandsaufnahmeDialog()"
+      [disabled]="store.isLoading()">
+    </p-button>
+    <p-button
+      label="Starten"
+      (onClick)="startBestandsaufnahme()"
+      [disabled]="store.isLoading()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<div class="flex gap-2 items-center mb-4">
+  @if (startedAt(); as date) {
+    <div>
+      @if (store.selectedScanSession()?.sessionType === 'ProcessDispatchList' && store.dispatchSheetName()) {
+        <h2>{{store.dispatchSheetName()}}</h2>
+      }
+      <span>Gestartet: {{date | germanDateTime}}</span>
+    </div>
+  } @else {
+    <div>Keine aktive {{scanMode()}}</div>
+  }
+</div>
+
+<div class="stock-items">
+  <h2>Artikel</h2>
+  @if (items().length > 0) {
+    <div class="stock-list">
+      @for (item of items(); track item.unitId) {
+        <div class="stock-item">
+          <div class="item-info">
+            <div class="flex items-center gap-2">
+              <span class="artNr">{{item.articleNr}}</span>
+              <span class="artWeight">{{item.unitWeight}}</span>
+              <span class="artName">{{item.articleDisplayName}}</span>
+            </div>
+            <span class="artEan">{{item.ean}}</span>
+          </div>
+          <div class="scan-info">
+            <span class="updatedAt">{{(item.updatedAt ?? undefined) | germanDateTime}}</span>
+          </div>
+          <div class="item-counts flex flex-col items-end">
+            <span class="ist-count">{{item.count}}</span>
+            @if (item.requiredCount !== null && item.requiredCount !== undefined) {
+              <span class="req-exists">Soll: {{item.requiredCount}}</span>
+            } @else {
+              <span class="req-not-exists">Soll: -</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div>Keine Artikel vorhanden</div>
+  }
+</div>

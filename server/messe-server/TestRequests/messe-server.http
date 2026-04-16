@@ -1,30 +1,40 @@
-GET {{HostAddress}}/api/Articles
+### Get article units
+GET {{HostAddress}}/api/articles/units
 Accept: application/json
 
-### List all EventInventories
-GET {{HostAddress}}/api/EventInventories
+### Import articles from JSON file
+POST {{HostAddress}}/api/Articles/import
+Content-Type: application/json; charset=utf-8
 Accept: application/json
 
-### Get current EventInventory
-GET {{HostAddress}}/api/EventInventories/current
+"C:\\Work\\github-herrmann\\hg-messe-app\\server\\messe-server\\testdata\\articles-with-units-20260111-135224.json"
+
+### Get article by EAN
+GET {{HostAddress}}/api/Articles/by-ean/4260165694551
 Accept: application/json
 
-### Create new EventInventory
-POST {{HostAddress}}/api/EventInventories
+### Get article by UnitId
+GET {{HostAddress}}/api/Articles/1
+Accept: application/json
+
+
+### ===== Scan Sessions =====
+
+### Get current Scan Session
+GET {{HostAddress}}/api/ScanSessions/current
+Accept: application/json
+
+### Create new Scan Sessions
+POST {{HostAddress}}/api/ScanSessions
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
 {
   "tradeEventId": 1
 }
-### Test add stock to EventInventory
-POST {{HostAddress}}/api/EventInventories/test
+
+### Get BarcodeScanner status
+GET {{HostAddress}}/api/BarcodeScanner/status
 Content-Type: application/json; charset=utf-8
 Accept: application/json
 
-### Get stock of EventInventory
-GET {{HostAddress}}/api/EventInventories/stock/1
-Content-Type: application/json; charset=utf-8
-Accept: application/json
-
-###

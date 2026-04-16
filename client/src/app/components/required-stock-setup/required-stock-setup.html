@@ -1,10 +1,156 @@
-<div class="workplace-header">
-  <h1>Konfiguration ({{messeName}})</h1>
-</div>
-<div class="flex gap-2">
-  <p-button icon="pi pi-barcode" label="Bestandsaufnahme starten/fortsetzen" routerLink="/inventory"></p-button>
-  <p-button icon="pi pi-save" label="Speichern als..." severity="info"></p-button>
-  <p-button icon="pi pi-file-plus" label="Neue Konfiguration" severity="info"></p-button>
+<div class="h-full flex flex-col">
+  <div class="workplace-header">
+    <div class="workplace-header-line">
+      <p-button icon="pi pi-arrow-circle-left" label="Zurück" routerLink="/scan-session" severity="secondary"></p-button>
+      <h2 class="mr-2">Beladeliste</h2>
+      <p-select
+        [options]="dispatchSheetOptions()"
+        [ngModel]="selectedDispatchSheetId()"
+        (onChange)="onDispatchSheetChange($event)"
+        placeholder="Beladeliste auswählen..."
+        [style]="{ 'min-width': '300px' }"
+      />
+      <p-button
+        icon="pi pi-plus"
+        label="Neue Beladeliste"
+        (onClick)="openNewDispatchSheetDialog()"
+        severity="secondary"
+      />
+      <p-button icon="pi pi-save" label="Kopieren als..." severity="secondary">
+      </p-button>
+    </div>
+    <div class="flex items-center gap-2">
+      <p-button icon="pi pi-upload" label="Artikelliste" severity="danger" (onClick)="uploadArticles()"></p-button>
+      <p-button icon="pi pi-download" label="Konfiguration" severity="secondary"></p-button>
+      <p-button icon="pi pi-upload" label="Konfiguration" severity="danger"></p-button>
+    </div>
+  </div>
+
+  <div class="articles-container flex flex-col grow">
+    <h2>Artikelliste mit Sollbeständen</h2>
+
+    @if (selectedDispatchSheetId() === null) {
+      <div class="no-selection">Bitte wählen Sie eine Beladeliste aus, um die Artikelliste anzuzeigen.</div>
+    } @else if (articles().length > 0) {
+      <p-table [value]="articles()"
+               [scrollable]="true"
+               scrollHeight="flex"
+               class="grow"
+               style="height: 0"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Art.-Nr.</th>
+            <th>Artikelname</th>
+            <th>Gewicht</th>
+            <th>EAN</th>
+            <th>Sollbestand</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-article>
+          <tr>
+            <td>{{article.articleNr}}</td>
+            <td>{{article.articleDisplayName}}</td>
+            <td>
+              @if (article.unitWeight) {
+                {{article.unitWeight}} g
+              } @else {
+                -
+              }
+            </td>
+            <td>{{article.ean || '-'}}</td>
+            <td>
+              @if (isEditing(article.unitId)) {
+                <!-- Editing mode -->
+                <div class="flex gap-2 items-center w-full">
+                  <input
+                    pInputText
+                    type="number"
+                    [ngModel]="editingValue()"
+                    (ngModelChange)="editingValue.set($event)"
+                    min="0"
+                    class="w-20"
+                  />
+                  <p-button
+                    icon="pi pi-check"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="success"
+                    (onClick)="saveRequiredCount(article.unitId)"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    (onClick)="cancelEditing()"
+                  />
+                </div>
+              } @else {
+                <!-- Display mode -->
+                <div class="flex gap-2 items-center w-full">
+                  <p-button
+                    [text]="true"
+                    severity="secondary"
+                    size="large"
+                    [label]="article.requiredCount ?? '+'"
+                    (onClick)="startEditing(article.unitId, article.requiredCount)"
+                    class="w-12"
+                  />
+                  @if (article.requiredCount !== null && article.requiredCount !== undefined) {
+                    <p-button
+                      icon="pi pi-trash"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="danger"
+                      size="small"
+                      (onClick)="deleteRequiredCount(article.unitId)"
+                    />
+                  }
+                </div>
+              }
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else {
+      <div class="no-articles">Keine Artikel für diese Beladeliste vorhanden</div>
+    }
+  </div>
 </div>
 
+<!-- Dialog für neue Beladeliste -->
+<p-dialog
+  header="Neue Beladeliste erstellen"
+  [visible]="showNewDispatchSheetDialog()"
+  (visibleChange)="showNewDispatchSheetDialog.set($event)"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+>
+  <div class="dialog-content">
+    <label for="newTradeEventName" class="block mb-2">Beladeliste-Name</label>
+    <input
+      pInputText
+      id="newTradeEventName"
+      type="text"
+      [value]="newDispatchSheetName()"
+      (input)="onNewDispatchSheetNameChange($event)"
+      placeholder="Beladeliste-Name eingeben..."
+      class="w-full"
+    />
+  </div>
+
+  <div class="flex justify-end gap-2 mt-4">
+    <p-button
+      label="Abbrechen"
+      severity="secondary"
+      (onClick)="closeNewDispatchSheetDialog()"
+    />
+    <p-button
+      label="Erstellen"
+      (onClick)="createNewDispatchSheet()"
+      [disabled]="!canCreateDispatchSheet()"
+    />
+  </div>
+</p-dialog>
 

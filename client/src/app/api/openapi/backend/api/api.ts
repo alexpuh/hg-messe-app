@@ -1,7 +1,9 @@
 export * from './articles.openapi.service';
 import { ArticlesOpenApi } from './articles.openapi.service';
-export * from './eventInventories.openapi.service';
-import { EventInventoriesOpenApi } from './eventInventories.openapi.service';
-export * from './tradeEvents.openapi.service';
-import { TradeEventsOpenApi } from './tradeEvents.openapi.service';
-export const APIS = [ArticlesOpenApi, EventInventoriesOpenApi, TradeEventsOpenApi];
+export * from './barcodeScanner.openapi.service';
+import { BarcodeScannerOpenApi } from './barcodeScanner.openapi.service';
+export * from './dispatchSheets.openapi.service';
+import { DispatchSheetsOpenApi } from './dispatchSheets.openapi.service';
+export * from './scanSessions.openapi.service';
+import { ScanSessionsOpenApi } from './scanSessions.openapi.service';
+export const APIS = [ArticlesOpenApi, BarcodeScannerOpenApi, DispatchSheetsOpenApi, ScanSessionsOpenApi];

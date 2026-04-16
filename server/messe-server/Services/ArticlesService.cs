@@ -1,26 +1,132 @@
-﻿using Herrmann.MesseApp.Server.Dto;
+﻿using System.Text.Json;
+using Herrmann.MesseApp.Server.Data;
+using Herrmann.MesseApp.Server.Data.Import;
+using Herrmann.MesseApp.Server.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace Herrmann.MesseApp.Server.Services;
 
-public class ArticlesService
+public class ArticlesService(MesseAppDbContext dbContext, ILogger<ArticlesService> logger)
 {
-    private readonly Dictionary<int, DtoArticleUnit> articleUnits = new () {
-        [1] = new DtoArticleUnit { UnitId = 1, ArticleNr = "1111", ArticleName = Guid.NewGuid().ToString("N"), EanBox = "40000001", EanUnit = "20000001", Gewicht = 100, UnitsPerBox = 3},
-        [2] = new DtoArticleUnit { UnitId = 2, ArticleNr = "1111", ArticleName = Guid.NewGuid().ToString("N"), EanBox = "40000002", EanUnit = "20000002", Gewicht = 200, UnitsPerBox = 3},
-        [3] = new DtoArticleUnit { UnitId = 3, ArticleNr = "3333", ArticleName = Guid.NewGuid().ToString("N"), EanBox = "40000003", EanUnit = "20000003", Gewicht = 100, UnitsPerBox = 3},
-        [4] = new DtoArticleUnit { UnitId = 4, ArticleNr = "3333", ArticleName = Guid.NewGuid().ToString("N"), EanBox = "40000004", EanUnit = "20000004", Gewicht = 200, UnitsPerBox = 3}
-    };
-
-    
     public bool TryGetArticleUnit(int unitId, out DtoArticleUnit? articleUnit)
     {
-        return articleUnits.TryGetValue(unitId, out articleUnit!);
+        var entity = dbContext.ArticleUnits
+            .AsNoTracking()
+            .FirstOrDefault(x => x.UnitId == unitId);
+
+        if (entity == null)
+        {
+            articleUnit = null;
+            return false;
+        }
+
+        articleUnit = MapToDto(entity);
+        return true;
     }
 
     public bool TryFindEan(string ean, out DtoArticleUnit? articleUnit)
     {
-        var found = articleUnits.Values.FirstOrDefault(x => x.EanBox == ean || x.EanUnit == ean);
-        articleUnit = found;
-        return found != null;
+        var entity = dbContext.ArticleUnits
+            .AsNoTracking()
+            .FirstOrDefault(x => x.EanBox == ean || x.EanUnit == ean);
+
+        if (entity == null)
+        {
+            articleUnit = null;
+            return false;
+        }
+
+        articleUnit = MapToDto(entity);
+        return true;
+    }
+
+    public async Task<int> ImportFromJsonFileAsync(string filePath)
+    {
+        logger.LogInformation("Starte Import von Artikeln aus Datei: {FilePath}", filePath);
+
+        if (!File.Exists(filePath))
+        {
+            throw new FileNotFoundException("JSON-Datei nicht gefunden", filePath);
+        }
+
+        var jsonContent = await File.ReadAllTextAsync(filePath);
+        var articles = JsonSerializer.Deserialize<List<ArticleImport>>(jsonContent, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+
+        if (articles == null || articles.Count == 0)
+        {
+            logger.LogWarning("Keine Artikel in der JSON-Datei gefunden");
+            return 0;
+        }
+
+        // Lösche alle vorhandenen Einträge
+        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
+
+        var entities = articles
+            .SelectMany(a => a.Units.Select(au => (article: a, unit: au)))
+            .Select(paramAu =>
+            {
+                var (article, unit) = paramAu;
+                return new ArticleUnit
+                {
+                    UnitId = unit.Id,
+                    ArticleId = unit.ArticleId,
+                    ArtNr = article.ArtNr,
+                    Weight = unit.Weight,
+                    DisplayName = article.DisplayName,
+                    IsArticleDisabled = article.IsDisabled,
+                    IsUnitDisabled = unit.IsDisabled,
+                    PackagesInBox = unit.PackagesInBox,
+                    EanUnit = string.IsNullOrWhiteSpace(unit.Ean) ? null : unit.Ean,
+                    EanBox = null // Im Import-JSON scheint es nur Unit-EAN zu geben
+                };
+            }).ToList();
+        
+        await dbContext.ArticleUnits.AddRangeAsync(entities);
+        await dbContext.SaveChangesAsync();
+
+        logger.LogInformation("{Count} Artikel-Units erfolgreich importiert", entities.Count);
+        return entities.Count;
+    }
+
+    public List<EanUnit> GetAllEanUnits()
+    {
+        var result = new List<EanUnit>();
+        
+        var units = dbContext.ArticleUnits
+            .AsNoTracking()
+            .Where(x => !x.IsArticleDisabled && !x.IsUnitDisabled)
+            .ToList();
+
+        foreach (var unit in units)
+        {
+            if (!string.IsNullOrWhiteSpace(unit.EanUnit))
+            {
+                result.Add(new EanUnit(unit.UnitId, unit.EanUnit));
+            }
+            
+            if (!string.IsNullOrWhiteSpace(unit.EanBox))
+            {
+                result.Add(new EanUnit(unit.UnitId, unit.EanBox));
+            }
+        }
+
+        return result;
+    }
+
+    private static DtoArticleUnit MapToDto(ArticleUnit entity)
+    {
+        return new DtoArticleUnit
+        {
+            UnitId = entity.UnitId,
+            ArticleNr = entity.ArtNr,
+            ArticleName = entity.DisplayName,
+            Gewicht = entity.Weight,
+            EanUnit = entity.EanUnit,
+            EanBox = entity.EanBox,
+            UnitsPerBox = entity.PackagesInBox
+        };
     }
 }

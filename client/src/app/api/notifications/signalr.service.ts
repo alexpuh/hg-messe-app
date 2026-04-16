@@ -16,11 +16,15 @@ export class SignalrService {
       .catch(err => console.error(err));
   }
 
-  onStockChanged(callback: (msg: string) => void) {
-    this.hubConnection.on('StockChanged', callback);
+  onBarcodeScanned(callback: (msg: string) => void) {
+    this.hubConnection.on('BarcodeScanned', callback);
   }
 
-  onOrderCreated(callback: (msg: string) => void) {
-    this.hubConnection.on('OrderCreated', callback);
+  onBarcodeError(callback: (ean: string, errorMessage: string) => void) {
+    this.hubConnection.on('BarcodeError', callback);
+  }
+
+  onScannerStatusChanged(callback: (isConnected: boolean) => void) {
+    this.hubConnection.on('ScannerStatusChanged', callback);
   }
 }

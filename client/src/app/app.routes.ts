@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
-import {Inventory} from './components/inventory/inventory';
+import {ScanSession} from './components/scan-session/scan-session.component';
 import {RequiredStockSetup} from './components/required-stock-setup/required-stock-setup';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/inventory', pathMatch: 'full' },
-  { path: 'inventory', component: Inventory },
+  { path: '', redirectTo: '/scan-session', pathMatch: 'full' },
+  { path: 'scan-session', component: ScanSession },
   { path: 'config', component: RequiredStockSetup}
 ];
