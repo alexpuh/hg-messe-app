@@ -151,4 +151,5 @@ export class ScanSession implements OnInit {
     this.store.reloadScanSessionArticles();
   }
 
+  protected readonly ScanSessionType = ScanSessionType;
 }

@@ -111,7 +111,7 @@
 <div class="flex gap-2 items-center mb-4">
   @if (startedAt(); as date) {
     <div>
-      @if (store.selectedScanSession()?.sessionType === 'ProcessDispatchList' && store.dispatchSheetName()) {
+      @if (store.selectedScanSession()?.sessionType === ScanSessionType.ProcessDispatchList && store.dispatchSheetName()) {
         <h2>{{store.dispatchSheetName()}}</h2>
       }
       <span>Gestartet: {{date | germanDateTime}}</span>
