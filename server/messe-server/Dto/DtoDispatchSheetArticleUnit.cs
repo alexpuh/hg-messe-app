@@ -2,11 +2,11 @@
 
 public class DtoDispatchSheetArticleUnit
 {
-    public int Id { get; set; }
-    public int UnitId { get; set; }
-    public string? ArticleNr { get; set; }
-    public string? ArticleDisplayName { get; set; }
-    public int UnitWeight { get; set; }
-    public string Ean { get; set; }
-    public int? RequiredCount { get; set; }
+    public required int Id { get; init; }
+    public required int UnitId { get; init; }
+    public required string? ArticleNr { get; init; }
+    public required string? ArticleDisplayName { get; init; }
+    public required int UnitWeight { get; init; }
+    public required string Ean { get; init; }
+    public required int? RequiredCount { get; init; }
 }

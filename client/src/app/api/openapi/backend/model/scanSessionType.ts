@@ -11,13 +11,10 @@
  */
 
 
-export interface DtoDispatchSheetArticleUnit { 
-    id: number;
-    unitId: number;
-    articleNr: string | null;
-    articleDisplayName: string | null;
-    unitWeight: number;
-    ean: string | null;
-    requiredCount: number | null;
-}
+export type ScanSessionType = 'ProcessDispatchList' | 'Inventory';
+
+export const ScanSessionType = {
+    ProcessDispatchList: 'ProcessDispatchList' as ScanSessionType,
+    Inventory: 'Inventory' as ScanSessionType
+};
 

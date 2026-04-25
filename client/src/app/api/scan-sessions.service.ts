@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import {Observable} from 'rxjs';
-import {DtoScanSession, DtoScanSessionArticle, ScanSessionsOpenApi} from './openapi/backend';
+import {DtoScanSession, DtoScanSessionArticle, ScanSessionsOpenApi, ScanSessionType} from './openapi/backend';
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +24,8 @@ export class ScanSessionsService {
     return this.api.getScanSessionArticlesExcel(sessionId);
   }
 
-  createScanSession(loadingListId: number | null): Observable<DtoScanSession> {
-    return this.api.createScanSession(loadingListId ?? undefined);
+  createScanSession(sessionType: ScanSessionType, dispatchSheetId: number | null): Observable<DtoScanSession> {
+    return this.api.createScanSession(sessionType, dispatchSheetId ?? undefined);
   }
 }
 

@@ -1,6 +1,6 @@
 <div class="workplace-header">
   <div class="workplace-header-line">
-    <h1>{{scanMode}}</h1>
+    <h1>{{scanMode()}}</h1>
     <p-button class="ml-auto mr-1" icon="pi pi-file-excel"
               label="Excel exportieren"
               severity="success"
@@ -111,13 +111,13 @@
 <div class="flex gap-2 items-center mb-4">
   @if (startedAt(); as date) {
     <div>
-      @if (scanMode == 'Beladung' && store.dispatchSheetName()) {
+      @if (store.selectedScanSession()?.sessionType === ScanSessionType.ProcessDispatchList && store.dispatchSheetName()) {
         <h2>{{store.dispatchSheetName()}}</h2>
       }
       <span>Gestartet: {{date | germanDateTime}}</span>
     </div>
   } @else {
-    <div>Keine aktive {{scanMode}}</div>
+    <div>Keine aktive {{scanMode()}}</div>
   }
 </div>
 

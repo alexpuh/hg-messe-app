@@ -25,17 +25,21 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
         ws.Column(2).Width = 35;
         ws.Column(3).Width = 12;
         ws.Column(4).Width = 20;
-        ws.Column(5).Width = 10;
         if (showExpectation)
         {
+            ws.Column(5).Width = 10;
             ws.Column(6).Width = 10;
             ws.Column(7).Width = 10;
+        }
+        else
+        {
+            ws.Column(5).Width = 20;
         }
         
         var zeile = 1;
         ws.Row(zeile).Height = 30;
         ws.Range(zeile, 1, zeile, maxCol).Merge();
-        ws.Cell(zeile, 1).Value = "LKW-Kontrolle";
+        ws.Cell(zeile, 1).Value = showExpectation ? "Beladung" : "Bestandsaufnahme";
         SetHeaderStyle(ws.Cell(zeile, 1));
 
         zeile++;

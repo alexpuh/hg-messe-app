@@ -9,12 +9,17 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { ScanSessionType } from './scanSessionType';
 
 
 export interface DtoScanSession { 
-    id?: number | null;
-    startedAt?: string | null;
-    dispatchSheetId?: number | null;
-    updatedAt?: string | null;
+    id: number;
+    startedAt: string;
+    sessionType: ScanSessionType;
+    dispatchSheetId: number | null;
+    updatedAt: string;
 }
+export namespace DtoScanSession {
+}
+
 

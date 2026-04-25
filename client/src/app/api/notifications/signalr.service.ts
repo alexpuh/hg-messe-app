@@ -7,7 +7,7 @@ export class SignalrService {
 
   startConnection() {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('hubs/notification')
+      .withUrl('/hubs/notification')
       .withAutomaticReconnect()
       .build();
 

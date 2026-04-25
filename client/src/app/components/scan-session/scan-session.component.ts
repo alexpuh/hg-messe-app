@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, computed, inject, OnInit, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
 import {Select, SelectChangeEvent} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
@@ -6,8 +6,7 @@ import {Dialog} from 'primeng/dialog';
 import {ScanSessionStore} from '../../store';
 import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
 import {ScanSessionsService} from '../../api/scan-sessions.service';
-
-type ScanMode = 'Beladung' | 'Bestandsaufnahme';
+import {ScanSessionType} from '../../api/openapi/backend';
 
 @Component({
   selector: 'app-scan-session',
@@ -20,11 +19,18 @@ type ScanMode = 'Beladung' | 'Bestandsaufnahme';
   ],
   templateUrl: './scan-session.component.html',
   styleUrl: './scan-session.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScanSession implements OnInit {
-  protected scanMode: ScanMode = 'Beladung';
   protected readonly store = inject(ScanSessionStore);
   private readonly scanSessionsService = inject(ScanSessionsService);
+
+  protected readonly scanMode = computed(() => {
+    const sessionType = this.store.selectedScanSession()?.sessionType;
+    if (sessionType === ScanSessionType.ProcessDispatchList) return 'Beladung';
+    if (sessionType === ScanSessionType.Inventory) return 'Bestandsaufnahme';
+    return 'Kein aktiver Scan';
+  });
 
   protected showBeladungDialog = signal(false);
   protected showBestandsaufnahmeDialog = signal(false);
@@ -91,20 +97,16 @@ export class ScanSession implements OnInit {
   }
 
   protected startBeladung() {
-    this.scanMode = 'Beladung';
     const selectedId = this.selectedDispatchSheetId();
-
     if (selectedId) {
       console.log('Start scan session with dispatch sheet', selectedId);
-      this.store.startNewScanSession(selectedId);
+      this.store.startNewScanSession({ sessionType: ScanSessionType.ProcessDispatchList, dispatchSheetId: selectedId });
       this.closeBeladungDialog();
     }
   }
 
   protected startBestandsaufnahme() {
-    this.scanMode = 'Bestandsaufnahme';
-    // Start inventory without a dispatch sheet
-    this.store.startNewScanSession(null);
+    this.store.startNewScanSession({ sessionType: ScanSessionType.Inventory, dispatchSheetId: null });
     this.closeBestandsaufnahmeDialog();
   }
 
@@ -149,4 +151,5 @@ export class ScanSession implements OnInit {
     this.store.reloadScanSessionArticles();
   }
 
+  protected readonly ScanSessionType = ScanSessionType;
 }
