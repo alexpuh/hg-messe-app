@@ -80,7 +80,7 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore server/server.sln
+        run: dotnet restore server/server.sln  -r win-x64
 
       - name: Publish messe-server
         run: dotnet publish server/messe-server/messe-server.csproj --output publish-server -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:VersionSuffix=${{ env.VERSION_SUFFIX }} -p:VersionPrefix=${{ env.RELEASE_VERSION }}.0.${{ github.run_number }} --no-restore --configuration ${{ env.BUILD_CONFIGURATION }}
