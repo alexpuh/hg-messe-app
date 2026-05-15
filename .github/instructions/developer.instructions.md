@@ -74,6 +74,8 @@ gen-backend.cmd
 ```
 The server must be running at `http://localhost:5227` before running this command. Never hand-edit files in `client/src/app/api/openapi/backend/`.
 
+**Always stop the server after regeneration.** Start it only for the duration of the `gen-backend.cmd` call, then stop it immediately afterwards. Do not leave `messe-server` (or any other long-running process started during implementation) running when the task is done.
+
 ### Angular
 - **Standalone components only** — no NgModules. Do not set `standalone: true` explicitly (default in Angular v20+).
 - **Signals** — use `signal()`, `computed()`, `input()`, `output()`. Do not use `@Input`/`@Output` decorators.
@@ -106,6 +108,7 @@ A task is complete when:
 - [ ] The server builds without errors (`dotnet build`)
 - [ ] The Angular client builds without errors (`npm run build`)
 - [ ] OpenAPI client has been regenerated if API changed
+- [ ] All processes started during implementation (e.g. `messe-server`) have been stopped
 - [ ] `tech-doc/` files are updated to reflect the new system state:
   - `architecture.md` — update data model, workflows, and API endpoint tables
   - `glossary.md` — add any new domain terms or technical identifiers
@@ -119,6 +122,9 @@ A task is complete when:
 # Start server (API at http://localhost:5227)
 cd server/messe-server && dotnet run
 
+# Stop server after use (find the PID and kill it)
+# PowerShell: Stop-Process -Id (Get-Process messe-server).Id
+
 # Start Angular dev server (http://localhost:4200)
 cd client && npm start
 
@@ -131,6 +137,6 @@ cd client && npm test
 # Build server
 cd server/messe-server && dotnet build
 
-# Regenerate OpenAPI client (server must be running)
+# Regenerate OpenAPI client (start server first, then stop it when done)
 cd client/src/app/api/openapi && gen-backend.cmd
 ```
