@@ -87,6 +87,8 @@ public class ScanSessionService(
         // Service-layer invariant enforcement
         if (sessionType == ScanSessionType.ProcessDispatchList && ort == Ort.Stand)
             throw new ArgumentException("Ort 'Stand' ist für eine Beladung (ProcessDispatchList) nicht erlaubt.");
+        if (sessionType == ScanSessionType.ProcessDispatchList && dispatchSheetId == null)
+            throw new ArgumentException("DispatchSheetId ist erforderlich für SessionType 'ProcessDispatchList'.");
         if (sessionType == ScanSessionType.Inventory && ort == Ort.Lager && dispatchSheetId == null)
             throw new ArgumentException("DispatchSheetId ist erforderlich für Bestandsaufnahme am Lager.");
         if (sessionType == ScanSessionType.Inventory && ort == Ort.Stand && dispatchSheetId != null)

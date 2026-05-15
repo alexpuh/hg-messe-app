@@ -5,7 +5,7 @@ import {Select, SelectChangeEvent} from 'primeng/select';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
 import {ScanSessionsService} from '../../api/scan-sessions.service';
-import {DtoCombinedArticle, DtoScanSession, Ort} from '../../api/openapi/backend';
+import {DtoCombinedArticle, DtoScanSession, Ort, ScanSessionType} from '../../api/openapi/backend';
 
 @Component({
   selector: 'app-combined-view',
@@ -123,7 +123,7 @@ export class CombinedView implements OnInit {
 
   private sessionLabel(s: DtoScanSession): string {
     const date = s.startedAt ? formatDate(s.startedAt, 'dd.MM.yyyy HH:mm', 'de') : '';
-    const type = s.sessionType === 'Inventory' ? 'Bestandsaufnahme' : 'Beladung';
+    const type = s.sessionType === ScanSessionType.Inventory ? 'Bestandsaufnahme' : 'Beladung';
     return `${type} – ${date}`;
   }
 }

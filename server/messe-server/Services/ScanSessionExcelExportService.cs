@@ -6,12 +6,12 @@ namespace Herrmann.MesseApp.Server.Services;
 
 public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService> logger)
 {
-    public void Generate(Stream stream, string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> scanSessionArticles, string workbookName, bool showExpectation)
+    public void Generate(Stream stream, string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> scanSessionArticles, string workbookName, bool showExpectation, string title)
     {
         logger.LogDebug("Excel Export started: {WorkbookName}", workbookName);
         using var workbook = new XLWorkbook();
         var ws = workbook.Worksheets.Add(workbookName);
-        GenerateExcel(dispatchSheetName, scanSessionArticles.OrderBy(i => i.ArticleNr).ThenBy(i => i.UnitWeight), ws, showExpectation);
+        GenerateExcel(dispatchSheetName, scanSessionArticles.OrderBy(i => i.ArticleNr).ThenBy(i => i.UnitWeight), ws, showExpectation, title);
         workbook.SaveAs(stream);
         if (stream.CanSeek)
         {
@@ -19,7 +19,7 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
         }
     }
 
-    private static void GenerateExcel(string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> items, IXLWorksheet ws, bool showExpectation)
+    private static void GenerateExcel(string? dispatchSheetName, IEnumerable<DtoScanSessionArticle> items, IXLWorksheet ws, bool showExpectation, string title)
     {
         var maxCol = showExpectation ? 7 : 5;
         ws.Column(1).Width = 10;
@@ -40,7 +40,7 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
         var zeile = 1;
         ws.Row(zeile).Height = 30;
         ws.Range(zeile, 1, zeile, maxCol).Merge();
-        ws.Cell(zeile, 1).Value = showExpectation ? "Beladung" : "Bestandsaufnahme";
+        ws.Cell(zeile, 1).Value = title;
         SetHeaderStyle(ws.Cell(zeile, 1));
 
         zeile++;

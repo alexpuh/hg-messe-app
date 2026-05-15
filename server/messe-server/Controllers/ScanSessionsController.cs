@@ -104,11 +104,17 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         bool showExpectation = result.Value.sessionType == ScanSessionType.ProcessDispatchList
                             || result.Value.ort == Ort.Lager;
         
+        string title = result.Value.sessionType == ScanSessionType.ProcessDispatchList
+            ? "Beladung"
+            : result.Value.ort == Ort.Lager
+                ? "Bestandsaufnahme Lager"
+                : "Messestand";
+        
         using var memoryStream = new MemoryStream();
         excelReportService.Generate(
             memoryStream, result.Value.dispatchSheetName, result.Value.articles, 
             DateTime.Today.ToString("yyyy-MM-dd"), 
-            showExpectation);
+            showExpectation, title);
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {
