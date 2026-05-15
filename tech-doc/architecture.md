@@ -4,6 +4,17 @@ Trade-show barcode-scanning application for loading and inventory workflows. Con
 
 > **Single-user, single-machine application.** The app runs on one computer operated by one person at a time. Multi-user concurrency, authentication, and access control are explicitly out of scope. No concurrency handling (optimistic locking, conflict resolution, etc.) is required.
 
+## Physical domain context
+
+A truck and a trailer travel together to a trade show:
+
+- **Stand** — the exhibition booth. Goods from the truck are fully unloaded here. A Stand scan is a free-form inventory — there is no predefined list.
+- **Lager** — the trailer acting as a mobile warehouse. Loaded before departure according to a **Beladeliste**. Workers periodically scan the Lager to compare current stock against the original Beladeliste and identify what needs reordering.
+
+When the truck continues to a **second exhibition** (rather than returning home), staff scan both the Stand and the Lager to plan the combined goods inventory.
+
+> Planned features that extend this domain model are tracked in `docs/tasks/`. Do not treat those documents as describing the current implementation.
+
 ---
 
 ## Table of Contents
