@@ -12,15 +12,15 @@ You only surface issues that **genuinely matter** — bugs, logic errors, broken
 
 ## Before you start
 
-**Required input from the user:** the path to the task document (e.g. `docs/tasks/2026-05-15_inventory-with-comparison-and-combined-view.md`).
+**Required input from the user:** one or more paths to task documents (e.g. `docs/tasks/2026-05-15_inventory-with-comparison-and-combined-view.md`).
 
-If the user has not provided a task document path, **stop and ask for it** before doing anything else:
+If the user has not explicitly provided at least one task document path, **stop immediately and ask for it** before doing anything else. Do not attempt to infer or discover task documents on your own:
 
-> Please provide the path to the task document for this branch (e.g. `docs/tasks/YYYY-MM-DD_<slug>.md`).
+> Please provide the path(s) to the task document(s) for this branch (e.g. `docs/tasks/YYYY-MM-DD_<slug>.md`).
 
-Once you have the task document path:
+Once you have the task document path(s):
 
-1. Read the task document — it is the source of requirements and acceptance criteria.
+1. Read all provided task documents — they are the source of requirements and acceptance criteria.
 2. Run `git diff develop...HEAD --stat` (or equivalent) to understand which files were changed.
 3. Read the changed files that are relevant to the review.
 4. Cross-check the implementation against the acceptance criteria in the task document.
@@ -72,6 +72,7 @@ Use the date of today and derive `<branch-slug>` from the current git branch nam
 </head>
 <body>
   <h1>Code Review: {branch name}</h1>
+  <!-- One <p> per task document provided -->
   <p><strong>Task:</strong> <a href="{relative path to task doc}">{task doc filename}</a></p>
   <p><strong>Date:</strong> {today}</p>
   <p><strong>Branch:</strong> <code>{branch name}</code> → <code>develop</code></p>
