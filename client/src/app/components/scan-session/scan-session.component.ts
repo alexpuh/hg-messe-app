@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {Select, SelectChangeEvent} from 'primeng/select';
+import {RadioButton} from 'primeng/radiobutton';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
 import {Dialog} from 'primeng/dialog';
@@ -14,6 +15,7 @@ import {Ort, ScanSessionType} from '../../api/openapi/backend';
   imports: [
     FormsModule,
     Select,
+    RadioButton,
     Button,
     RouterLink,
     Dialog,
@@ -42,11 +44,6 @@ export class ScanSession implements OnInit {
   protected selectedDispatchSheetId = signal<number | null>(null);
   protected selectedBestandsOrt = signal<Ort>(Ort.Stand);
   protected selectedBestandsDispatchSheetId = signal<number | null>(null);
-
-  protected readonly ortOptions = [
-    { label: 'Stand', value: Ort.Stand },
-    { label: 'Lager', value: Ort.Lager },
-  ];
 
   protected items = computed(() => {
     const items = this.store.scanSessionArticles();
@@ -122,11 +119,6 @@ export class ScanSession implements OnInit {
 
   protected onDispatchSheetChange(event: SelectChangeEvent) {
     this.selectedDispatchSheetId.set(event.value);
-  }
-
-  protected onBestandsOrtChange(event: SelectChangeEvent) {
-    this.selectedBestandsOrt.set(event.value);
-    this.selectedBestandsDispatchSheetId.set(null);
   }
 
   protected onBestandsDispatchSheetChange(event: SelectChangeEvent) {

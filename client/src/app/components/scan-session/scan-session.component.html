@@ -88,15 +88,29 @@
   [resizable]="false">
   <div class="flex flex-col gap-4">
     <div>
-      <label for="bestandsOrtSelect" class="block mb-2">Ort:</label>
-      <p-select
-        id="bestandsOrtSelect"
-        [options]="ortOptions"
-        [ngModel]="selectedBestandsOrt()"
-        (onChange)="onBestandsOrtChange($event)"
-        [style]="{width: '100%'}"
-        appendTo="body">
-      </p-select>
+      <label class="block mb-2">Ort:</label>
+      <div class="flex gap-4">
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            inputId="ortStand"
+            name="bestandsOrt"
+            [value]="Ort.Stand"
+            [ngModel]="selectedBestandsOrt()"
+            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
+          </p-radiobutton>
+          <label for="ortStand">Stand</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            inputId="ortLager"
+            name="bestandsOrt"
+            [value]="Ort.Lager"
+            [ngModel]="selectedBestandsOrt()"
+            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
+          </p-radiobutton>
+          <label for="ortLager">Lager</label>
+        </div>
+      </div>
     </div>
     @if (selectedBestandsOrt() === Ort.Lager) {
       <div>
