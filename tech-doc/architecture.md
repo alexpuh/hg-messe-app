@@ -2,6 +2,8 @@
 
 Trade-show barcode-scanning application for loading and inventory workflows. Consists of an Angular SPA, an ASP.NET Core 9 REST API with SignalR, and an optional WPF desktop host.
 
+> **Single-user, single-machine application.** The app runs on one computer operated by one person at a time. Multi-user concurrency, authentication, and access control are explicitly out of scope. No concurrency handling (optimistic locking, conflict resolution, etc.) is required.
+
 ---
 
 ## Table of Contents
