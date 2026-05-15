@@ -272,8 +272,12 @@ public class ScanSessionService(
         if (lagerSession == null || lagerSession.Ort != Ort.Lager)
             return null;
 
-        var standCounts = standSession.ScannedArticles.ToDictionary(a => a.UnitId, a => a.QuantityUnits);
-        var lagerCounts = lagerSession.ScannedArticles.ToDictionary(a => a.UnitId, a => a.QuantityUnits);
+        var standCounts = standSession.ScannedArticles
+            .GroupBy(a => a.UnitId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => a.QuantityUnits));
+        var lagerCounts = lagerSession.ScannedArticles
+            .GroupBy(a => a.UnitId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => a.QuantityUnits));
 
         var allUnitIds = standCounts.Keys.Union(lagerCounts.Keys).ToHashSet();
 

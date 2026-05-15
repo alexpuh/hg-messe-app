@@ -152,7 +152,7 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
     {
         logger.LogDebug("Combined Excel Export started: Stand={StandId}, Lager={LagerId}", standSession.Id, lagerSession.Id);
         using var workbook = new XLWorkbook();
-        var ws = workbook.Worksheets.Add("Kombinierte Übersicht");
+        var ws = workbook.Worksheets.Add("Messeabschluss");
         GenerateCombinedExcel(standSession, lagerSession, articles.OrderBy(a => a.ArticleNr).ThenBy(a => a.UnitWeight), ws);
         workbook.SaveAs(stream);
         if (stream.CanSeek)
@@ -180,7 +180,7 @@ public class ScanSessionExcelExportService(ILogger<ScanSessionExcelExportService
         var zeile = 1;
         ws.Row(zeile).Height = 30;
         ws.Range(zeile, 1, zeile, maxCol).Merge();
-        ws.Cell(zeile, 1).Value = "Kombinierte Übersicht";
+        ws.Cell(zeile, 1).Value = "Messeabschluss";
         SetHeaderStyle(ws.Cell(zeile, 1));
 
         zeile++;
