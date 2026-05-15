@@ -25,3 +25,4 @@ cd client && npm start
 Full technical documentation is in [`tech-doc/`](./tech-doc/):
 
 - [`tech-doc/architecture.md`](./tech-doc/architecture.md) — Architecture, data model, API reference, workflows, deployment
+- [`tech-doc/glossary.md`](./tech-doc/glossary.md) — German / English domain terms

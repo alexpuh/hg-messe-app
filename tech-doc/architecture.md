@@ -16,6 +16,8 @@ Trade-show barcode-scanning application for loading and inventory workflows. Con
 6. [WPF Desktop Integration](#wpf-desktop-integration)
 7. [Deployment](#deployment)
 
+See also: [Glossary (German / English)](./glossary.md)
+
 ---
 
 ## Architecture Overview
