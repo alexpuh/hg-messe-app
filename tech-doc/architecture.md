@@ -25,7 +25,7 @@ When the truck continues to a **second exhibition** (rather than returning home)
    - [Beladeliste (Beladung)](#workflow-beladeliste--beladung)
    - [Bestandsaufnahme Stand](#workflow-bestandsaufnahme-stand)
    - [Bestandsaufnahme Lager](#workflow-bestandsaufnahme-lager)
-   - [Kombinierte Übersicht](#workflow-kombinierte-übersicht)
+   - [Messeabschluss](#workflow-messeabschluss)
 4. [API Reference](#api-reference)
 5. [Frontend](#frontend)
 6. [WPF Desktop Integration](#wpf-desktop-integration)
@@ -211,13 +211,13 @@ Used for comparing the trailer's current stock against a Beladeliste.
 
 ---
 
-### Workflow: Kombinierte Übersicht
+### Workflow: Messeabschluss
 
-Merges one Stand session and one Lager session into a single comparison table.
+Merges one Stand session and one Lager session into a single comparison table. Accessible via the **Messeabschluss** button in the main scan view.
 
 #### Execution
 
-1. Click **Kombinierte Übersicht** from the main scan view.
+1. Click **Messeabschluss** from the main scan view.
 2. Select one **Stand-Sitzung** and one **Lager-Sitzung** from the dropdowns.
    - The dropdowns are pre-populated with the most recent session of each type.
 3. Click **Anzeigen**.
@@ -383,6 +383,10 @@ Download the scan result as an `.xlsx` file.
 
 - Response: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - Filename: `result.xlsx`
+- Worksheet tab and header cell title:
+  - `ProcessDispatchList` → **"Beladung"**
+  - `Inventory` + `Ort=Lager` → **"Bestandsaufnahme Lager"**
+  - `Inventory` + `Ort=Stand` → **"Messestand"**
 - Columns for `Inventory+Stand`: Art.Nr., Artikel, Gewicht, EAN, Bestand
 - Columns for `ProcessDispatchList` or `Inventory+Lager`: Art.Nr., Artikel, Gewicht, EAN, Bestand, **Soll**, **Fehlt**
 - Rows sorted by `ArticleNr`, then `UnitWeight`
@@ -390,6 +394,7 @@ Download the scan result as an `.xlsx` file.
 #### `GET /api/ScanSessions/combined?standSessionId={id}&lagerSessionId={id}`
 Returns a merged article list combining one Stand session and one Lager session.
 
+- `standSessionId` and `lagerSessionId` must be positive integers — returns `400` when either is `0` or missing.
 - Validates that `standSessionId` refers to a session with `Ort=Stand` and `lagerSessionId` to `Ort=Lager` (404 otherwise).
 - Returns all articles scanned in either session, with per-session counts and totals.
 
@@ -407,10 +412,12 @@ Returns a merged article list combining one Stand session and one Lager session.
   "fehlt": 1
 }]
 ```
-`requiredCount` and `fehlt` are `null` if the Lager session has no dispatch sheet.
+`requiredCount` and `fehlt` are `null` if the Lager session has no dispatch sheet. `fehlt` is `null` (not `0`) when `total >= requiredCount`.
 
 #### `GET /api/ScanSessions/combined/excel?standSessionId={id}&lagerSessionId={id}`
-Download the combined view as `.xlsx`. Columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
+Download the combined view as `.xlsx`. Same parameter validation as above (`<= 0` → 400).
+- Worksheet tab and header cell: **"Messeabschluss"**
+- Columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
 
 ---
 
@@ -513,13 +520,14 @@ gen-backend.cmd
 - **Bestandsaufnahme dialog** — user selects Ort (Stand or Lager). When Lager, a Beladeliste selector is shown (required). Calls `store.startNewScanSession({ sessionType: Inventory, ort, dispatchSheetId })`.
 - **Soll column** — shown in the article list only when the active session has `ort === Lager`.
 - **Excel export** — calls `ScanSessionsService.getScanSessionArticlesExcel()` and triggers a browser download using a temporary `<a>` element.
-- **Kombinierte Übersicht button** — navigates to `/combined-view`.
+- **Messeabschluss button** — navigates to `/combined-view`.
 
 #### `CombinedView` (`/combined-view`)
 - Loads all scan sessions via `ScanSessionsService.getAllScanSessions()` on init.
 - Provides two `<p-select>` dropdowns: one for Stand sessions, one for Lager sessions. Pre-selects the most recent of each type.
 - Clicking **Anzeigen** calls `ScanSessionsService.getCombinedArticles(standId, lagerId)` and displays the merged table.
-- **Excel export** — calls `ScanSessionsService.getCombinedArticlesExcel(standId, lagerId)` and triggers a browser download.
+- Page title: **"Messeabschluss (Bestandsaufnahme)"**. Excel export button label: **"Messeabschluss exportieren"**.
+- **Excel export** — calls `ScanSessionsService.getCombinedArticlesExcel(standId, lagerId)` and triggers a browser download. Filename: `Messeabschluss_{yyyy-MM-dd}.xlsx`.
 - Table columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
 - Rows with Fehlt > 0 are highlighted.
 

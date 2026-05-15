@@ -115,6 +115,7 @@ Use the date of today and derive `<branch-slug>` from the current git branch nam
     <li>[✓/✗] No processes left running after implementation</li>
     <li>[✓/✗] <code>tech-doc/architecture.md</code> updated</li>
     <li>[✓/✗] <code>tech-doc/glossary.md</code> updated</li>
+    <li>[✓/✗] <code>.github/copilot-instructions.md</code> updated (if data model or Excel flow changed)</li>
     <li>[✓/✗] Task document status set to <code>Implemented</code></li>
   </ul>
 </body>
@@ -192,6 +193,10 @@ Technical documentation: `tech-doc/architecture.md` and `tech-doc/glossary.md`.
 - Return `404 NotFound` when an entity is not found — not `200 OK` with null.
 - Return `400 BadRequest` (not `500`) for invalid input combinations.
 
+**Query parameter validation pattern:**
+- **Nullable enum params** (e.g. `Ort? ort`): use a manual `if (ort == null) return BadRequest("...")` check with a descriptive message. Do **not** use `[BindRequired]` — with `[ApiController]` it causes an automatic 400 before the action runs, making the manual check dead code and producing inconsistent error messages.
+- **Positive int params** (e.g. `int standSessionId`): use non-nullable `int` and guard with `if (standSessionId <= 0) return BadRequest("...")`. This catches both missing params (default `0`) and explicitly invalid values without needing `[BindRequired]`.
+
 ---
 
 ### 2. OpenAPI client
@@ -226,6 +231,9 @@ Technical documentation: `tech-doc/architecture.md` and `tech-doc/glossary.md`.
 #### Reactive forms
 - Prefer reactive forms over template-driven forms for non-trivial forms.
 
+#### PrimeNG component bindings
+- `p-select` (and other PrimeNG form controls) bound to a signal must use `[ngModel]="signal()" (ngModelChange)="signal.set($event)"`. Do **not** use `(onChange)` — it passes a `SelectChangeEvent` object, not the value, causing silent desync between the control and the signal.
+
 ---
 
 ### 4. SignalR events
@@ -243,13 +251,20 @@ Flag any new event that is missing in one of these three places.
 
 - Must use **ClosedXML** (already a dependency) — not any other library.
 - Must return `FileContentResult` with content type `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
+- Every `Generate()` call must pass a `title` string; the controller computes it from `SessionType` + `Ort` (`"Beladung"` / `"Bestandsaufnahme Lager"` / `"Messestand"`). Hardcoded titles in the service are a bug.
+- `showExpectation` must be `true` for `ProcessDispatchList` **and** for `Ort == Lager` (not just ProcessDispatchList).
 - Follow the existing pattern in `ScanSessionExcelExportService`.
 
 ---
 
 ### 6. Tech documentation
 
-If the PR changes the data model, API endpoints, or key workflows, check whether `tech-doc/architecture.md` and `tech-doc/glossary.md` have been updated accordingly. Omitting doc updates for significant changes is a real issue.
+If the PR changes the data model, API endpoints, or key workflows, check whether all three documentation files have been updated:
+- `tech-doc/architecture.md` — data model, API endpoints, workflows, component descriptions
+- `tech-doc/glossary.md` — new or renamed domain terms and code identifiers
+- `.github/copilot-instructions.md` — data model fields, Excel export flow, key architectural patterns
+
+Omitting doc updates for significant changes is a real issue. Flag any of the three files that are stale relative to the code changes.
 
 ---
 

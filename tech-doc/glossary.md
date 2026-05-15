@@ -18,7 +18,7 @@ Domain terms used in the UI, documentation, and codebase.
 | Gewicht | Weight | `Weight`, `unitWeight` | Weight of one unit in grams |
 | Ist | Actual | `count` | Scanned quantity; short form used in UI columns |
 | Istbestand | Actual stock | `count` | Same as Ist, used in longer-form labels |
-| Kombinierte Übersicht | Combined overview | `CombinedView` | View merging one Stand and one Lager session into a single comparison table |
+| Messeabschluss | Trade-show close-out | `CombinedView` | View merging one Stand and one Lager session into a single comparison table. UI route: `/combined-view`. Excel tab: "Messeabschluss". |
 | Lager | Mobile warehouse (trailer) | `Ort.Lager` | The trailer used as a mobile warehouse at the exhibition. Sessions tagged with `Ort=Lager` show Soll/Fehlt columns. |
 | Karton | Box / carton | EAN box | A full box of units, scanned as a single EAN |
 | Konfiguration | Configuration | `/config` route | The setup screen for dispatch sheets and article catalogue |

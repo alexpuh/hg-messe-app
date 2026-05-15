@@ -48,6 +48,7 @@ Always implement in this order to avoid broken intermediate states:
 6. **Hand-written service wrapper** — update `client/src/app/api/*Service.ts`
 7. **Store** — update NgRx Signal Store if new state or actions are needed
 8. **Component** — UI changes last
+9. **Tech-doc** — update `tech-doc/` and `.github/copilot-instructions.md` (see below)
 
 ---
 
@@ -101,8 +102,30 @@ Three places must always be changed together:
 
 ### Excel export
 - Use **ClosedXML** (already a dependency).
-- Follow the pattern in `ScanSessionExcelExportService.Generate()`.
+- Follow the pattern in `ScanSessionExcelExportService.Generate(session, articles, showExpectation, title)`.
+- Pass a human-readable `title` string; the controller computes it from `SessionType` + `Ort`.
 - Return `FileContentResult` with `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
+
+### Updating tech-doc
+
+Update documentation **as part of the same task**, not as a separate follow-up. After all code changes are done:
+
+#### `tech-doc/architecture.md`
+Update the relevant section(s) whenever you change:
+- **Data model** — add/remove/rename fields in the EF Core entity diagram
+- **API endpoints** — add rows to the endpoint table, document query params, validation rules, and response shape
+- **Workflows** — update the workflow narrative if the user-facing flow changes
+- **Frontend** — update the component descriptions (routes, signals, methods, button labels)
+
+#### `tech-doc/glossary.md`
+- Add a row for every new domain term or code identifier introduced
+- Update existing rows if a term is renamed (e.g. a UI label change)
+
+#### `.github/copilot-instructions.md`
+Update this file when you change:
+- The server-side data model (entity fields, new enums)
+- The Excel export flow (new parameters, new conditions for `showExpectation`, new export types)
+- Key architectural patterns that all contributors need to know
 
 ---
 
@@ -114,9 +137,8 @@ A task is complete when:
 - [ ] The Angular client builds without errors (`npm run build`)
 - [ ] OpenAPI client has been regenerated if API changed
 - [ ] All processes started during implementation (e.g. `messe-server`) have been stopped
-- [ ] `tech-doc/` files are updated to reflect the new system state:
-  - `architecture.md` — update data model, workflows, and API endpoint tables
-  - `glossary.md` — add any new domain terms or technical identifiers
+- [ ] `tech-doc/architecture.md` and `tech-doc/glossary.md` updated (see "Updating tech-doc" above)
+- [ ] `.github/copilot-instructions.md` updated if data model or Excel flow changed
 - [ ] The task document status is updated to `Implemented`
 
 ---
