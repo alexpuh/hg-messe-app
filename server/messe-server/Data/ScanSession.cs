@@ -16,6 +16,8 @@ public class ScanSession
     
     public ScanSessionType SessionType { get; set; }
     
+    public Ort Ort { get; set; }
+    
     public int? DispatchSheetId { get; set; }
     
     // Navigation Properties

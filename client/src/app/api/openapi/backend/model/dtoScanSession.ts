@@ -9,6 +9,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Ort } from './ort';
 import { ScanSessionType } from './scanSessionType';
 
 
@@ -16,6 +17,7 @@ export interface DtoScanSession {
     id: number;
     startedAt: string;
     sessionType: ScanSessionType;
+    ort: Ort;
     dispatchSheetId: number | null;
     updatedAt: string;
 }

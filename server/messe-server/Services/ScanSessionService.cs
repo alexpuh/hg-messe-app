@@ -82,20 +82,29 @@ public class ScanSessionService(
     /// <summary>
     /// Erstellt ein neue Scan Session
     /// </summary>
-    public async Task<int> CreateScanSessionAsync(ScanSessionType sessionType, int? dispatchSheetId = null)
+    public async Task<int> CreateScanSessionAsync(ScanSessionType sessionType, Ort ort, int? dispatchSheetId = null)
     {
+        // Service-layer invariant enforcement
+        if (sessionType == ScanSessionType.ProcessDispatchList && ort == Ort.Stand)
+            throw new ArgumentException("Ort 'Stand' ist für eine Beladung (ProcessDispatchList) nicht erlaubt.");
+        if (sessionType == ScanSessionType.Inventory && ort == Ort.Lager && dispatchSheetId == null)
+            throw new ArgumentException("DispatchSheetId ist erforderlich für Bestandsaufnahme am Lager.");
+        if (sessionType == ScanSessionType.Inventory && ort == Ort.Stand && dispatchSheetId != null)
+            throw new ArgumentException("DispatchSheetId darf nicht angegeben werden für Bestandsaufnahme am Stand.");
+
         var scanSession = new ScanSession
         {
             StartedAt = DateTime.Now,
             UpdatedAt = DateTime.Now,
             SessionType = sessionType,
+            Ort = ort,
             DispatchSheetId = dispatchSheetId
         };
 
         dbContext.ScanSessions.Add(scanSession);
         await dbContext.SaveChangesAsync();
 
-        logger.LogInformation("Scan session erstellt: Id={SessionId}, SessionType={SessionType}, DispatchSheetId={DispatchSheetId}", scanSession.Id, sessionType, dispatchSheetId);
+        logger.LogInformation("Scan session erstellt: Id={SessionId}, SessionType={SessionType}, Ort={Ort}, DispatchSheetId={DispatchSheetId}", scanSession.Id, sessionType, ort, dispatchSheetId);
 
         return scanSession.Id;
     }
@@ -127,7 +136,7 @@ public class ScanSessionService(
     /// </summary>
     /// <param name="sessionId">ID der ScanSession</param>
     /// <returns>Null if sessionId not found</returns>
-    public async Task<(string? dispatchSheetName, ScanSessionType sessionType, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
+    public async Task<(string? dispatchSheetName, ScanSessionType sessionType, Ort ort, DtoScanSessionArticle[] articles)?> GetScanSessionArticlesAsync(int sessionId)
     {
         // Lade Scan Session mit Articles
         var scanSession = await dbContext.ScanSessions
@@ -160,7 +169,7 @@ public class ScanSessionService(
 
         if (allUnitIds.Count == 0)
         {
-            return (scanSession.DispatchSheet?.Name, scanSession.SessionType, []);
+            return (scanSession.DispatchSheet?.Name, scanSession.SessionType, scanSession.Ort, []);
         }
 
         // Lade ArticleUnits für alle UnitIds (gescannte + required)
@@ -229,6 +238,90 @@ public class ScanSessionService(
             }
         }
 
-        return (scanSession.DispatchSheet?.Name, scanSession.SessionType, results.ToArray());
+        return (scanSession.DispatchSheet?.Name, scanSession.SessionType, scanSession.Ort, results.ToArray());
+    }
+
+    /// <summary>
+    /// Gibt alle Scan Sessions zurück, sortiert nach UpdatedAt absteigend
+    /// </summary>
+    public async Task<ScanSession[]> GetAllScanSessionsAsync()
+    {
+        return await dbContext.ScanSessions
+            .OrderByDescending(s => s.UpdatedAt)
+            .ToArrayAsync();
+    }
+
+    /// <summary>
+    /// Kombiniert zwei Scan Sessions (Stand + Lager) zu einer gemeinsamen Artikelübersicht
+    /// </summary>
+    public async Task<(ScanSession standSession, ScanSession lagerSession, DtoCombinedArticle[] articles)?> GetCombinedArticlesAsync(int standSessionId, int lagerSessionId)
+    {
+        var standSession = await dbContext.ScanSessions
+            .Include(s => s.ScannedArticles)
+            .FirstOrDefaultAsync(s => s.Id == standSessionId);
+
+        if (standSession == null || standSession.Ort != Ort.Stand)
+            return null;
+
+        var lagerSession = await dbContext.ScanSessions
+            .Include(s => s.ScannedArticles)
+            .FirstOrDefaultAsync(s => s.Id == lagerSessionId);
+
+        if (lagerSession == null || lagerSession.Ort != Ort.Lager)
+            return null;
+
+        var standCounts = standSession.ScannedArticles.ToDictionary(a => a.UnitId, a => a.QuantityUnits);
+        var lagerCounts = lagerSession.ScannedArticles.ToDictionary(a => a.UnitId, a => a.QuantityUnits);
+
+        var allUnitIds = standCounts.Keys.Union(lagerCounts.Keys).ToHashSet();
+
+        Dictionary<int, int>? requiredUnits = null;
+        if (lagerSession.DispatchSheetId.HasValue)
+        {
+            requiredUnits = await dbContext.DispatchSheetRequiredUnits
+                .Where(r => r.DispatchSheetId == lagerSession.DispatchSheetId.Value && r.RequiredCount > 0)
+                .ToDictionaryAsync(r => r.UnitId, r => r.RequiredCount);
+
+            foreach (var unitId in requiredUnits.Keys)
+                allUnitIds.Add(unitId);
+        }
+
+        if (allUnitIds.Count == 0)
+            return (standSession, lagerSession, []);
+
+        var articleUnits = await dbContext.ArticleUnits
+            .Where(a => allUnitIds.Contains(a.UnitId))
+            .ToDictionaryAsync(a => a.UnitId);
+
+        var results = new List<DtoCombinedArticle>();
+
+        foreach (var unitId in allUnitIds)
+        {
+            if (!articleUnits.TryGetValue(unitId, out var articleUnit))
+                throw new ApplicationException($"UnitId {unitId} nicht gefunden");
+
+            var countStand = standCounts.GetValueOrDefault(unitId, 0);
+            var countAnhaenger = lagerCounts.GetValueOrDefault(unitId, 0);
+            var total = countStand + countAnhaenger;
+
+            int? requiredCount = requiredUnits != null && requiredUnits.TryGetValue(unitId, out var req) ? req : null;
+            int? fehlt = requiredCount.HasValue && total < requiredCount.Value ? requiredCount.Value - total : null;
+
+            results.Add(new DtoCombinedArticle
+            {
+                UnitId = unitId,
+                ArticleNr = articleUnit.ArtNr,
+                ArticleDisplayName = articleUnit.DisplayName,
+                UnitWeight = articleUnit.Weight,
+                Ean = articleUnit.EanUnit ?? string.Empty,
+                CountStand = countStand,
+                CountAnhaenger = countAnhaenger,
+                Total = total,
+                RequiredCount = requiredCount,
+                Fehlt = fehlt
+            });
+        }
+
+        return (standSession, lagerSession, results.ToArray());
     }
 }

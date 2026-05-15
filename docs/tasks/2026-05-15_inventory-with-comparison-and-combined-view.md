@@ -1,6 +1,6 @@
 ﻿# [TASK] Bestandsaufnahme mit Vergleich + Kombinierte Übersicht
 
-> **Status:** Draft  
+> **Status:** Implemented  
 > **Date:** 2026-05-15  
 > **Author:** —  
 > **Jira link:** *(fill in after creation)*

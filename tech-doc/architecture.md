@@ -23,7 +23,9 @@ When the truck continues to a **second exhibition** (rather than returning home)
 2. [Data Model](#data-model)
 3. [Workflows](#workflows)
    - [Beladeliste (Beladung)](#workflow-beladeliste--beladung)
-   - [Bestandsaufnahme (Inventory)](#workflow-bestandsaufnahme)
+   - [Bestandsaufnahme Stand](#workflow-bestandsaufnahme-stand)
+   - [Bestandsaufnahme Lager](#workflow-bestandsaufnahme-lager)
+   - [Kombinierte Übersicht](#workflow-kombinierte-übersicht)
 4. [API Reference](#api-reference)
 5. [Frontend](#frontend)
 6. [WPF Desktop Integration](#wpf-desktop-integration)
@@ -104,6 +106,7 @@ DispatchSheetRequiredUnit (unique: DispatchSheetId + UnitId)
 ScanSession (pk: Id auto-increment)
   Id              int
   SessionType     enum  ProcessDispatchList | Inventory
+  Ort             enum  Stand=0 | Lager=1            ← NEW
   DispatchSheetId int? → DispatchSheet  (SET NULL on delete)
   StartedAt       DateTime
   UpdatedAt       DateTime   ← timestamp of most recent scan
@@ -125,6 +128,8 @@ BarcodeScan (audit log of every scan event)
 ```
 
 **Key rule:** `ArticleUnit.UnitId` is assigned externally (imported from JSON) and is not auto-incremented. The database is created from scratch via `EnsureCreatedAsync` at startup — there are no EF Core migrations.
+
+**Schema note:** The `Ort` column was added to `ScanSession`. If upgrading an existing database, delete `messeapp.db` and restart the server to recreate the schema.
 
 ---
 
@@ -167,28 +172,62 @@ The endpoint combines:
 
 ---
 
-### Workflow: Bestandsaufnahme
+### Workflow: Bestandsaufnahme Stand
 
-Used for a free-form stock count without a predefined list.
+Used for a free-form stock count at the exhibition booth.
 
 #### Execution
 
-1. Click **Bestandsaufnahme starten**. No dispatch sheet is needed. Click **Starten**.
-   - Server creates a `ScanSession` with `SessionType = Inventory` and `DispatchSheetId = null`.
-2. Scan barcodes. Same serial-port / SignalR flow as above.
-3. The article list shows scanned articles with only the **Ist** column (no Soll, no Fehlt).
-4. Click **Excel exportieren** to download the result.
-   - Excel is a simple count sheet (no Soll / Fehlt columns).
+1. Click **Bestandsaufnahme starten**.
+2. Set **Ort** to **Stand**. No dispatch sheet is needed. Click **Starten**.
+   - Server creates a `ScanSession` with `SessionType = Inventory`, `Ort = Stand`, and `DispatchSheetId = null`.
+3. Scan barcodes. Same serial-port / SignalR flow as above.
+4. The article list shows scanned articles with only the **Ist** column (no Soll, no Fehlt).
+5. Click **Excel exportieren** to download the result (simple count sheet, no Soll/Fehlt columns).
 
-#### Difference from Beladung
+---
 
-| | Beladeliste | Bestandsaufnahme |
+### Workflow: Bestandsaufnahme Lager
+
+Used for comparing the trailer's current stock against a Beladeliste.
+
+#### Execution
+
+1. Click **Bestandsaufnahme starten**.
+2. Set **Ort** to **Lager**. Select a **Beladeliste** (required). Click **Starten**.
+   - Server creates a `ScanSession` with `SessionType = Inventory`, `Ort = Lager`, and the chosen `DispatchSheetId`.
+3. Scan barcodes. Same serial-port / SignalR flow as Beladung.
+4. The article list shows scanned articles with **Ist**, **Soll**, and **Fehlt** columns.
+5. Click **Excel exportieren** to download the result (includes Soll and Fehlt columns).
+
+#### Difference from Stand Inventory
+
+| | Bestandsaufnahme Stand | Bestandsaufnahme Lager |
 |---|---|---|
-| `SessionType` | `ProcessDispatchList` | `Inventory` |
-| `DispatchSheetId` | required | `null` |
-| Required counts shown | yes (Soll column) | no |
-| Missing articles in list | yes (`Count = 0`) | no |
-| Excel Soll/Fehlt columns | yes | no |
+| `Ort` | `Stand` | `Lager` |
+| `DispatchSheetId` | `null` | required |
+| Soll column shown | no | yes |
+| Excel Soll/Fehlt columns | no | yes |
+
+---
+
+### Workflow: Kombinierte Übersicht
+
+Merges one Stand session and one Lager session into a single comparison table.
+
+#### Execution
+
+1. Click **Kombinierte Übersicht** from the main scan view.
+2. Select one **Stand-Sitzung** and one **Lager-Sitzung** from the dropdowns.
+   - The dropdowns are pre-populated with the most recent session of each type.
+3. Click **Anzeigen**.
+4. The table shows per-article counts from both sessions side by side:
+   - **Stand Ist** — count from the Stand session
+   - **Lager Ist** — count from the Lager session
+   - **Gesamt** — Stand Ist + Lager Ist
+   - **Soll** — required count from the Lager session's Beladeliste (blank if none)
+   - **Fehlt** — Soll − Gesamt (blank if no Beladeliste; red if > 0)
+5. Click **Excel exportieren** to download the combined table as `.xlsx`.
 
 ---
 
@@ -283,18 +322,36 @@ Remove the required count for a unit. Idempotent — returns `204 No Content` ev
 
 ### Scan Sessions
 
-#### `POST /api/ScanSessions?sessionType={type}&dispatchSheetId={id}`
+#### `GET /api/ScanSessions`
+Returns all scan sessions ordered by `UpdatedAt` descending.
+```json
+[{ "id": 7, "startedAt": "2026-04-25T10:00:00", "sessionType": "ProcessDispatchList", "ort": "Lager", "dispatchSheetId": 1, "updatedAt": "2026-04-25T10:00:00" }]
+```
+
+#### `POST /api/ScanSessions?sessionType={type}&ort={ort}&dispatchSheetId={id}`
 Create a new scan session. Query parameters:
 
 | Parameter | Type | Required |
 |---|---|---|
 | `sessionType` | `ProcessDispatchList` \| `Inventory` | yes |
-| `dispatchSheetId` | int | required when `ProcessDispatchList`; must be absent for `Inventory` |
+| `ort` | `Stand` \| `Lager` | yes |
+| `dispatchSheetId` | int | see validation table below |
+
+**Validation rules:**
+
+| Ort | SessionType | DispatchSheetId | Result |
+|---|---|---|---|
+| `Stand` | `Inventory` | absent | ✅ |
+| `Stand` | `Inventory` | provided | ❌ 400 |
+| `Lager` | `Inventory` | provided | ✅ — Soll/Fehlt columns shown |
+| `Lager` | `Inventory` | absent | ❌ 400 |
+| `Lager` | `ProcessDispatchList` | provided | ✅ |
+| `Stand` | `ProcessDispatchList` | any | ❌ 400 |
 
 Response: `201 Created` with `DtoScanSession`.
 
 ```json
-{ "id": 7, "startedAt": "2026-04-25T10:00:00", "sessionType": "ProcessDispatchList", "dispatchSheetId": 1, "updatedAt": "2026-04-25T10:00:00" }
+{ "id": 7, "startedAt": "2026-04-25T10:00:00", "sessionType": "ProcessDispatchList", "ort": "Lager", "dispatchSheetId": 1, "updatedAt": "2026-04-25T10:00:00" }
 ```
 
 #### `GET /api/ScanSessions/current`
@@ -304,7 +361,7 @@ Returns the most recently updated scan session, or `404` if none exists. Used on
 Get a scan session by ID, or 404.
 
 #### `GET /api/ScanSessions/{id}/articles`
-Returns all scanned articles for the session, combined with unscanned but required articles (for `ProcessDispatchList` sessions).
+Returns all scanned articles for the session, combined with unscanned but required articles (for `ProcessDispatchList` sessions and `Inventory+Lager` sessions).
 
 ```json
 [{
@@ -319,16 +376,41 @@ Returns all scanned articles for the session, combined with unscanned but requir
   "updatedAt": "2026-04-25T11:23:45"
 }]
 ```
-`count = 0` and `updatedAt = null` for articles that are in the dispatch sheet but have not been scanned yet. `requiredCount = null` for `Inventory` sessions.
+`count = 0` and `updatedAt = null` for articles in the dispatch sheet that have not been scanned yet. `requiredCount = null` for `Inventory+Stand` sessions.
 
 #### `GET /api/ScanSessions/{id}/articles/excel`
 Download the scan result as an `.xlsx` file.
 
 - Response: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - Filename: `result.xlsx`
-- Columns for `Inventory`: Art.Nr., Artikel, Gewicht, EAN, Bestand
-- Columns for `ProcessDispatchList`: Art.Nr., Artikel, Gewicht, EAN, Bestand, **Soll**, **Fehlt**
+- Columns for `Inventory+Stand`: Art.Nr., Artikel, Gewicht, EAN, Bestand
+- Columns for `ProcessDispatchList` or `Inventory+Lager`: Art.Nr., Artikel, Gewicht, EAN, Bestand, **Soll**, **Fehlt**
 - Rows sorted by `ArticleNr`, then `UnitWeight`
+
+#### `GET /api/ScanSessions/combined?standSessionId={id}&lagerSessionId={id}`
+Returns a merged article list combining one Stand session and one Lager session.
+
+- Validates that `standSessionId` refers to a session with `Ort=Stand` and `lagerSessionId` to `Ort=Lager` (404 otherwise).
+- Returns all articles scanned in either session, with per-session counts and totals.
+
+```json
+[{
+  "unitId": 101,
+  "articleNr": "12345",
+  "articleDisplayName": "Muster Artikel",
+  "unitWeight": 500,
+  "ean": "4000001234567",
+  "countStand": 2,
+  "countAnhaenger": 3,
+  "total": 5,
+  "requiredCount": 6,
+  "fehlt": 1
+}]
+```
+`requiredCount` and `fehlt` are `null` if the Lager session has no dispatch sheet.
+
+#### `GET /api/ScanSessions/combined/excel?standSessionId={id}&lagerSessionId={id}`
+Download the combined view as `.xlsx`. Columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
 
 ---
 
@@ -362,6 +444,7 @@ Hub URL: `/hubs/notification`
 |---|---|---|
 | `/scan-session` | `ScanSession` | Main scan view, start sessions, live article list |
 | `/config` | `RequiredStockSetup` | Manage dispatch sheets, set required counts, upload articles |
+| `/combined-view` | `CombinedView` | Merge Stand + Lager sessions into one comparison table |
 
 ### State — `ScanSessionStore` (NgRx Signal Store, root-provided)
 
@@ -391,7 +474,7 @@ The single shared store initialises on app startup (`withHooks.onInit`) and:
 | Method | Triggered by |
 |---|---|
 | `loadCurrentScanSession()` | App init, after new session created |
-| `startNewScanSession({ sessionType, dispatchSheetId })` | User click |
+| `startNewScanSession({ sessionType, ort, dispatchSheetId })` | User click |
 | `reloadScanSessionArticles()` | `BarcodeScanned` event, component `OnInit` |
 | `loadDispatchSheets()` | App init, after dispatch sheet created |
 | `loadBarcodeScannerStatus()` | App init, `ScannerStatusChanged` event |
@@ -426,9 +509,19 @@ gen-backend.cmd
 #### `ScanSession` (`/scan-session`)
 - Reads from `ScanSessionStore` via `inject(ScanSessionStore)`.
 - Displays article list sorted by `updatedAt` descending (newest scans at top).
-- **Beladung dialog** — user selects a dispatch sheet, then `store.startNewScanSession({ sessionType: ProcessDispatchList, ... })` is called.
-- **Bestandsaufnahme dialog** — no dispatch sheet, calls `store.startNewScanSession({ sessionType: Inventory, dispatchSheetId: null })`.
+- **Beladung dialog** — user selects a dispatch sheet, then `store.startNewScanSession({ sessionType: ProcessDispatchList, ort: Lager, ... })` is called.
+- **Bestandsaufnahme dialog** — user selects Ort (Stand or Lager). When Lager, a Beladeliste selector is shown (required). Calls `store.startNewScanSession({ sessionType: Inventory, ort, dispatchSheetId })`.
+- **Soll column** — shown in the article list only when the active session has `ort === Lager`.
 - **Excel export** — calls `ScanSessionsService.getScanSessionArticlesExcel()` and triggers a browser download using a temporary `<a>` element.
+- **Kombinierte Übersicht button** — navigates to `/combined-view`.
+
+#### `CombinedView` (`/combined-view`)
+- Loads all scan sessions via `ScanSessionsService.getAllScanSessions()` on init.
+- Provides two `<p-select>` dropdowns: one for Stand sessions, one for Lager sessions. Pre-selects the most recent of each type.
+- Clicking **Anzeigen** calls `ScanSessionsService.getCombinedArticles(standId, lagerId)` and displays the merged table.
+- **Excel export** — calls `ScanSessionsService.getCombinedArticlesExcel(standId, lagerId)` and triggers a browser download.
+- Table columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
+- Rows with Fehlt > 0 are highlighted.
 
 #### `RequiredStockSetup` (`/config`)
 - Manages dispatch sheets and their required counts.
