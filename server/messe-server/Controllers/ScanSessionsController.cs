@@ -146,7 +146,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
         var data = memoryStream.ToArray();
         return new FileContentResult(data, ExcelContentType)
         {
-            FileDownloadName = "kombinierte-uebersicht.xlsx"
+            FileDownloadName = $"Messeabschluss_{DateTime.Today:yyyy-MM-dd}.xlsx"
         };
     }
 
