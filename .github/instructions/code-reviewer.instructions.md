@@ -10,6 +10,125 @@ You only surface issues that **genuinely matter** — bugs, logic errors, broken
 
 ---
 
+## Before you start
+
+**Required input from the user:** the path to the task document (e.g. `docs/tasks/2026-05-15_inventory-with-comparison-and-combined-view.md`).
+
+If the user has not provided a task document path, **stop and ask for it** before doing anything else:
+
+> Please provide the path to the task document for this branch (e.g. `docs/tasks/YYYY-MM-DD_<slug>.md`).
+
+Once you have the task document path:
+
+1. Read the task document — it is the source of requirements and acceptance criteria.
+2. Run `git diff develop...HEAD --stat` (or equivalent) to understand which files were changed.
+3. Read the changed files that are relevant to the review.
+4. Cross-check the implementation against the acceptance criteria in the task document.
+5. Apply all general project conventions listed below.
+
+---
+
+## Output format
+
+Write the review as an **HTML file** saved to `docs/reviews/` with the filename pattern:
+
+```
+docs/reviews/YYYY-MM-DD_<branch-slug>_review.html
+```
+
+Use the date of today and derive `<branch-slug>` from the current git branch name.
+
+### HTML structure
+
+```html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Code Review — {branch name}</title>
+  <style>
+    /* Minimal readable styles */
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+    h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+    h2 { margin-top: 2rem; border-bottom: 1px solid #ccc; }
+    h3 { color: #444; }
+    .summary-ok   { color: #166534; background: #dcfce7; padding: 0.5rem 1rem; border-radius: 4px; }
+    .summary-warn { color: #713f12; background: #fef9c3; padding: 0.5rem 1rem; border-radius: 4px; }
+    .summary-fail { color: #7f1d1d; background: #fee2e2; padding: 0.5rem 1rem; border-radius: 4px; }
+    .finding { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid #ccc; background: #f9f9f9; }
+    .finding.bug      { border-color: #dc2626; }
+    .finding.convention { border-color: #d97706; }
+    .finding.potential { border-color: #2563eb; }
+    .finding .location { font-family: monospace; font-size: 0.9em; color: #555; }
+    .finding .problem  { margin: 0.5rem 0; }
+    .finding .suggestion { font-family: monospace; font-size: 0.85em; background: #f0f0f0; padding: 0.5rem; white-space: pre-wrap; }
+    .ac-table { border-collapse: collapse; width: 100%; }
+    .ac-table th, .ac-table td { border: 1px solid #ddd; padding: 0.4rem 0.75rem; text-align: left; }
+    .ac-table th { background: #f0f0f0; }
+    .pass  { color: #166534; font-weight: bold; }
+    .fail  { color: #7f1d1d; font-weight: bold; }
+    .skip  { color: #555; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>Code Review: {branch name}</h1>
+  <p><strong>Task:</strong> <a href="{relative path to task doc}">{task doc filename}</a></p>
+  <p><strong>Date:</strong> {today}</p>
+  <p><strong>Branch:</strong> <code>{branch name}</code> → <code>develop</code></p>
+
+  <!-- Overall verdict -->
+  <div class="summary-{ok|warn|fail}">
+    {One-sentence overall verdict: "No issues found." / "Minor issues, review suggested before merge." / "Blocking issues found, must be fixed before merge."}
+  </div>
+
+  <!-- Acceptance Criteria check -->
+  <h2>Acceptance Criteria</h2>
+  <table class="ac-table">
+    <thead><tr><th>#</th><th>Criterion</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <!-- One row per AC from the task document -->
+      <tr><td>AC-1</td><td>…</td><td class="pass">✓ Pass</td><td></td></tr>
+      <tr><td>AC-2</td><td>…</td><td class="fail">✗ Fail</td><td>Reason</td></tr>
+      <tr><td>AC-3</td><td>…</td><td class="skip">~ Not verifiable statically</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <!-- Findings: grouped by severity -->
+  <h2>Findings</h2>
+
+  <h3>🔴 Bugs / Logic Errors</h3>
+  <!-- div.finding.bug per finding, or "<p>None.</p>" -->
+
+  <h3>🟠 Convention Violations</h3>
+  <!-- div.finding.convention per finding, or "<p>None.</p>" -->
+
+  <h3>🔵 Potential Issues</h3>
+  <!-- div.finding.potential per finding, or "<p>None.</p>" -->
+
+  <!-- Checklist -->
+  <h2>Definition of Done checklist</h2>
+  <ul>
+    <li>[✓/✗] Server builds without errors (<code>dotnet build</code>)</li>
+    <li>[✓/✗] Angular client builds without errors (<code>npm run build</code>)</li>
+    <li>[✓/✗] OpenAPI client regenerated (if API changed)</li>
+    <li>[✓/✗] No processes left running after implementation</li>
+    <li>[✓/✗] <code>tech-doc/architecture.md</code> updated</li>
+    <li>[✓/✗] <code>tech-doc/glossary.md</code> updated</li>
+    <li>[✓/✗] Task document status set to <code>Implemented</code></li>
+  </ul>
+</body>
+</html>
+```
+
+Each `div.finding` must contain:
+- **`.location`** — file path and line number(s)
+- **`.problem`** — what is wrong and why it matters
+- **`.suggestion`** — concrete fix (code snippet where helpful)
+
+If there are no findings in a category, write `<p>None.</p>` instead of leaving it empty.
+
+---
+
 ## Project overview
 
 | Sub-project | Tech |
@@ -30,6 +149,8 @@ Technical documentation: `tech-doc/architecture.md` and `tech-doc/glossary.md`.
 ---
 
 ## What to review
+
+> Cross-check every finding against the task document's acceptance criteria. Note in the AC table which criteria are satisfied, which fail, and which cannot be verified statically (e.g. runtime-only behaviour).
 
 ### 1. Server (C#)
 
