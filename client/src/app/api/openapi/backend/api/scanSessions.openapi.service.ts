@@ -100,19 +100,16 @@ export class ScanSessionsOpenApi {
     }
 
     /**
-     * @param ort 
      * @param sessionType 
+     * @param ort 
      * @param dispatchSheetId 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createScanSession(ort: Ort, sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
-    public createScanSession(ort: Ort, sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
-    public createScanSession(ort: Ort, sessionType?: ScanSessionType, dispatchSheetId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
-    public createScanSession(ort: Ort, sessionType?: ScanSessionType, dispatchSheetId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (ort === null || ort === undefined) {
-            throw new Error('Required parameter ort was null or undefined when calling createScanSession.');
-        }
+    public createScanSession(sessionType?: ScanSessionType, ort?: Ort, dispatchSheetId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<DtoScanSession>;
+    public createScanSession(sessionType?: ScanSessionType, ort?: Ort, dispatchSheetId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<DtoScanSession>>;
+    public createScanSession(sessionType?: ScanSessionType, ort?: Ort, dispatchSheetId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<DtoScanSession>>;
+    public createScanSession(sessionType?: ScanSessionType, ort?: Ort, dispatchSheetId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (sessionType !== undefined && sessionType !== null) {
@@ -236,16 +233,10 @@ export class ScanSessionsOpenApi {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getCombinedArticles(standSessionId: number, lagerSessionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoCombinedArticle>>;
-    public getCombinedArticles(standSessionId: number, lagerSessionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoCombinedArticle>>>;
-    public getCombinedArticles(standSessionId: number, lagerSessionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoCombinedArticle>>>;
-    public getCombinedArticles(standSessionId: number, lagerSessionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (standSessionId === null || standSessionId === undefined) {
-            throw new Error('Required parameter standSessionId was null or undefined when calling getCombinedArticles.');
-        }
-        if (lagerSessionId === null || lagerSessionId === undefined) {
-            throw new Error('Required parameter lagerSessionId was null or undefined when calling getCombinedArticles.');
-        }
+    public getCombinedArticles(standSessionId?: number, lagerSessionId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<DtoCombinedArticle>>;
+    public getCombinedArticles(standSessionId?: number, lagerSessionId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<DtoCombinedArticle>>>;
+    public getCombinedArticles(standSessionId?: number, lagerSessionId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<DtoCombinedArticle>>>;
+    public getCombinedArticles(standSessionId?: number, lagerSessionId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (standSessionId !== undefined && standSessionId !== null) {
@@ -310,16 +301,10 @@ export class ScanSessionsOpenApi {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getCombinedArticlesExcel(standSessionId: number, lagerSessionId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
-    public getCombinedArticlesExcel(standSessionId: number, lagerSessionId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
-    public getCombinedArticlesExcel(standSessionId: number, lagerSessionId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
-    public getCombinedArticlesExcel(standSessionId: number, lagerSessionId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
-        if (standSessionId === null || standSessionId === undefined) {
-            throw new Error('Required parameter standSessionId was null or undefined when calling getCombinedArticlesExcel.');
-        }
-        if (lagerSessionId === null || lagerSessionId === undefined) {
-            throw new Error('Required parameter lagerSessionId was null or undefined when calling getCombinedArticlesExcel.');
-        }
+    public getCombinedArticlesExcel(standSessionId?: number, lagerSessionId?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Blob>;
+    public getCombinedArticlesExcel(standSessionId?: number, lagerSessionId?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Blob>>;
+    public getCombinedArticlesExcel(standSessionId?: number, lagerSessionId?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Blob>>;
+    public getCombinedArticlesExcel(standSessionId?: number, lagerSessionId?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         if (standSessionId !== undefined && standSessionId !== null) {

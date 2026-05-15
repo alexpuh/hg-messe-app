@@ -33,7 +33,7 @@ export class ScanSessionsService {
     ort: Ort,
     dispatchSheetId: number | null,
   ): Observable<DtoScanSession> {
-    return this.api.createScanSession(ort, sessionType, dispatchSheetId ?? undefined);
+    return this.api.createScanSession(sessionType, ort, dispatchSheetId ?? undefined);
   }
 
   getCombinedArticles(standSessionId: number, lagerSessionId: number): Observable<Array<DtoCombinedArticle>> {

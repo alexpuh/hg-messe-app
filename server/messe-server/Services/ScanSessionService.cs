@@ -328,6 +328,6 @@ public class ScanSessionService(
             });
         }
 
-        return (standSession, lagerSession, results.ToArray());
+        return (standSession, lagerSession, results.OrderBy(r => r.ArticleNr).ThenBy(r => r.UnitWeight).ToArray());
     }
 }

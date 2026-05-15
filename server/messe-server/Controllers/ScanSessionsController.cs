@@ -3,7 +3,6 @@ using Herrmann.MesseApp.Server.Data;
 using Herrmann.MesseApp.Server.Dto;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Herrmann.MesseApp.Server.Controllers;
 
@@ -21,7 +20,7 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
     [HttpPost(Name = nameof(CreateScanSession))]
     public async Task<ActionResult<DtoScanSession>> CreateScanSession(
         [FromQuery] ScanSessionType sessionType,
-        [FromQuery][BindRequired] Ort? ort,
+        [FromQuery] Ort? ort,
         [FromQuery] int? dispatchSheetId = null)
     {
         if (ort == null)
@@ -136,13 +135,13 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
 
     [HttpGet("combined", Name = nameof(GetCombinedArticles))]
     public async Task<ActionResult<DtoCombinedArticle[]>> GetCombinedArticles(
-        [FromQuery][BindRequired] int? standSessionId,
-        [FromQuery][BindRequired] int? lagerSessionId)
+        [FromQuery] int standSessionId,
+        [FromQuery] int lagerSessionId)
     {
-        if (standSessionId == null || lagerSessionId == null)
-            return BadRequest("standSessionId und lagerSessionId sind erforderlich.");
+        if (standSessionId <= 0 || lagerSessionId <= 0)
+            return BadRequest("Gültige standSessionId und lagerSessionId sind erforderlich.");
 
-        var result = await scanSessionService.GetCombinedArticlesAsync(standSessionId.Value, lagerSessionId.Value);
+        var result = await scanSessionService.GetCombinedArticlesAsync(standSessionId, lagerSessionId);
         if (result is null)
         {
             return NotFound("Eine oder beide Sessions wurden nicht gefunden oder haben den falschen Ort-Typ.");
@@ -153,14 +152,14 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
     [HttpGet("combined/excel", Name = nameof(GetCombinedArticlesExcel))]
     [ProducesResponseType(typeof(FileContentResult), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> GetCombinedArticlesExcel(
-        [FromQuery][BindRequired] int? standSessionId,
-        [FromQuery][BindRequired] int? lagerSessionId,
+        [FromQuery] int standSessionId,
+        [FromQuery] int lagerSessionId,
         [FromServices] ScanSessionExcelExportService excelReportService)
     {
-        if (standSessionId == null || lagerSessionId == null)
-            return BadRequest("standSessionId und lagerSessionId sind erforderlich.");
+        if (standSessionId <= 0 || lagerSessionId <= 0)
+            return BadRequest("Gültige standSessionId und lagerSessionId sind erforderlich.");
 
-        var result = await scanSessionService.GetCombinedArticlesAsync(standSessionId.Value, lagerSessionId.Value);
+        var result = await scanSessionService.GetCombinedArticlesAsync(standSessionId, lagerSessionId);
         if (result is null)
         {
             return NotFound("Eine oder beide Sessions wurden nicht gefunden oder haben den falschen Ort-Typ.");
