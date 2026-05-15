@@ -41,7 +41,7 @@ A truck and trailer travel together to a trade show.
 | API | `GET /api/ScanSessions/combined/excel` | New endpoint — combined Excel export |
 | UI | Bestandsaufnahme dialog | Add optional Beladeliste selector |
 | UI | ScanSession screen | Show Soll/Fehlt columns when Inventory session has a linked Beladeliste |
-| UI | New "Kombinierte Übersicht" section | Session picker + merged table + Excel export button |
+| UI | New `CombinedView` component (`/combined-view`) | new route + component |
 | Excel | Combined export template | New format with Stand / Anhänger / Gesamt columns |
 | WPF host | — | Not affected |
 
@@ -127,20 +127,24 @@ And    each dropdown only shows sessions of the corresponding Ort type
 
 **AC-8 — Combined view: merged table**
 ```gherkin
-Given  Session A and Session B are selected in the combined view
+Given  a Stand session and an Anhänger session are selected in the combined view
 When   the user clicks "Anzeigen"
 Then   the table shows one row per unique article (union of both sessions)
-And    each row contains columns: Art.Nr., Artikel, Gewicht, EAN, [Session A label] (Ist), [Session B label] (Ist), Gesamt
-And    articles present in only one session show 0 in the other session's column
-And    Gesamt = Session A count + Session B count
+And    columns are: Art.Nr., Artikel, Gewicht, EAN, Stand (Ist), Anhänger (Ist), Gesamt, Soll, Fehlt
+And    Soll comes from the Anhänger session's linked Beladeliste
+And    Fehlt = Soll − Gesamt (only shown when Gesamt < Soll, otherwise blank)
+And    articles present in only one session show 0 in the other session's Ist column
+And    Gesamt = Stand (Ist) + Anhänger (Ist)
 ```
 
 **AC-9 — Combined view: Excel export**
 ```gherkin
-Given  two sessions are combined in the combined view
+Given  a Stand session and an Anhänger session are combined in the combined view
 When   the user clicks "Excel exportieren"
 Then   the downloaded .xlsx matches the on-screen table structure
-And    the column headers for the session columns use the Ort label and timestamp (e.g. "Stand — 15.05.2026 10:32", "Anhänger — 15.05.2026 11:45")
+And    columns are: Art.Nr., Artikel, Gewicht, EAN, Stand (Ist), Anhänger (Ist), Gesamt, Soll, Fehlt
+And    the Stand column header includes the session timestamp (e.g. "Stand — 15.05.2026 10:32")
+And    the Anhänger column header includes the session timestamp (e.g. "Anhänger — 15.05.2026 11:45")
 ```
 
 ---
@@ -210,13 +214,14 @@ GET /api/ScanSessions/combined?sessionAId={id}&sessionBId={id}
   "articleDisplayName": "Muster Artikel",
   "unitWeight": 500,
   "ean": "4000001234567",
-  "countA": 3,
-  "countB": 1,
-  "total": 4
+  "countStand": 3,
+  "countAnhaenger": 1,
+  "total": 4,
+  "requiredCount": 6,
+  "fehlt": 2
 }
 ```
-
-Implementation: fetch articles for both sessions, merge by `unitId`, sum counts. Stateless — no new DB entities.
+`fehlt` = `requiredCount − total` when `total < requiredCount`, otherwise `null`. `requiredCount` comes from the Anhänger session's linked Beladeliste.
 
 #### New API endpoint — combined Excel
 ```
@@ -224,15 +229,15 @@ GET /api/ScanSessions/combined/excel?sessionAId={id}&sessionBId={id}
 → application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 ```
 
-Excel columns: `Art.Nr.` | `Artikel` | `Gewicht` | `EAN` | `{Session A label}` | `{Session B label}` | `Gesamt`
+Excel columns: `Art.Nr.` | `Artikel` | `Gewicht` | `EAN` | `Stand (Ist) — {timestamp}` | `Anhänger (Ist) — {timestamp}` | `Gesamt` | `Soll` | `Fehlt`
 
-Session label format: `{Ort} — {UpdatedAt:dd.MM.yyyy HH:mm}` (e.g. `Stand — 15.05.2026 10:32`)
+Session timestamp format: `dd.MM.yyyy HH:mm` (e.g. `Stand — 15.05.2026 10:32`)
 
-#### Angular UI — Kombinierte Übersicht
-- New section/panel in the `/scan-session` route (or a separate route — TBD).
+#### Angular UI — Kombinierte Übersicht (`/combined-view`)
+- New route `/combined-view` with a new component.
 - Two `<p-select>` dropdowns populated from `GET /api/ScanSessions`, filtered by `Ort`: one for `Stand` sessions, one for `Anhänger` sessions.
 - "Anzeigen" button triggers the combined view.
-- Table with columns: Art.Nr., Artikel, Gewicht, EAN, Session A, Session B, Gesamt.
+- Table with columns: Art.Nr., Artikel, Gewicht, EAN, Stand (Ist), Anhänger (Ist), Gesamt, Soll, Fehlt.
 - "Excel exportieren" button downloads the combined Excel.
 - New hand-written service method in `ScanSessionsService` for the two new endpoints.
 - OpenAPI client must be regenerated after adding the new endpoints.
@@ -261,10 +266,12 @@ None required for these features.
 
 ## Open questions
 
-- [ ] **Q1:** Should the "Kombinierte Übersicht" live on the existing `/scan-session` route (as an additional panel), or on a dedicated route (e.g. `/combined-view`)?
-- [ ] **Q2:** Are there articles in the combined view that have a Soll (from the Anhänger's linked Beladeliste)? Or is the combined view purely Ist+Ist+Gesamt, leaving comparison to the individual session views?
-- [ ] **Q3:** Should it be possible to combine more than two sessions (e.g. two trailers)? Or is two always the maximum?
-- [ ] **Q4:** Should old sessions be deletable from the session list? Or is history always kept?
+> All open questions resolved — see answers below.
+
+- [x] **Q1:** Separate route `/combined-view`. *(→ new navigation entry, new Angular route)*
+- [x] **Q2:** Combined view shows **Soll** (from Anhänger Beladeliste) and **Fehlt** (Soll − Gesamt) in addition to Stand | Anhänger | Gesamt. *(→ affects AC-8, AC-9, API DTO, Excel template)*
+- [x] **Q3:** Always exactly one Stand session + one Anhänger session — structure is fixed.
+- [x] **Q4:** No deletion — session history is always kept.
 
 ---
 
