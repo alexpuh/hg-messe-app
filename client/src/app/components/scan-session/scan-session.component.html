@@ -15,6 +15,10 @@
               label="Bestandsaufnahme starten"
               severity="secondary"
               (onClick)="openBestandsaufnahmeDialog()"></p-button>
+    <p-button class="mr-1" icon="pi pi-table"
+              label="Messeabschluss"
+              severity="info"
+              routerLink="/combined-view"></p-button>
     <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
     <p-button icon="pi pi-bullseye" [rounded]="true" [text]="true" (onClick)="doTest()"></p-button>
     <p-button
@@ -67,12 +71,12 @@
     <p-button
       label="Starten"
       (onClick)="startBeladung()"
-      [disabled]="!canStartScanSession() || store.isLoading()">
+      [disabled]="!canStartBeladung() || store.isLoading()">
     </p-button>
   </ng-template>
 </p-dialog>
 
-<!-- Dialog für Bestandsaufnahme ohne Beladeliste -->
+<!-- Dialog für Bestandsaufnahme -->
 <p-dialog
   [header]="'Bestandsaufnahme starten'"
   [visible]="showBestandsaufnahmeDialog()"
@@ -83,8 +87,45 @@
   [draggable]="false"
   [resizable]="false">
   <div class="flex flex-col gap-4">
-    <p>Möchten Sie eine Bestandsaufnahme ohne Beladeliste starten?</p>
-    <p class="text-sm text-gray-600">Bei einer Bestandsaufnahme werden keine Sollwerte verglichen.</p>
+    <div>
+      <label class="block mb-2">Ort:</label>
+      <div class="flex gap-4">
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            inputId="ortLager"
+            name="bestandsOrt"
+            [value]="Ort.Lager"
+            [ngModel]="selectedBestandsOrt()"
+            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
+          </p-radiobutton>
+          <label for="ortLager">Lager</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            inputId="ortStand"
+            name="bestandsOrt"
+            [value]="Ort.Stand"
+            [ngModel]="selectedBestandsOrt()"
+            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
+          </p-radiobutton>
+          <label for="ortStand">Stand</label>
+        </div>
+      </div>
+    </div>
+    @if (selectedBestandsOrt() === Ort.Lager) {
+      <div>
+        <label for="bestandsDispatchSheetSelect" class="block mb-2">Beladeliste (Soll-Vergleich):</label>
+        <p-select
+          id="bestandsDispatchSheetSelect"
+          [options]="dispatchSheetOptions()"
+          [ngModel]="selectedBestandsDispatchSheetId()"
+          (ngModelChange)="selectedBestandsDispatchSheetId.set($event)"
+          placeholder="Bitte wählen Sie eine Beladeliste"
+          [style]="{width: '100%'}"
+          appendTo="body">
+        </p-select>
+      </div>
+    }
     @if (store.isLoading()) {
       <div class="text-center">
         <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
@@ -103,7 +144,7 @@
     <p-button
       label="Starten"
       (onClick)="startBestandsaufnahme()"
-      [disabled]="store.isLoading()">
+      [disabled]="!canStartBestandsaufnahme() || store.isLoading()">
     </p-button>
   </ng-template>
 </p-dialog>
@@ -140,10 +181,12 @@
           </div>
           <div class="item-counts flex flex-col items-end">
             <span class="ist-count">{{item.count}}</span>
-            @if (item.requiredCount !== null && item.requiredCount !== undefined) {
-              <span class="req-exists">Soll: {{item.requiredCount}}</span>
-            } @else {
-              <span class="req-not-exists">Soll: -</span>
+            @if (showSollColumn()) {
+              @if (item.requiredCount !== null && item.requiredCount !== undefined) {
+                <span class="req-exists">Soll: {{item.requiredCount}}</span>
+              } @else {
+                <span class="req-not-exists">Soll: -</span>
+              }
             }
           </div>
         </div>
@@ -153,3 +196,4 @@
     <div>Keine Artikel vorhanden</div>
   }
 </div>
+

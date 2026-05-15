@@ -1,0 +1,114 @@
+<div class="workplace-header">
+  <div class="workplace-header-line">
+    <h1>Messeabschluss (Bestandsaufnahme)</h1>
+    <p-button
+      class="ml-auto mr-1"
+      icon="pi pi-file-excel"
+      label="Messeabschluss exportieren"
+      severity="success"
+      (onClick)="exportToExcel()"
+      [disabled]="combinedArticles().length === 0"
+    ></p-button>
+    <p-button
+      icon="pi pi-arrow-left"
+      label="Zurück"
+      severity="secondary"
+      routerLink="/"
+    ></p-button>
+  </div>
+</div>
+
+<div class="session-selectors flex gap-4 mb-4 items-end">
+  <div class="flex flex-col gap-1">
+    <label for="lagerSessionSelect">Lagerbestand:</label>
+    <p-select
+      id="lagerSessionSelect"
+      [options]="lagerSessionOptions()"
+      [ngModel]="selectedLagerSessionId()"
+      (onChange)="onLagerSessionChange($event)"
+      placeholder="Lager-Sitzung wählen"
+      [style]="{minWidth: '260px'}"
+      appendTo="body">
+    </p-select>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <label for="standSessionSelect">Messestand:</label>
+    <p-select
+      id="standSessionSelect"
+      [options]="standSessionOptions()"
+      [ngModel]="selectedStandSessionId()"
+      (onChange)="onStandSessionChange($event)"
+      placeholder="Stand-Sitzung wählen"
+      [style]="{minWidth: '260px'}"
+      appendTo="body">
+    </p-select>
+  </div>
+
+  <p-button
+    label="Anzeigen"
+    icon="pi pi-search"
+    (onClick)="loadCombined()"
+    [disabled]="!canLoad() || isLoading()"
+  ></p-button>
+</div>
+
+@if (error()) {
+  <div class="error-message text-red-600 mb-4">{{ error() }}</div>
+}
+
+@if (isLoading()) {
+  <div class="text-center my-8">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+    <p>Daten werden geladen...</p>
+  </div>
+} @else if (combinedArticles().length > 0) {
+  <div class="combined-table-wrapper overflow-auto">
+    <table class="combined-table w-full">
+      <thead>
+        <tr>
+          <th>Art.-Nr.</th>
+          <th>Artikel</th>
+          <th>Gewicht</th>
+          <th>EAN</th>
+          <th class="text-right">Stand Ist</th>
+          <th class="text-right">Lager Ist</th>
+          <th class="text-right">Gesamt</th>
+          <th class="text-right">Soll</th>
+          <th class="text-right">Fehlt</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of combinedArticles(); track item.unitId) {
+          <tr [class.fehlt-row]="item.fehlt !== null && item.fehlt !== undefined && item.fehlt > 0">
+            <td>{{ item.articleNr }}</td>
+            <td>{{ item.articleDisplayName }}</td>
+            <td>{{ item.unitWeight }}</td>
+            <td>{{ item.ean }}</td>
+            <td class="text-right">{{ item.countStand }}</td>
+            <td class="text-right">{{ item.countAnhaenger }}</td>
+            <td class="text-right font-bold">{{ item.total }}</td>
+            <td class="text-right">
+              @if (item.requiredCount !== null && item.requiredCount !== undefined) {
+                {{ item.requiredCount }}
+              } @else {
+                –
+              }
+            </td>
+            <td class="text-right">
+              @if (item.fehlt !== null && item.fehlt !== undefined) {
+                <span [class.text-red-600]="item.fehlt > 0">{{ item.fehlt }}</span>
+              } @else {
+                –
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else if (canLoad()) {
+  <div class="text-gray-500">Klicken Sie auf „Anzeigen", um die kombinierte Übersicht zu laden.</div>
+} @else {
+  <div class="text-gray-500">Bitte wählen Sie eine Stand- und eine Lager-Sitzung aus.</div>
+}

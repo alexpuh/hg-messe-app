@@ -1,0 +1,24 @@
+.combined-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th, td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--p-surface-border, #e5e7eb);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    background: var(--p-surface-100, #f3f4f6);
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) td {
+    background: var(--p-surface-50, #f9fafb);
+  }
+
+  .fehlt-row td {
+    background: #fff5f5;
+  }
+}

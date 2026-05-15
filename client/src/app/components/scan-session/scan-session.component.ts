@@ -1,17 +1,22 @@
 import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
+import {formatDate} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 import {Select, SelectChangeEvent} from 'primeng/select';
+import {RadioButton} from 'primeng/radiobutton';
 import {Button} from 'primeng/button';
 import {RouterLink} from '@angular/router';
 import {Dialog} from 'primeng/dialog';
 import {ScanSessionStore} from '../../store';
 import {GermanDateTimePipe} from '../../pipes/german-date-time.pipe';
 import {ScanSessionsService} from '../../api/scan-sessions.service';
-import {ScanSessionType} from '../../api/openapi/backend';
+import {Ort, ScanSessionType} from '../../api/openapi/backend';
 
 @Component({
   selector: 'app-scan-session',
   imports: [
+    FormsModule,
     Select,
+    RadioButton,
     Button,
     RouterLink,
     Dialog,
@@ -26,15 +31,21 @@ export class ScanSession implements OnInit {
   private readonly scanSessionsService = inject(ScanSessionsService);
 
   protected readonly scanMode = computed(() => {
-    const sessionType = this.store.selectedScanSession()?.sessionType;
-    if (sessionType === ScanSessionType.ProcessDispatchList) return 'Beladung';
-    if (sessionType === ScanSessionType.Inventory) return 'Bestandsaufnahme';
+    const session = this.store.selectedScanSession();
+    if (!session) return 'Kein aktiver Scan';
+    if (session.sessionType === ScanSessionType.ProcessDispatchList) return 'Beladung';
+    if (session.sessionType === ScanSessionType.Inventory) {
+      return session.ort === Ort.Lager ? 'Bestandsaufnahme Lager' : 'Messestand';
+    }
     return 'Kein aktiver Scan';
   });
 
   protected showBeladungDialog = signal(false);
   protected showBestandsaufnahmeDialog = signal(false);
   protected selectedDispatchSheetId = signal<number | null>(null);
+  protected selectedBestandsOrt = signal<Ort | null>(null);
+  protected selectedBestandsDispatchSheetId = signal<number | null>(null);
+
   protected items = computed(() => {
     const items = this.store.scanSessionArticles();
     return [...items].sort((a, b) => {
@@ -42,6 +53,12 @@ export class ScanSession implements OnInit {
       const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
       return dateB - dateA; // Descending order (newest first)
     });
+  });
+
+  protected showSollColumn = computed(() => {
+    const session = this.store.selectedScanSession();
+    if (!session) return false;
+    return session.ort === Ort.Lager;
   });
 
   protected startedAt = computed(() => {
@@ -71,8 +88,15 @@ export class ScanSession implements OnInit {
     }));
   });
 
-  protected canStartScanSession = computed(() => {
+  protected canStartBeladung = computed(() => {
     return this.selectedDispatchSheetId() !== null;
+  });
+
+  protected canStartBestandsaufnahme = computed(() => {
+    const ort = this.selectedBestandsOrt();
+    if (ort === null) return false;
+    if (ort === Ort.Lager) return this.selectedBestandsDispatchSheetId() !== null;
+    return true;
   });
 
   protected openBeladungDialog() {
@@ -85,6 +109,8 @@ export class ScanSession implements OnInit {
   }
 
   protected openBestandsaufnahmeDialog() {
+    this.selectedBestandsOrt.set(null);
+    this.selectedBestandsDispatchSheetId.set(null);
     this.showBestandsaufnahmeDialog.set(true);
   }
 
@@ -99,17 +125,26 @@ export class ScanSession implements OnInit {
   protected startBeladung() {
     const selectedId = this.selectedDispatchSheetId();
     if (selectedId) {
-      console.log('Start scan session with dispatch sheet', selectedId);
-      this.store.startNewScanSession({ sessionType: ScanSessionType.ProcessDispatchList, dispatchSheetId: selectedId });
+      this.store.startNewScanSession({
+        sessionType: ScanSessionType.ProcessDispatchList,
+        ort: Ort.Lager,
+        dispatchSheetId: selectedId,
+      });
       this.closeBeladungDialog();
     }
   }
 
   protected startBestandsaufnahme() {
-    this.store.startNewScanSession({ sessionType: ScanSessionType.Inventory, dispatchSheetId: null });
+    const ort = this.selectedBestandsOrt();
+    if (ort === null) return;
+    const dispatchSheetId = ort === Ort.Lager ? this.selectedBestandsDispatchSheetId() : null;
+    this.store.startNewScanSession({
+      sessionType: ScanSessionType.Inventory,
+      ort,
+      dispatchSheetId,
+    });
     this.closeBestandsaufnahmeDialog();
   }
-
 
   protected doTest() {
     console.log('Test button clicked');
@@ -124,19 +159,16 @@ export class ScanSession implements OnInit {
 
     this.scanSessionsService.getScanSessionArticlesExcel(scanSession.id).subscribe({
       next: (blob) => {
-        // Create a download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
 
-        // Generate filename with the dispatch sheet name and date
-        const date = new Date().toISOString().split('T')[0];
+        const date = formatDate(new Date(), 'yyyy-MM-dd', 'de');
         const dispatchSheetName = this.store.dispatchSheetName() || 'Bestand';
         link.download = `${dispatchSheetName}_${date}.xlsx`;
         document.body.appendChild(link);
         link.click();
 
-        // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       },
@@ -152,4 +184,6 @@ export class ScanSession implements OnInit {
   }
 
   protected readonly ScanSessionType = ScanSessionType;
+  protected readonly Ort = Ort;
 }
+

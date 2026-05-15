@@ -1,12 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import {Observable} from 'rxjs';
-import {DtoScanSession, DtoScanSessionArticle, ScanSessionsOpenApi, ScanSessionType} from './openapi/backend';
+import {DtoCombinedArticle, DtoScanSession, DtoScanSessionArticle, Ort, ScanSessionsOpenApi, ScanSessionType} from './openapi/backend';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ScanSessionsService {
   private readonly api = inject(ScanSessionsOpenApi);
+
+  getAllScanSessions(): Observable<Array<DtoScanSession>> {
+    return this.api.getAllScanSessions();
+  }
 
   getCurrentScanSession(): Observable<DtoScanSession> {
     return this.api.getCurrentScanSession();
@@ -24,8 +28,20 @@ export class ScanSessionsService {
     return this.api.getScanSessionArticlesExcel(sessionId);
   }
 
-  createScanSession(sessionType: ScanSessionType, dispatchSheetId: number | null): Observable<DtoScanSession> {
-    return this.api.createScanSession(sessionType, dispatchSheetId ?? undefined);
+  createScanSession(
+    sessionType: ScanSessionType,
+    ort: Ort,
+    dispatchSheetId: number | null,
+  ): Observable<DtoScanSession> {
+    return this.api.createScanSession(sessionType, ort, dispatchSheetId ?? undefined);
+  }
+
+  getCombinedArticles(standSessionId: number, lagerSessionId: number): Observable<Array<DtoCombinedArticle>> {
+    return this.api.getCombinedArticles(standSessionId, lagerSessionId);
+  }
+
+  getCombinedArticlesExcel(standSessionId: number, lagerSessionId: number): Observable<Blob> {
+    return this.api.getCombinedArticlesExcel(standSessionId, lagerSessionId);
   }
 }
 

@@ -47,7 +47,7 @@ The Angular client calls `service wrappers` → which delegate to `generated Ope
 All shared state lives in NgRx Signal Stores under `client/src/app/store/`. Currently one store: `ScanSessionStore` (provided in root). The store initializes on app startup, loads data, and wires up SignalR listeners for live barcode scan and scanner-status events.
 
 ### Server-side data model (SQLite via EF Core)
-`ArticleUnit` → scanned via EAN (unit or box). `DispatchSheet` contains `DispatchSheetRequiredUnit` entries. A `ScanSession` belongs to a `DispatchSheet` and has `ScannedArticle` entries, each with `BarcodeScan` history. Schema is created via `EnsureCreatedAsync` at startup (no migrations).
+`ArticleUnit` → scanned via EAN (unit or box). `DispatchSheet` contains `DispatchSheetRequiredUnit` entries. A `ScanSession` (with `SessionType` = `ProcessDispatchList` | `Inventory` and `Ort` = `Stand` | `Lager`) belongs to a `DispatchSheet` and has `ScannedArticle` entries, each with `BarcodeScan` history. Schema is created via `EnsureCreatedAsync` at startup (no migrations).
 
 ### Dev proxy
 `client/proxy.conf.json` forwards `/api/*` and `/hubs/*` to `http://localhost:5227` during `ng serve`, so the Angular app and API can run together without CORS issues.
@@ -67,10 +67,17 @@ When adding new real-time events: add a `Send*` method to `SignalNotificationSer
 
 `GET /api/ScanSessions/{id}/articles/excel` returns an `.xlsx` file.
 
-- `ScanSessionExcelExportService.Generate()` uses **ClosedXML** to build the workbook in a `MemoryStream`.
-- The `showExpectation` flag is `true` when `sessionType == ProcessDispatchList` — this adds "Soll" (required) and "Fehlt" (missing = required − scanned) columns.
+- `ScanSessionExcelExportService.Generate(session, articles, showExpectation, title)` uses **ClosedXML** to build the workbook in a `MemoryStream`.
+- The `showExpectation` flag is `true` when `sessionType == ProcessDispatchList` **or** `session.Ort == Lager` — this adds "Soll" (required) and "Fehlt" (missing = required − scanned) columns.
+- The `title` parameter sets the worksheet header cell and tab name. Controller computes it: `ProcessDispatchList → "Beladung"`, `Inventory+Lager → "Bestandsaufnahme Lager"`, `Inventory+Stand → "Messestand"`.
 - Rows are sorted by `ArticleNr` then `UnitWeight`.
 - The controller injects `ScanSessionExcelExportService` via `[FromServices]` (not constructor) because it is only needed for this one action.
+
+`GET /api/ScanSessions/combined/excel` returns the Messeabschluss combined export.
+
+- `ScanSessionExcelExportService.GenerateCombined(articles)` generates the combined workbook.
+- Worksheet tab and header cell are both titled **"Messeabschluss"**.
+- Columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
 
 ## WPF Desktop App (`server/messe-app/`)
 
