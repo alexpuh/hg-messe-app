@@ -17,8 +17,10 @@ Domain terms used in the UI, documentation, and codebase.
 | Gewicht | Weight | `Weight`, `unitWeight` | Weight of one unit in grams |
 | Ist | Actual | `count` | Scanned quantity; short form used in UI columns |
 | Istbestand | Actual stock | `count` | Same as Ist, used in longer-form labels |
+| Lager | Mobile warehouse (trailer) | `Ort.Lager` | The trailer used as a mobile warehouse at the exhibition. Displayed as "Lager" in the UI; the physical object is the truck trailer (Anhänger). |
 | Karton | Box / carton | EAN box | A full box of units, scanned as a single EAN |
 | Konfiguration | Configuration | `/config` route | The setup screen for dispatch sheets and article catalogue |
+| Stand | Exhibition stand | `Ort.Stand` | The exhibition booth where goods from the truck are displayed |
 | Neue Beladung starten | Start new loading | `startNewScanSession` | UI action that creates a new `ProcessDispatchList` session |
 | Scanvorgang | Scan session | `ScanSession` | One active session of scanning barcodes |
 | Sollbestand | Required stock / target count | `RequiredCount`, `requiredCount` | Number of units expected to be loaded |
@@ -32,6 +34,13 @@ Domain terms used in the UI, documentation, and codebase.
 |---|---|---|
 | Beladung / Beladeliste | Dispatch / Loading | `ProcessDispatchList` |
 | Bestandsaufnahme | Inventory | `Inventory` |
+
+## Location (Ort)
+
+| UI label | Physical object | `Ort` enum value |
+|---|---|---|
+| Stand | Exhibition booth | `Stand` |
+| Lager | Truck trailer (mobile warehouse) | `Lager` |
 
 ## Excel column names
 
