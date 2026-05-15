@@ -118,7 +118,8 @@
         <p-select
           id="bestandsDispatchSheetSelect"
           [options]="dispatchSheetOptions()"
-          (onChange)="onBestandsDispatchSheetChange($event)"
+          [ngModel]="selectedBestandsDispatchSheetId()"
+          (ngModelChange)="selectedBestandsDispatchSheetId.set($event)"
           placeholder="Bitte wählen Sie eine Beladeliste"
           [style]="{width: '100%'}"
           appendTo="body">

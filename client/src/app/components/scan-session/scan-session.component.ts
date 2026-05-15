@@ -1,4 +1,5 @@
 import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
+import {formatDate} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Select, SelectChangeEvent} from 'primeng/select';
 import {RadioButton} from 'primeng/radiobutton';
@@ -121,10 +122,6 @@ export class ScanSession implements OnInit {
     this.selectedDispatchSheetId.set(event.value);
   }
 
-  protected onBestandsDispatchSheetChange(event: SelectChangeEvent) {
-    this.selectedBestandsDispatchSheetId.set(event.value);
-  }
-
   protected startBeladung() {
     const selectedId = this.selectedDispatchSheetId();
     if (selectedId) {
@@ -166,7 +163,7 @@ export class ScanSession implements OnInit {
         const link = document.createElement('a');
         link.href = url;
 
-        const date = new Date().toISOString().split('T')[0];
+        const date = formatDate(new Date(), 'yyyy-MM-dd', 'de');
         const dispatchSheetName = this.store.dispatchSheetName() || 'Bestand';
         link.download = `${dispatchSheetName}_${date}.xlsx`;
         document.body.appendChild(link);

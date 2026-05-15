@@ -108,7 +108,7 @@ export class CombinedView implements OnInit {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        const date = new Date().toISOString().split('T')[0];
+        const date = formatDate(new Date(), 'yyyy-MM-dd', 'de');
         link.download = `Messeabschluss_${date}.xlsx`;
         document.body.appendChild(link);
         link.click();

@@ -20,9 +20,12 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
     [HttpPost(Name = nameof(CreateScanSession))]
     public async Task<ActionResult<DtoScanSession>> CreateScanSession(
         [FromQuery] ScanSessionType sessionType,
-        [FromQuery] Ort ort,
+        [FromQuery] Ort? ort,
         [FromQuery] int? dispatchSheetId = null)
     {
+        if (ort == null)
+            return BadRequest("ort ist erforderlich.");
+
         logger.LogDebug("Scan Session started: SessionType={SessionType}, Ort={Ort}, DispatchSheetId={DispatchSheetId}", sessionType, ort, dispatchSheetId);
 
         // Validate Ort + SessionType + DispatchSheetId combinations
@@ -41,7 +44,15 @@ public class ScanSessionsController(ScanSessionService scanSessionService, ILogg
                 return BadRequest("dispatchSheetId darf nicht angegeben werden für Bestandsaufnahme am Stand.");
         }
 
-        var scanSessionId = await scanSessionService.CreateScanSessionAsync(sessionType, ort, dispatchSheetId);
+        int scanSessionId;
+        try
+        {
+            scanSessionId = await scanSessionService.CreateScanSessionAsync(sessionType, ort.Value, dispatchSheetId);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
         var scanSession = await scanSessionService.GetScanSessionAsync(scanSessionId);
         
         if (scanSession == null)
