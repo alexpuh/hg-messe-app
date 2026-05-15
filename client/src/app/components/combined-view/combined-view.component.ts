@@ -1,4 +1,5 @@
 import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
+import {formatDate} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Select, SelectChangeEvent} from 'primeng/select';
 import {Button} from 'primeng/button';
@@ -108,7 +109,7 @@ export class CombinedView implements OnInit {
         const link = document.createElement('a');
         link.href = url;
         const date = new Date().toISOString().split('T')[0];
-        link.download = `KombinierteUebersicht_${date}.xlsx`;
+        link.download = `Messeabschluss_${date}.xlsx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -121,7 +122,7 @@ export class CombinedView implements OnInit {
   }
 
   private sessionLabel(s: DtoScanSession): string {
-    const date = s.startedAt ? new Date(s.startedAt).toLocaleDateString('de-DE') : '';
+    const date = s.startedAt ? formatDate(s.startedAt, 'dd.MM.yyyy HH:mm', 'de') : '';
     const type = s.sessionType === 'Inventory' ? 'Bestandsaufnahme' : 'Beladung';
     return `${type} – ${date}`;
   }

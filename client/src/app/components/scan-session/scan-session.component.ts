@@ -34,7 +34,7 @@ export class ScanSession implements OnInit {
     if (!session) return 'Kein aktiver Scan';
     if (session.sessionType === ScanSessionType.ProcessDispatchList) return 'Beladung';
     if (session.sessionType === ScanSessionType.Inventory) {
-      return session.ort === Ort.Lager ? 'Bestandsaufnahme Lager' : 'Bestandsaufnahme Stand';
+      return session.ort === Ort.Lager ? 'Bestandsaufnahme Lager' : 'Messestand';
     }
     return 'Kein aktiver Scan';
   });
@@ -42,7 +42,7 @@ export class ScanSession implements OnInit {
   protected showBeladungDialog = signal(false);
   protected showBestandsaufnahmeDialog = signal(false);
   protected selectedDispatchSheetId = signal<number | null>(null);
-  protected selectedBestandsOrt = signal<Ort>(Ort.Stand);
+  protected selectedBestandsOrt = signal<Ort | null>(null);
   protected selectedBestandsDispatchSheetId = signal<number | null>(null);
 
   protected items = computed(() => {
@@ -92,9 +92,9 @@ export class ScanSession implements OnInit {
   });
 
   protected canStartBestandsaufnahme = computed(() => {
-    if (this.selectedBestandsOrt() === Ort.Lager) {
-      return this.selectedBestandsDispatchSheetId() !== null;
-    }
+    const ort = this.selectedBestandsOrt();
+    if (ort === null) return false;
+    if (ort === Ort.Lager) return this.selectedBestandsDispatchSheetId() !== null;
     return true;
   });
 
@@ -108,7 +108,7 @@ export class ScanSession implements OnInit {
   }
 
   protected openBestandsaufnahmeDialog() {
-    this.selectedBestandsOrt.set(Ort.Stand);
+    this.selectedBestandsOrt.set(null);
     this.selectedBestandsDispatchSheetId.set(null);
     this.showBestandsaufnahmeDialog.set(true);
   }
@@ -139,6 +139,7 @@ export class ScanSession implements OnInit {
 
   protected startBestandsaufnahme() {
     const ort = this.selectedBestandsOrt();
+    if (ort === null) return;
     const dispatchSheetId = ort === Ort.Lager ? this.selectedBestandsDispatchSheetId() : null;
     this.store.startNewScanSession({
       sessionType: ScanSessionType.Inventory,

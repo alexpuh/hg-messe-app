@@ -87,6 +87,11 @@ The server must be running at `http://localhost:5227` before running this comman
 - **Reactive forms** — prefer over template-driven forms.
 - **Never inject OpenAPI services directly into components.** Always wrap in a hand-written service under `client/src/app/api/`.
 - **SCSS** for component styles.
+- **Date formatting** — always use the German date pipes from `client/src/app/pipes/` unless explicitly stated otherwise:
+  - `germanDateTime` pipe (`dd.MM.yyyy HH:mm:ss`) — for timestamps in templates
+  - `germanDate` pipe (`dd.MM.yyyy`) — for date-only display in templates
+  - In TypeScript code (e.g. dropdown labels): use `formatDate(value, 'dd.MM.yyyy HH:mm', 'de')` from `@angular/common` — include `HH:mm` whenever a time component is meaningful
+  - Never use `toLocaleDateString`, `toLocaleString`, or `Date.toISOString` for user-visible output
 
 ### Adding a new SignalR event
 Three places must always be changed together:

@@ -16,7 +16,7 @@
               severity="secondary"
               (onClick)="openBestandsaufnahmeDialog()"></p-button>
     <p-button class="mr-1" icon="pi pi-table"
-              label="Kombinierte Übersicht"
+              label="Messeabschluss"
               severity="info"
               routerLink="/combined-view"></p-button>
     <p-button icon="pi pi-cog" [rounded]="true" [text]="true" routerLink="/config"></p-button>
@@ -92,16 +92,6 @@
       <div class="flex gap-4">
         <div class="flex items-center gap-2">
           <p-radiobutton
-            inputId="ortStand"
-            name="bestandsOrt"
-            [value]="Ort.Stand"
-            [ngModel]="selectedBestandsOrt()"
-            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
-          </p-radiobutton>
-          <label for="ortStand">Stand</label>
-        </div>
-        <div class="flex items-center gap-2">
-          <p-radiobutton
             inputId="ortLager"
             name="bestandsOrt"
             [value]="Ort.Lager"
@@ -109,6 +99,16 @@
             (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
           </p-radiobutton>
           <label for="ortLager">Lager</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton
+            inputId="ortStand"
+            name="bestandsOrt"
+            [value]="Ort.Stand"
+            [ngModel]="selectedBestandsOrt()"
+            (ngModelChange)="selectedBestandsOrt.set($event); selectedBestandsDispatchSheetId.set(null)">
+          </p-radiobutton>
+          <label for="ortStand">Stand</label>
         </div>
       </div>
     </div>
