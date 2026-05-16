@@ -1,0 +1,9 @@
+# SQLite temp database (recreated fresh on each test run)
+tmp/
+
+# Playwright output
+playwright-report/
+test-results/
+
+# Dependencies
+node_modules/

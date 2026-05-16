@@ -1,0 +1,16 @@
+{
+  "name": "hg-messe-app-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "node -e \"['tmp/messeapp-e2e.db','tmp/messeapp-e2e.db-wal','tmp/messeapp-e2e.db-shm'].forEach(f=>{try{require('fs').unlinkSync(f)}catch(e){if(e.code!=='ENOENT')throw e}})\"",
+    "test": "npm run clean && playwright test",
+    "test:headed": "npm run clean && playwright test --headed",
+    "test:debug": "npm run clean && playwright test --debug",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.0.0"
+  }
+}

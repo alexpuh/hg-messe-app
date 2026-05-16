@@ -25,8 +25,13 @@ try
         .AddSignalR();
 
     // Configure SQLite Database
+    // Supports override via ConnectionStrings__DefaultConnection env var (used for E2E test isolation)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "Connection string 'DefaultConnection' is not configured. " +
+            "Add it to appsettings.json or set ConnectionStrings__DefaultConnection.");
     builder.Services
-        .AddDbContext<MesseAppDbContext>(options => options.UseSqlite("Data Source=messeapp.db"));
+        .AddDbContext<MesseAppDbContext>(options => options.UseSqlite(connectionString));
 
     
     // Add services to the container.
@@ -46,8 +51,15 @@ try
         .AddScoped<SignalNotificationService>()
         .AddScoped<ScanSessionExcelExportService>()
         .AddSingleton<BarcodeScannerService>()
-        .AddHostedService<BarcodeScannerBackgroundService>()
         ;
+
+    // Allow E2E tests (and dev machines without a scanner) to opt out of the background
+    // service that attempts to open a COM port. The BarcodeScannerService itself is always
+    // registered so BarcodeScannerController.GetStatus() continues to work.
+    if (!builder.Configuration.GetValue<bool>("BarcodeScanner:DisableBackgroundService"))
+    {
+        builder.Services.AddHostedService<BarcodeScannerBackgroundService>();
+    }
     
 // Add Swagger services
     builder.Services.AddEndpointsApiExplorer();

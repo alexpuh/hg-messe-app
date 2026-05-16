@@ -1,6 +1,6 @@
 # [TASK] E2E Tests with Playwright
 
-> **Status:** Draft  
+> **Status:** Implemented  
 > **Date:** 2026-05-16  
 > **Author:** alexpuh  
 > **Jira link:** *(fill in after creation)*
