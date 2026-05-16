@@ -25,7 +25,9 @@ cd e2e
 npm test
 ```
 
-On the first run Playwright starts `dotnet run` and `npm start` for you. Set `reuseExistingServer` to `true` (the default for non-CI runs) to reuse already-running servers.
+On the first run Playwright starts `dotnet run` and `npm start` for you. The .NET backend always
+starts fresh (`reuseExistingServer: false`) to guarantee DB isolation. The Angular dev server may
+be reused if already running (`reuseExistingServer: true`).
 
 ### Headed mode (for debugging)
 
@@ -44,8 +46,8 @@ npm run test:debug
 All tests run serially (`workers: 1`). Before each test run, the SQLite database
 (`e2e/tmp/messeapp-e2e.db`) is deleted so every run starts from a clean state.
 
-**`npm test` / `npm run test:headed` / `npm run test:debug`**: Database cleanup runs via the
-`pretest` / `clean` npm scripts automatically.
+**`npm test` / `npm run test:headed` / `npm run test:debug`**: Each script calls `npm run clean`
+inline before invoking Playwright, so database cleanup is automatic for all entry points.
 
 **`run-e2e.ps1`**: The script additionally kills any stale `messe-server` process that may be
 holding the DB file open, then delegates to `npm test` (or `npm run test:*`), which triggers the

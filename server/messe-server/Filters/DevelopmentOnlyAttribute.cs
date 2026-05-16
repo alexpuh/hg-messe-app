@@ -9,11 +9,13 @@ namespace Herrmann.MesseApp.Server.Filters;
 /// Apply to controllers or actions that must never be reachable in Production.
 /// </summary>
 /// <remarks>
-/// The controller and its routes remain registered in the routing table. This is
-/// acceptable for a single-user local application where environment misconfiguration
-/// is not a realistic threat vector. The filter provides a defence-in-depth check
-/// alongside <see cref="Microsoft.AspNetCore.Mvc.ApiExplorer.ApiExplorerSettingsAttribute"/>
-/// which hides the endpoint from generated OpenAPI clients.
+/// In non-Development environments, <see cref="ExcludeControllersFeatureProvider"/> removes
+/// the decorated controller from the routing table entirely, so this filter never executes
+/// in production. The filter serves as a defence-in-depth fallback: if the feature-provider
+/// exclusion is ever bypassed (e.g. a future refactor removes the Program.cs guard), this
+/// attribute ensures the endpoint still returns 404 rather than being reachable.
+/// It also hides the endpoint from OpenAPI clients alongside
+/// <see cref="Microsoft.AspNetCore.Mvc.ApiExplorer.ApiExplorerSettingsAttribute"/>.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public sealed class DevelopmentOnlyAttribute : ActionFilterAttribute

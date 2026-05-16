@@ -48,14 +48,15 @@ if (-not (Test-Path $fixtureFile)) {
     Write-Error "Missing fixture file: $fixtureFile`nSee e2e/README.md for details."
 }
 
-# Kill any leftover server process from a previous interrupted run so the DB is not locked
-$staleServer = Get-Process -Name 'messe-server' -ErrorAction SilentlyContinue
-if ($staleServer) {
-    Write-Host "Stopping stale messe-server process (PID $($staleServer.Id))..." -ForegroundColor Yellow
-    Stop-Process -Id $staleServer.Id -Force
-    $exited = $staleServer.WaitForExit(5000)
+# Kill any leftover server processes from a previous interrupted run so the DB is not locked.
+# Use @() to force an array — Get-Process can return a single object or an array.
+$staleServers = @(Get-Process -Name 'messe-server' -ErrorAction SilentlyContinue)
+foreach ($proc in $staleServers) {
+    Write-Host "Stopping stale messe-server process (PID $($proc.Id))..." -ForegroundColor Yellow
+    Stop-Process -Id $proc.Id -Force
+    $exited = $proc.WaitForExit(5000)
     if (-not $exited) {
-        Write-Warning "messe-server process did not exit within 5 s; DB files may still be locked"
+        Write-Warning "messe-server (PID $($proc.Id)) did not exit within 5 s; DB files may still be locked"
     }
 }
 
