@@ -15,10 +15,13 @@ import {
 const DISPATCH_SHEET_NAME = `E2E Beladeliste Session ${Date.now()}`;
 
 test.describe('Scan session screen (/scan-session)', () => {
+  // Hoisted so AC-6 can create its own Beladung session without depending on AC-4.
+  let dispatchSheetId: number;
+
   test.beforeAll(async () => {
     const apiCtx = await playwrightRequest.newContext();
     await uploadArticles(apiCtx);
-    const dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
+    dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
     await setRequiredUnits(apiCtx, dispatchSheetId, TEST_UNIT_ID, TEST_REQUIRED_COUNT);
     await apiCtx.dispose();
   });
@@ -70,7 +73,10 @@ test.describe('Scan session screen (/scan-session)', () => {
     page,
     request,
   }) => {
-    // Beladung session from AC-4 is still the current session (most recently updated)
+    // Create a fresh Beladung session so this test is independent of AC-4's session state.
+    // The new session becomes the most recently updated and is auto-selected by the UI.
+    await createSession(request, 'ProcessDispatchList', 'Lager', dispatchSheetId);
+
     await page.goto('/scan-session');
     await page.waitForLoadState('networkidle');
 

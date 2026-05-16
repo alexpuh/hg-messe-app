@@ -30,7 +30,10 @@ test.describe('Config screen (/config)', () => {
     await expect(page.getByRole('dialog', { name: 'Neue Beladeliste erstellen' })).toBeVisible();
 
     await page.locator('#newTradeEventName').fill(newName);
-    await page.getByRole('button', { name: 'Erstellen' }).click();
+    await page
+      .getByRole('dialog', { name: 'Neue Beladeliste erstellen' })
+      .getByRole('button', { name: 'Erstellen' })
+      .click();
 
     // Dialog should close
     await expect(page.getByRole('dialog', { name: 'Neue Beladeliste erstellen' })).not.toBeVisible();

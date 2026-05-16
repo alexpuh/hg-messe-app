@@ -41,12 +41,16 @@ export default defineConfig({
       env: {
         ASPNETCORE_ENVIRONMENT: 'Development',
         ConnectionStrings__DefaultConnection: `Data Source=${dbPath}`,
+        // Prevent the BarcodeScannerBackgroundService from trying to open a COM port
+        // (which doesn't exist in CI or on dev machines without the physical scanner).
+        BarcodeScanner__DisableBackgroundService: 'true',
       },
     },
     {
       command: 'npm start --prefix ../client',
       url: 'http://localhost:4200',
-      reuseExistingServer: false,
+      // Allow reuse of an already-running dev client — no DB isolation concern here.
+      reuseExistingServer: true,
       timeout: 180_000,
     },
   ],

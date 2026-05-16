@@ -10,6 +10,11 @@ namespace Herrmann.MesseApp.Server.Controllers;
 /// Returns 404 Not Found in non-Development environments.
 /// Hidden from OpenAPI/Swagger document so it is never included in generated clients.
 /// </summary>
+/// <remarks>
+/// Security: this endpoint is gated by <see cref="DevelopmentOnlyAttribute"/> and only
+/// listens on localhost by default (Kestrel default binding). It must not be exposed on
+/// a shared machine running in Development mode.
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [DevelopmentOnly]

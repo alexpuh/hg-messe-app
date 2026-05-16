@@ -49,8 +49,15 @@ try
         .AddScoped<SignalNotificationService>()
         .AddScoped<ScanSessionExcelExportService>()
         .AddSingleton<BarcodeScannerService>()
-        .AddHostedService<BarcodeScannerBackgroundService>()
         ;
+
+    // Allow E2E tests (and dev machines without a scanner) to opt out of the background
+    // service that attempts to open a COM port. The BarcodeScannerService itself is always
+    // registered so BarcodeScannerController.GetStatus() continues to work.
+    if (!builder.Configuration.GetValue<bool>("BarcodeScanner:DisableBackgroundService"))
+    {
+        builder.Services.AddHostedService<BarcodeScannerBackgroundService>();
+    }
     
 // Add Swagger services
     builder.Services.AddEndpointsApiExplorer();
