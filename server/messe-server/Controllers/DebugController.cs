@@ -1,4 +1,3 @@
-using Herrmann.MesseApp.Server.Filters;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
@@ -6,22 +5,17 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 namespace Herrmann.MesseApp.Server.Controllers;
 
 /// <summary>
-/// Debug endpoint for development and E2E testing.
+/// Debug endpoint for development and E2E testing only.
 /// Returns 404 Not Found in non-Development environments.
 /// Hidden from OpenAPI/Swagger document so it is never included in generated clients.
 /// </summary>
-/// <remarks>
-/// Security: this endpoint is gated by <see cref="DevelopmentOnlyAttribute"/> and only
-/// listens on localhost by default (Kestrel default binding). It must not be exposed on
-/// a shared machine running in Development mode.
-/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
-[DevelopmentOnly]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class DebugController(
     ScanSessionService scanSessionService,
     SignalNotificationService signalNotificationService,
+    IWebHostEnvironment env,
     ILogger<DebugController> logger) : ControllerBase
 {
     /// <summary>
@@ -33,6 +27,9 @@ public class DebugController(
     [HttpPost("scan")]
     public async Task<IActionResult> SimulateScan([FromQuery] string ean)
     {
+        if (!env.IsDevelopment())
+            return NotFound();
+
         if (string.IsNullOrWhiteSpace(ean))
             return BadRequest(new { Message = "ean is required." });
 

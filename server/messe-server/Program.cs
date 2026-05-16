@@ -1,6 +1,4 @@
-using Herrmann.MesseApp.Server.Controllers;
 using Herrmann.MesseApp.Server.Data;
-using Herrmann.MesseApp.Server.Filters;
 using Herrmann.MesseApp.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
@@ -38,20 +36,11 @@ try
     
     // Add services to the container.
 
-    var mvcBuilder = builder.Services.AddControllers()
+    builder.Services.AddControllers()
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
         });
-
-    // DebugController is excluded from non-Development environments entirely — its routes
-    // are never registered, so no filter, misconfiguration, or routing quirk can expose it.
-    // The [DevelopmentOnly] filter on the controller provides a second layer in Development itself.
-    if (!builder.Environment.IsDevelopment())
-    {
-        mvcBuilder.ConfigureApplicationPartManager(m =>
-            m.FeatureProviders.Add(new ExcludeControllersFeatureProvider(typeof(DebugController))));
-    }
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
