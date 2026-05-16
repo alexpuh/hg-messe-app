@@ -438,9 +438,9 @@ Internally replicates the physical scanner pipeline:
 | Response | Condition |
 |---|---|
 | `200 OK` `{ "message": "...", "ean": "...", "sessionId": N }` | Scan processed successfully |
-| `400 Bad Request` `"No active session"` | No scan session exists |
+| `400 Bad Request` `{ "message": "No active session.", "ean": "..." }` | No scan session exists |
 | `400 Bad Request` `{ "message": "...", "ean": "..." }` | Scan error (e.g. EAN unknown) |
-| `400 Bad Request` `"ean is required."` | `ean` query param missing or blank |
+| `400 Bad Request` `{ "message": "ean is required." }` | `ean` query param missing or blank |
 
 ---
 
