@@ -48,6 +48,14 @@ if (-not (Test-Path $fixtureFile)) {
     Write-Error "Missing fixture file: $fixtureFile`nSee e2e/README.md for details."
 }
 
+# Kill any leftover server process from a previous interrupted run so the DB is not locked
+$staleServer = Get-Process -Name 'messe-server' -ErrorAction SilentlyContinue
+if ($staleServer) {
+    Write-Host "Stopping stale messe-server process (PID $($staleServer.Id))..." -ForegroundColor Yellow
+    Stop-Process -Id $staleServer.Id -Force
+    Start-Sleep -Milliseconds 500
+}
+
 #  Install dependencies 
 
 if ($Install) {

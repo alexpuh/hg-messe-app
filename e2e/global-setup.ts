@@ -21,15 +21,28 @@ export default async function globalSetup(): Promise<void> {
   }
 
   const dbPath = path.resolve(tmpDir, 'messeapp-e2e.db');
-  if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-  }
+  const filesToDelete = [dbPath, dbPath + '-wal', dbPath + '-shm'];
 
-  // Also clean up SQLite WAL/SHM files if present
-  for (const suffix of ['-wal', '-shm']) {
-    const sidecar = dbPath + suffix;
-    if (fs.existsSync(sidecar)) {
-      fs.unlinkSync(sidecar);
+  for (const file of filesToDelete) {
+    if (!fs.existsSync(file)) continue;
+    // Retry up to 5 times with a short delay — the file may be briefly locked
+    // by a process from a previous interrupted run.
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        fs.unlinkSync(file);
+        lastError = null;
+        break;
+      } catch (err: unknown) {
+        lastError = err as Error;
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+    if (lastError) {
+      throw new Error(
+        `Cannot delete ${path.basename(file)} after 5 attempts — ` +
+          `it may be held open by another process.\n${lastError.message}`,
+      );
     }
   }
 }
