@@ -91,6 +91,19 @@ elseif (-not (Test-Path (Join-Path $e2eDir 'node_modules'))) {
     & $PSCommandPath -Install:$true -Headed:$Headed -Debug:$Debug
     exit $LASTEXITCODE
 }
+else {
+    # Auto-install Chromium if the browser executable is missing (e.g. after a Playwright version bump)
+    Push-Location $e2eDir
+    try {
+        $playwrightDir = Join-Path $env:LOCALAPPDATA 'ms-playwright'
+        $chromiumExists = Test-Path $playwrightDir -PathType Container
+        if (-not $chromiumExists -or -not (Get-ChildItem $playwrightDir -Filter 'chromium*' -ErrorAction SilentlyContinue)) {
+            Write-Host ""
+            Write-Host "Chromium browser not found. Installing..." -ForegroundColor Yellow
+            npx playwright install --with-deps chromium
+        }
+    } finally { Pop-Location }
+}
 
 #  Run tests ─
 
