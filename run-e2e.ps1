@@ -100,7 +100,8 @@ else {
         if (-not $chromiumExists -or -not (Get-ChildItem $playwrightDir -Filter 'chromium*' -ErrorAction SilentlyContinue)) {
             Write-Host ""
             Write-Host "Chromium browser not found. Installing..." -ForegroundColor Yellow
-            npx playwright install --with-deps chromium
+            # --with-deps installs OS-level browser dependencies on Linux; on Windows it is a no-op.
+            npx playwright install chromium
         }
     } finally { Pop-Location }
 }

@@ -53,9 +53,10 @@ public class DebugController(
         }
         else
         {
-            await signalNotificationService.SendBarcodeError(ean, errorMessage);
-            logger.LogWarning("Debug scan failed: EAN={Ean}, Error={Error}", ean, errorMessage);
-            return BadRequest(new { Message = errorMessage, Ean = ean });
+            var message = errorMessage ?? "Scan failed";
+            await signalNotificationService.SendBarcodeError(ean, message);
+            logger.LogWarning("Debug scan failed: EAN={Ean}, Error={Error}", ean, message);
+            return BadRequest(new { Message = message, Ean = ean });
         }
     }
 }

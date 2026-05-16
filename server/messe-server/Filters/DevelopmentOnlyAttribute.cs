@@ -8,6 +8,13 @@ namespace Herrmann.MesseApp.Server.Filters;
 /// Action filter that returns 404 Not Found in non-Development environments.
 /// Apply to controllers or actions that must never be reachable in Production.
 /// </summary>
+/// <remarks>
+/// The controller and its routes remain registered in the routing table. This is
+/// acceptable for a single-user local application where environment misconfiguration
+/// is not a realistic threat vector. The filter provides a defence-in-depth check
+/// alongside <see cref="Microsoft.AspNetCore.Mvc.ApiExplorer.ApiExplorerSettingsAttribute"/>
+/// which hides the endpoint from generated OpenAPI clients.
+/// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 public class DevelopmentOnlyAttribute : ActionFilterAttribute
 {

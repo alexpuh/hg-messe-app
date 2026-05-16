@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "pretest": "node -e \"['tmp/messeapp-e2e.db','tmp/messeapp-e2e.db-wal','tmp/messeapp-e2e.db-shm'].forEach(f=>{try{require('fs').unlinkSync(f)}catch(e){}})\"",
+    "clean": "node -e \"['tmp/messeapp-e2e.db','tmp/messeapp-e2e.db-wal','tmp/messeapp-e2e.db-shm'].forEach(f=>{try{require('fs').unlinkSync(f)}catch(e){}})\"",
+    "pretest": "npm run clean",
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
+    "test:headed": "npm run clean && playwright test --headed",
+    "test:debug": "npm run clean && playwright test --debug",
     "report": "playwright show-report"
   },
   "devDependencies": {

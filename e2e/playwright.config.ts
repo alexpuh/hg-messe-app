@@ -11,9 +11,10 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
 
-  // No retries: tests are order-dependent and share session state.
-  // Retrying an individual test in isolation would break AC-6 (which relies on the
-  // session created by AC-4) and produce misleading failures.
+  // No retries: even though AC-6 is now independent, AC-4/AC-7/AC-8 still create sessions
+  // via the UI that alter the "current session" state. Retrying those tests would leave
+  // an extra session in the DB, making subsequent tests unpredictable.
+  // Re-evaluate once all tests fully manage their own session lifecycle.
   retries: 0,
 
   reporter: process.env.CI ? 'github' : 'list',
@@ -33,9 +34,13 @@ export default defineConfig({
   webServer: [
     {
       command: 'dotnet run --project ../server/messe-server/messe-server.csproj',
+      // BarcodeScannerService.IsConnected() is a pure in-memory boolean check — the
+      // health-check URL is safe even without a physical scanner attached.
       url: 'http://localhost:5227/api/BarcodeScanner/status',
       // Always start a dedicated test server. Reusing an existing dev server would point
       // at messeapp.db (the developer's primary database) instead of the isolated test DB.
+      // If port 5227 is already in use by a dev server, Playwright will fail fast with a
+      // clear error — stop the dev server before running E2E tests.
       reuseExistingServer: false,
       timeout: 120_000,
       env: {

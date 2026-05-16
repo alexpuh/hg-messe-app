@@ -177,6 +177,10 @@ jobs:
         run: mkdir -p e2e/tmp
 
       - name: Run E2E tests
+        # Uses `dotnet run` (Debug) + `npm start` (ng serve) rather than the production
+        # build artifacts. This keeps the CI job simple and gives better stack traces on
+        # failure. The production build is already verified by the build-client / build-app
+        # jobs that are prerequisites for this job.
         run: |
           pushd e2e
           npm test
