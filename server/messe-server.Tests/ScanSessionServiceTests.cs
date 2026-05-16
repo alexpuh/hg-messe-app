@@ -294,6 +294,27 @@ public class ScanSessionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetCombinedArticlesAsync_LagerSessionIsActuallyStand_ReturnsNull()
+    {
+        var standSession = new ScanSession
+        {
+            StartedAt = DateTime.Now, UpdatedAt = DateTime.Now,
+            SessionType = ScanSessionType.Inventory, Ort = Ort.Stand
+        };
+        var wrongLagerSession = new ScanSession
+        {
+            StartedAt = DateTime.Now, UpdatedAt = DateTime.Now,
+            SessionType = ScanSessionType.Inventory, Ort = Ort.Stand
+        };
+        _ctx.ScanSessions.AddRange(standSession, wrongLagerSession);
+        _ctx.SaveChanges();
+
+        var result = await _sut.GetCombinedArticlesAsync(standSession.Id, wrongLagerSession.Id);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task GetCombinedArticlesAsync_LagerSessionNotFound_ReturnsNull()
     {
         var standSession = new ScanSession
@@ -307,5 +328,49 @@ public class ScanSessionServiceTests : IDisposable
         var result = await _sut.GetCombinedArticlesAsync(standSession.Id, 9999);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetCombinedArticlesAsync_TotalMeetsRequired_FehltIsNull()
+    {
+        _ctx.ArticleUnits.Add(new ArticleUnit
+        {
+            UnitId = 10, ArticleId = 1, ArtNr = "A010", DisplayName = "Art Ten", Weight = 100, EanUnit = "1010101010101"
+        });
+        var sheet = new DispatchSheet { Name = "Sheet X" };
+        _ctx.DispatchSheets.Add(sheet);
+        _ctx.SaveChanges();
+
+        _ctx.DispatchSheetRequiredUnits.Add(new DispatchSheetRequiredUnit
+        {
+            DispatchSheetId = sheet.Id, UnitId = 10, RequiredCount = 4
+        });
+        var standSession = new ScanSession
+        {
+            StartedAt = DateTime.Now, UpdatedAt = DateTime.Now,
+            SessionType = ScanSessionType.Inventory, Ort = Ort.Stand
+        };
+        var lagerSession = new ScanSession
+        {
+            StartedAt = DateTime.Now, UpdatedAt = DateTime.Now,
+            SessionType = ScanSessionType.Inventory, Ort = Ort.Lager,
+            DispatchSheetId = sheet.Id
+        };
+        _ctx.ScanSessions.AddRange(standSession, lagerSession);
+        _ctx.SaveChanges();
+
+        _ctx.ScannedArticles.AddRange(
+            new ScannedArticle { ScanSessionId = standSession.Id, UnitId = 10, QuantityUnits = 2, UpdatedAt = DateTime.Now },
+            new ScannedArticle { ScanSessionId = lagerSession.Id, UnitId = 10, QuantityUnits = 3, UpdatedAt = DateTime.Now }
+        );
+        _ctx.SaveChanges();
+
+        var result = await _sut.GetCombinedArticlesAsync(standSession.Id, lagerSession.Id);
+
+        Assert.NotNull(result);
+        var article = result!.Value.articles.Single(a => a.UnitId == 10);
+        Assert.Equal(5, article.Total);         // 2 + 3
+        Assert.Equal(4, article.RequiredCount); // Soll = 4
+        Assert.Null(article.Fehlt);             // total (5) >= required (4) → Fehlt must be null
     }
 }

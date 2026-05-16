@@ -130,4 +130,66 @@ public class ArticlesServiceTests : IDisposable
             File.Delete(path);
         }
     }
+
+    // TryGetArticleUnit — known unit
+    [Fact]
+    public void TryGetArticleUnit_KnownUnitId_ReturnsTrueAndDto()
+    {
+        _ctx.ArticleUnits.Add(new ArticleUnit
+        {
+            UnitId = 50, ArticleId = 5, ArtNr = "B001",
+            Weight = 300, DisplayName = "Article B"
+        });
+        _ctx.SaveChanges();
+
+        var result = _sut.TryGetArticleUnit(50, out var dto);
+
+        Assert.True(result);
+        Assert.NotNull(dto);
+        Assert.Equal(50, dto!.UnitId);
+    }
+
+    // TryGetArticleUnit — unknown unit
+    [Fact]
+    public void TryGetArticleUnit_UnknownUnitId_ReturnsFalse()
+    {
+        var result = _sut.TryGetArticleUnit(9999, out var dto);
+
+        Assert.False(result);
+        Assert.Null(dto);
+    }
+
+    // GetAllEanUnits — returns only enabled units, both EanUnit and EanBox entries
+    [Fact]
+    public void GetAllEanUnits_MixedUnits_ReturnsOnlyEnabledEans()
+    {
+        _ctx.ArticleUnits.AddRange(
+            new ArticleUnit
+            {
+                UnitId = 1, ArticleId = 1, ArtNr = "A001", Weight = 100, DisplayName = "Active",
+                EanUnit = "1000000000001", EanBox = "9000000000001",
+                IsArticleDisabled = false, IsUnitDisabled = false
+            },
+            new ArticleUnit
+            {
+                UnitId = 2, ArticleId = 2, ArtNr = "A002", Weight = 200, DisplayName = "Disabled Unit",
+                EanUnit = "1000000000002", EanBox = null,
+                IsArticleDisabled = false, IsUnitDisabled = true
+            },
+            new ArticleUnit
+            {
+                UnitId = 3, ArticleId = 3, ArtNr = "A003", Weight = 300, DisplayName = "Disabled Article",
+                EanUnit = "1000000000003", EanBox = null,
+                IsArticleDisabled = true, IsUnitDisabled = false
+            }
+        );
+        _ctx.SaveChanges();
+
+        var result = _sut.GetAllEanUnits();
+
+        // Only UnitId=1 is fully enabled; it contributes EanUnit + EanBox = 2 entries
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, e => e.Ean == "1000000000001");
+        Assert.Contains(result, e => e.Ean == "9000000000001");
+    }
 }
