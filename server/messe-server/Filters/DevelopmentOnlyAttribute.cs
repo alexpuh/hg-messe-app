@@ -16,7 +16,7 @@ namespace Herrmann.MesseApp.Server.Filters;
 /// which hides the endpoint from generated OpenAPI clients.
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class DevelopmentOnlyAttribute : ActionFilterAttribute
+public sealed class DevelopmentOnlyAttribute : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)
     {

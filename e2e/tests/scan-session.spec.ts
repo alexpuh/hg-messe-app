@@ -29,7 +29,7 @@ test.describe('Scan session screen (/scan-session)', () => {
   // AC-5: Start Beladung without selecting Beladeliste — Starten button must be disabled
   test('AC-5: Starten button is disabled when no Beladeliste is selected', async ({ page }) => {
     await page.goto('/scan-session');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: 'Neue Beladung starten' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Neue Beladung starten' }).click();
     await expect(page.getByRole('dialog', { name: 'Neue Beladung starten' })).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('Scan session screen (/scan-session)', () => {
   // AC-4: Start Beladung with a Beladeliste — session starts and Soll column is visible
   test('AC-4: starts a Beladung session and shows the Soll column', async ({ page }) => {
     await page.goto('/scan-session');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: 'Neue Beladung starten' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Neue Beladung starten' }).click();
     await expect(page.getByRole('dialog', { name: 'Neue Beladung starten' })).toBeVisible();
@@ -78,7 +78,8 @@ test.describe('Scan session screen (/scan-session)', () => {
     await createSession(request, 'ProcessDispatchList', 'Lager', dispatchSheetId);
 
     await page.goto('/scan-session');
-    await page.waitForLoadState('networkidle');
+    // Wait for the page heading to confirm the active session is loaded.
+    await expect(page.locator('h1')).toBeVisible();
 
     await simulateScan(request, TEST_EAN_UNIT);
 
@@ -89,7 +90,7 @@ test.describe('Scan session screen (/scan-session)', () => {
   // AC-7: Bestandsaufnahme Stand — no Soll column
   test('AC-7: starts a Bestandsaufnahme Stand session without a Soll column', async ({ page }) => {
     await page.goto('/scan-session');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: 'Bestandsaufnahme starten' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Bestandsaufnahme starten' }).click();
     await expect(page.getByRole('dialog', { name: 'Bestandsaufnahme starten' })).toBeVisible();
@@ -116,7 +117,7 @@ test.describe('Scan session screen (/scan-session)', () => {
     page,
   }) => {
     await page.goto('/scan-session');
-    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: 'Bestandsaufnahme starten' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Bestandsaufnahme starten' }).click();
     await expect(page.getByRole('dialog', { name: 'Bestandsaufnahme starten' })).toBeVisible();

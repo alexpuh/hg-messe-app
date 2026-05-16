@@ -181,6 +181,10 @@ jobs:
         # build artifacts. This keeps the CI job simple and gives better stack traces on
         # failure. The production build is already verified by the build-client / build-app
         # jobs that are prerequisites for this job.
+        #
+        # Port binding: launchSettings.json sets applicationUrl=http://localhost:5227 (HTTP only).
+        # dotnet run picks this profile on Linux too, so Kestrel binds to port 5227.
+        # UseHttpsRedirection() is a no-op when no HTTPS address is configured — no 307 redirects.
         run: |
           pushd e2e
           npm test

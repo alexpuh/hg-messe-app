@@ -20,7 +20,13 @@ test.describe('Config screen (/config)', () => {
   // AC-2: Create a new Beladeliste
   test('AC-2: creates a new Beladeliste and shows it in the dropdown', async ({ page }) => {
     await page.goto('/config');
-    await page.waitForLoadState('networkidle');
+    // Verify the pre-created dispatch sheet is selectable — confirms the component has
+    // finished loading its data before we interact with anything else.
+    await page.locator('p-select').first().click();
+    await expect(page.getByRole('option', { name: DISPATCH_SHEET_NAME })).toBeVisible({
+      timeout: 10_000,
+    });
+    await page.keyboard.press('Escape');
 
     const newName = `Neue Beladeliste ${Date.now()}`;
 
@@ -47,9 +53,7 @@ test.describe('Config screen (/config)', () => {
   // AC-3: Set Sollbestand for an article
   test('AC-3: sets a Sollbestand for an article and displays the updated count', async ({ page }) => {
     await page.goto('/config');
-    await page.waitForLoadState('networkidle');
-
-    // Select the pre-created dispatch sheet
+    await expect(page.locator('p-select').first()).toBeVisible();
     await page.locator('p-select').first().click();
     await page.getByRole('option', { name: DISPATCH_SHEET_NAME }).click();
 
@@ -70,6 +74,6 @@ test.describe('Config screen (/config)', () => {
     await page.locator('p-button[severity="success"]').first().click();
 
     // The updated count should now appear in the Sollbestand cell (scoped to the edit button)
-    await expect(page.locator('p-table tbody tr').first().locator('p-button[size="large"]')).toContainText('10');
+    await expect(page.locator('p-table tbody tr').first().locator('p-button[size="large"]')).toHaveText('10');
   });
 });

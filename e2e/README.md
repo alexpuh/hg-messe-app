@@ -44,8 +44,12 @@ npm run test:debug
 All tests run serially (`workers: 1`). Before each test run, the SQLite database
 (`e2e/tmp/messeapp-e2e.db`) is deleted so every run starts from a clean state.
 
-Database cleanup happens automatically via the `pretest` npm hook — both `run-e2e.ps1`
-and `npm test` (direct) delete the DB before Playwright starts.
+**`npm test` / `npm run test:headed` / `npm run test:debug`**: Database cleanup runs via the
+`pretest` / `clean` npm scripts automatically.
+
+**`run-e2e.ps1`**: The script additionally kills any stale `messe-server` process that may be
+holding the DB file open, then delegates to `npm test` (or `npm run test:*`), which triggers the
+same cleanup hooks. Both entry points end up using `npm` so cleanup behaviour is identical.
 
 ## Articles fixture
 

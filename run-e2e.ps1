@@ -113,17 +113,17 @@ try {
     if ($Inspect) {
         Write-Host ""
         Write-Host "Starting Playwright Inspector..." -ForegroundColor Cyan
-        npx playwright test --debug
+        npm run test:debug
     }
     elseif ($Headed) {
         Write-Host ""
         Write-Host "Starting Playwright in headed mode..." -ForegroundColor Cyan
-        npx playwright test --headed
+        npm run test:headed
     }
     else {
         Write-Host ""
         Write-Host "Starting Playwright tests..." -ForegroundColor Cyan
-        npx playwright test
+        npm test
     }
 
     if ($LASTEXITCODE -ne 0) {
