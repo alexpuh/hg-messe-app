@@ -6,7 +6,7 @@
 .PARAMETER Headed
     Runs the browser in headed (visible) mode for debugging.
 
-.PARAMETER Debug
+.PARAMETER Inspect
     Opens Playwright Inspector for step-by-step debugging.
 
 .PARAMETER Install
@@ -17,11 +17,11 @@
     .\run-e2e.ps1
     .\run-e2e.ps1 -Install
     .\run-e2e.ps1 -Headed
-    .\run-e2e.ps1 -Debug
+    .\run-e2e.ps1 -Inspect
 #>
 param(
     [switch]$Headed,
-    [switch]$Debug,
+    [switch]$Inspect,
     [switch]$Install
 )
 
@@ -88,7 +88,7 @@ elseif (-not (Test-Path (Join-Path $e2eDir 'node_modules'))) {
     # Auto-install when node_modules is missing
     Write-Host ""
     Write-Host "node_modules not found. Running with -Install automatically..." -ForegroundColor Yellow
-    & $PSCommandPath -Install:$true -Headed:$Headed -Debug:$Debug
+    & $PSCommandPath -Install:$true -Headed:$Headed -Inspect:$Inspect
     exit $LASTEXITCODE
 }
 else {
@@ -109,9 +109,9 @@ else {
 
 Push-Location $e2eDir
 try {
-    if ($Debug) {
+    if ($Inspect) {
         Write-Host ""
-        Write-Host "Starting Playwright in debug mode..." -ForegroundColor Cyan
+        Write-Host "Starting Playwright Inspector..." -ForegroundColor Cyan
         npx playwright test --debug
     }
     elseif ($Headed) {

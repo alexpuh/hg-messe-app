@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "pretest": "node -e \"['tmp/messeapp-e2e.db','tmp/messeapp-e2e.db-wal','tmp/messeapp-e2e.db-shm'].forEach(f=>{try{require('fs').unlinkSync(f)}catch(e){}})\"",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",

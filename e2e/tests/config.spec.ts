@@ -9,12 +9,10 @@ import { TEST_UNIT_ID, TEST_REQUIRED_COUNT } from '../helpers/constants';
 const DISPATCH_SHEET_NAME = `E2E Beladeliste Config ${Date.now()}`;
 
 test.describe('Config screen (/config)', () => {
-  let dispatchSheetId: number;
-
   test.beforeAll(async () => {
     const apiCtx = await playwrightRequest.newContext();
     await uploadArticles(apiCtx);
-    dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
+    const dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
     await setRequiredUnits(apiCtx, dispatchSheetId, TEST_UNIT_ID, TEST_REQUIRED_COUNT);
     await apiCtx.dispose();
   });
@@ -68,7 +66,7 @@ test.describe('Config screen (/config)', () => {
     // Confirm save (check icon button)
     await page.locator('p-button[severity="success"]').first().click();
 
-    // The updated count "10" should now appear in the Sollbestand cell
-    await expect(page.locator('p-table tbody tr').first()).toContainText('10');
+    // The updated count should now appear in the Sollbestand cell (scoped to the edit button)
+    await expect(page.locator('p-table tbody tr').first().locator('p-button[size="large"]')).toContainText('10');
   });
 });

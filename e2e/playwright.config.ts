@@ -11,8 +11,10 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
 
-  // Retry failed tests once in CI to reduce flakiness from startup timing.
-  retries: process.env.CI ? 1 : 0,
+  // No retries: tests are order-dependent and share session state.
+  // Retrying an individual test in isolation would break AC-6 (which relies on the
+  // session created by AC-4) and produce misleading failures.
+  retries: 0,
 
   reporter: process.env.CI ? 'github' : 'list',
 
@@ -32,17 +34,19 @@ export default defineConfig({
     {
       command: 'dotnet run --project ../server/messe-server/messe-server.csproj',
       url: 'http://localhost:5227/api/BarcodeScanner/status',
-      reuseExistingServer: !process.env.CI,
+      // Always start a dedicated test server. Reusing an existing dev server would point
+      // at messeapp.db (the developer's primary database) instead of the isolated test DB.
+      reuseExistingServer: false,
       timeout: 120_000,
       env: {
         ASPNETCORE_ENVIRONMENT: 'Development',
-        ConnectionStrings__DefaultConnection: `DataSource=${dbPath}`,
+        ConnectionStrings__DefaultConnection: `Data Source=${dbPath}`,
       },
     },
     {
       command: 'npm start --prefix ../client',
       url: 'http://localhost:4200',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 180_000,
     },
   ],

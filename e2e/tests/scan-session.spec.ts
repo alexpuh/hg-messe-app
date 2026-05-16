@@ -15,12 +15,10 @@ import {
 const DISPATCH_SHEET_NAME = `E2E Beladeliste Session ${Date.now()}`;
 
 test.describe('Scan session screen (/scan-session)', () => {
-  let dispatchSheetId: number;
-
   test.beforeAll(async () => {
     const apiCtx = await playwrightRequest.newContext();
     await uploadArticles(apiCtx);
-    dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
+    const dispatchSheetId = await createDispatchSheet(apiCtx, DISPATCH_SHEET_NAME);
     await setRequiredUnits(apiCtx, dispatchSheetId, TEST_UNIT_ID, TEST_REQUIRED_COUNT);
     await apiCtx.dispose();
   });
