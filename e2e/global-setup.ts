@@ -3,7 +3,9 @@ import * as path from 'path';
 
 /**
  * Global setup runs once before all tests, AFTER webServer is already running.
- * The DB cleanup must happen BEFORE Playwright starts the server (done in run-e2e.ps1).
+ * The DB cleanup must happen BEFORE Playwright starts the server (done in run-e2e.ps1
+ * and via `npm run clean` in `npm test`). Do NOT invoke `npx playwright test` or
+ * `playwright test` directly — it skips DB cleanup and causes test failures.
  * This function only ensures the tmp/ directory exists as a safety net.
  */
 export default async function globalSetup(): Promise<void> {
@@ -11,7 +13,7 @@ export default async function globalSetup(): Promise<void> {
   if (!fs.existsSync(fixturesPath)) {
     throw new Error(
       'ERROR: e2e/fixtures/articles.json not found.\n' +
-        'Create it from docs/tasks/articles.json before running E2E tests.',
+        'Ensure the file is present and committed to the repository.',
     );
   }
 

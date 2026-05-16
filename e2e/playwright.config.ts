@@ -34,8 +34,8 @@ export default defineConfig({
   webServer: [
     {
       command: 'dotnet run --project ../server/messe-server/messe-server.csproj',
-      // BarcodeScannerService.IsConnected() is a pure in-memory boolean check — the
-      // health-check URL is safe even without a physical scanner attached.
+      // BarcodeScannerService.IsConnected() returns `serialPort is { IsOpen: true }` — a
+      // pure in-memory check that never touches the serial port. Safe in CI without a scanner.
       url: 'http://localhost:5227/api/BarcodeScanner/status',
       // Always start a dedicated test server. Reusing an existing dev server would point
       // at messeapp.db (the developer's primary database) instead of the isolated test DB.

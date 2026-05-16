@@ -40,20 +40,28 @@ public class DebugController(
             return BadRequest(new { Message = "No active session.", Ean = ean });
         }
 
-        var (success, errorMessage) = await scanSessionService.AddBarcodeAsync(currentSession.Id, ean);
+        try
+        {
+            var (success, errorMessage) = await scanSessionService.AddBarcodeAsync(currentSession.Id, ean);
 
-        if (success)
-        {
-            await signalNotificationService.SendBarcodeScanned(ean);
-            logger.LogInformation("Debug scan successful: EAN={Ean}, SessionId={SessionId}", ean, currentSession.Id);
-            return Ok(new { Message = "Barcode processed successfully", Ean = ean, SessionId = currentSession.Id });
+            if (success)
+            {
+                await signalNotificationService.SendBarcodeScanned(ean);
+                logger.LogInformation("Debug scan successful: EAN={Ean}, SessionId={SessionId}", ean, currentSession.Id);
+                return Ok(new { Message = "Barcode processed successfully", Ean = ean, SessionId = currentSession.Id });
+            }
+            else
+            {
+                var message = errorMessage ?? "Scan failed";
+                await signalNotificationService.SendBarcodeError(ean, message);
+                logger.LogWarning("Debug scan failed: EAN={Ean}, Error={Error}", ean, message);
+                return BadRequest(new { Message = message, Ean = ean });
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var message = errorMessage ?? "Scan failed";
-            await signalNotificationService.SendBarcodeError(ean, message);
-            logger.LogWarning("Debug scan failed: EAN={Ean}, Error={Error}", ean, message);
-            return BadRequest(new { Message = message, Ean = ean });
+            logger.LogError(ex, "Debug scan threw an unexpected exception: EAN={Ean}", ean);
+            return StatusCode(500, new { Message = "Internal server error during scan simulation." });
         }
     }
 }

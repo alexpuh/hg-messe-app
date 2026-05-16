@@ -96,12 +96,20 @@ elseif (-not (Test-Path (Join-Path $e2eDir 'node_modules'))) {
     exit $LASTEXITCODE
 }
 else {
-    # Auto-install Chromium if the browser executable is missing (e.g. after a Playwright version bump)
+    # Auto-install Chromium if the browser executable is missing (e.g. after a Playwright version bump).
+    # On Windows, check the standard ms-playwright install location; on other platforms, skip the
+    # existence check and let `playwright install` handle idempotency.
     Push-Location $e2eDir
     try {
-        $playwrightDir = Join-Path $env:LOCALAPPDATA 'ms-playwright'
-        $chromiumExists = Test-Path $playwrightDir -PathType Container
-        if (-not $chromiumExists -or -not (Get-ChildItem $playwrightDir -Filter 'chromium*' -ErrorAction SilentlyContinue)) {
+        $needsInstall = $true
+        if ($IsWindows) {
+            $playwrightDir = Join-Path $env:LOCALAPPDATA 'ms-playwright'
+            $chromiumExists = Test-Path $playwrightDir -PathType Container
+            if ($chromiumExists -and (Get-ChildItem $playwrightDir -Filter 'chromium*' -ErrorAction SilentlyContinue)) {
+                $needsInstall = $false
+            }
+        }
+        if ($needsInstall) {
             Write-Host ""
             Write-Host "Chromium browser not found. Installing..." -ForegroundColor Yellow
             # --with-deps installs OS-level browser dependencies on Linux; on Windows it is a no-op.

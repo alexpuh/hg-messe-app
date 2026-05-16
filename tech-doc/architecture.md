@@ -428,7 +428,7 @@ Download the combined view as `.xlsx`. Same parameter validation as above (`<= 0
 #### `POST /api/Debug/scan?ean={ean}`
 Simulates a barcode scan for the current active session. Intended for E2E testing only.
 
-**Only available when `ASPNETCORE_ENVIRONMENT=Development`.** Returns `404 Not Found` in Production (guarded by `DevelopmentOnlyAttribute` in `server/messe-server/Filters/DevelopmentOnlyAttribute.cs`).
+**Only available when `ASPNETCORE_ENVIRONMENT=Development`.** Returns `404 Not Found` otherwise (checked at the start of `DebugController.SimulateScan` via `IWebHostEnvironment.IsDevelopment()`).
 
 Internally replicates the physical scanner pipeline:
 1. Calls `ScanSessionService.GetCurrentScanSessionAsync()` — same "current session" the physical scanner would target.

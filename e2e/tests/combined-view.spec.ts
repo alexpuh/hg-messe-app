@@ -37,14 +37,15 @@ test.describe('Combined view (/combined-view)', () => {
     await expect(page.locator('#lagerSessionSelect')).toBeVisible();
     await expect(page.locator('#standSessionSelect')).toBeVisible();
 
-    // Explicitly select a Lager session — always the first (most recently created) option.
-    // Because the DB is wiped before every run and beforeAll creates these sessions,
-    // they are guaranteed to be the only options at this point.
+    // Explicitly select the only Lager session. The DB is wiped before each run and
+    // beforeAll creates exactly one Lager session, so there is exactly one option here.
     await page.locator('#lagerSessionSelect').click();
+    await expect(page.getByRole('option')).toHaveCount(1);
     await page.getByRole('option').first().click();
 
-    // Explicitly select a Stand session.
+    // Explicitly select the only Stand session.
     await page.locator('#standSessionSelect').click();
+    await expect(page.getByRole('option')).toHaveCount(1);
     await page.getByRole('option').first().click();
 
     // "Anzeigen" button should be enabled once both sessions are selected

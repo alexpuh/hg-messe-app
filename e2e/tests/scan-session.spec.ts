@@ -85,8 +85,12 @@ test.describe('Scan session screen (/scan-session)', () => {
 
     await simulateScan(request, TEST_EAN_UNIT);
 
-    // The article list should update via SignalR — article count becomes 1
-    await expect(page.locator('.ist-count').first()).toHaveText('1', { timeout: 10_000 });
+    // The article list should update via SignalR — article count becomes 1.
+    // Scoped to the specific article row by EAN to avoid relying on DOM order.
+    const scannedRow = page.locator('.stock-item', {
+      has: page.locator('.artEan', { hasText: TEST_EAN_UNIT }),
+    });
+    await expect(scannedRow.locator('.ist-count')).toHaveText('1', { timeout: 10_000 });
   });
 
   // AC-7: Bestandsaufnahme Stand — no Soll column
