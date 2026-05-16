@@ -56,6 +56,18 @@ if ($staleServer) {
     Start-Sleep -Milliseconds 500
 }
 
+# Delete the test DB before Playwright starts the server.
+# globalSetup runs AFTER webServer is up, so the DB is already open by then — too late to delete.
+$tmpDir  = Join-Path $e2eDir 'tmp'
+$dbPath  = Join-Path $tmpDir 'messeapp-e2e.db'
+if (-not (Test-Path $tmpDir)) { New-Item -ItemType Directory -Path $tmpDir | Out-Null }
+foreach ($file in @($dbPath, "$dbPath-wal", "$dbPath-shm")) {
+    if (Test-Path $file) {
+        Remove-Item $file -Force
+        Write-Host "Deleted $file" -ForegroundColor DarkGray
+    }
+}
+
 #  Install dependencies 
 
 if ($Install) {
