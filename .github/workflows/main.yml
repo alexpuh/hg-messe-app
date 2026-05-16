@@ -125,6 +125,7 @@ jobs:
     # but the .NET server and Angular client are fully cross-platform.
     runs-on: ubuntu-latest
     needs: [build-client, test-server]
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
