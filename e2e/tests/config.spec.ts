@@ -55,8 +55,9 @@ test.describe('Config screen (/config)', () => {
     // Wait for article table to load
     await expect(page.locator('p-table')).toBeVisible();
 
-    // Find the Sollbestand cell for the first article (artNr 1100) — shows "+" or existing count
-    const sollCell = page.locator('p-table tbody tr').first().locator('.p-button');
+    // Find the Sollbestand edit button (size="large") — shows "+" or existing count.
+    // The delete button (danger, icon-only) is also present when a count exists, so we must be specific.
+    const sollCell = page.locator('p-table tbody tr').first().locator('p-button[size="large"]');
     await sollCell.click();
 
     // Editing input should appear
