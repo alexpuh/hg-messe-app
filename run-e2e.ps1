@@ -53,7 +53,10 @@ $staleServer = Get-Process -Name 'messe-server' -ErrorAction SilentlyContinue
 if ($staleServer) {
     Write-Host "Stopping stale messe-server process (PID $($staleServer.Id))..." -ForegroundColor Yellow
     Stop-Process -Id $staleServer.Id -Force
-    Start-Sleep -Milliseconds 500
+    $exited = $staleServer.WaitForExit(5000)
+    if (-not $exited) {
+        Write-Warning "messe-server process did not exit within 5 s; DB files may still be locked"
+    }
 }
 
 # Delete the test DB before Playwright starts the server.

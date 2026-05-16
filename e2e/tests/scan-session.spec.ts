@@ -80,6 +80,8 @@ test.describe('Scan session screen (/scan-session)', () => {
     await page.goto('/scan-session');
     // Wait for the page heading to confirm the active session is loaded.
     await expect(page.locator('h1')).toBeVisible();
+    // Verify we are in a Beladung session — guards against scanning into a different session.
+    await expect(page.locator('h1')).toContainText('Beladung');
 
     await simulateScan(request, TEST_EAN_UNIT);
 

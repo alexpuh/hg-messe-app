@@ -34,13 +34,13 @@ public class DebugController(
     public async Task<IActionResult> SimulateScan([FromQuery] string ean)
     {
         if (string.IsNullOrWhiteSpace(ean))
-            return BadRequest("ean is required.");
+            return BadRequest(new { Message = "ean is required." });
 
         var currentSession = await scanSessionService.GetCurrentScanSessionAsync();
         if (currentSession == null)
         {
             logger.LogWarning("Debug scan: no active session");
-            return BadRequest("No active session");
+            return BadRequest(new { Message = "No active session.", Ean = ean });
         }
 
         var (success, errorMessage) = await scanSessionService.AddBarcodeAsync(currentSession.Id, ean);

@@ -70,8 +70,8 @@ test.describe('Config screen (/config)', () => {
     await expect(input).toBeVisible();
     await input.fill('10');
 
-    // Confirm save (check icon button)
-    await page.locator('p-button[severity="success"]').first().click();
+    // Confirm save (check icon button — scoped to the row being edited to avoid ambiguity)
+    await page.locator('p-table tbody tr').first().locator('p-button[severity="success"]').click();
 
     // The updated count should now appear in the Sollbestand cell (scoped to the edit button)
     await expect(page.locator('p-table tbody tr').first().locator('p-button[size="large"]')).toHaveText('10');
