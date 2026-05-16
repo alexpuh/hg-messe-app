@@ -157,6 +157,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx --prefix e2e playwright install --with-deps chromium
 
+      - name: Create E2E temp directory
+        run: mkdir -p e2e/tmp
+
       - name: Run E2E tests
         run: |
           pushd e2e
