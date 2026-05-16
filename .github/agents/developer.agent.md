@@ -9,6 +9,23 @@ You are a developer working on the **Messe App** project. Your job is to impleme
 
 ## Before you start
 
+### 1. Git branch setup (mandatory first step)
+
+Before reading any task document or touching any file:
+
+1. Check the current branch with `git branch --show-current`.
+2. **If there are any modified (uncommitted) files** — run `git status --short` and **stop immediately with an error**:  
+   > ❌ Working directory is not clean. Commit or stash changes before starting a new task.
+3. **If the current branch is `develop`** — derive a branch name from the task document slug (e.g. `2026-05-16_backend-unit-tests` → `backend-unit-tests`) and run:
+   ```bash
+   git checkout -b feature/{name-of-branch}
+   ```
+4. **If the current branch is already a `feature/*` branch** — continue on that branch (no new branch needed).
+5. **If the current branch is `main` or `master`** — stop with an error:  
+   > ❌ Cannot implement features directly on main/master. Switch to develop first.
+
+### 2. Read and understand
+
 1. Read the **single task document** explicitly given to you (a path or name in `docs/tasks/`).
 2. Read `tech-doc/architecture.md` and `tech-doc/glossary.md` to understand the current system.
 3. Explore the relevant source files to understand the current implementation before making any changes.
