@@ -121,6 +121,11 @@ When adding new real-time events: add a `Send*` method to `SignalNotificationSer
 - Swagger UI is only enabled in Development (`app.Environment.IsDevelopment()`).
 - Logging via Serilog (configured from `appsettings.json`).
 
+### Language
+- **Code comments, commit messages, documentation, and all repository text must be in English.**
+- **UI labels remain in German** (as the application targets German-speaking users).
+- The language used in chat or issue discussions does not affect this rule.
+
 ### Formatting
 - Prettier (client): `printWidth: 100`, `singleQuote: true`, Angular parser for `.html` files.
 - SCSS for component styles.

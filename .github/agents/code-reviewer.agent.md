@@ -182,6 +182,7 @@ Technical documentation: `tech-doc/architecture.md` and `tech-doc/glossary.md`.
 - **Service registration:** new services must be registered as `Scoped` unless they own a long-lived resource (Singleton).
 - **`[FromServices]`** injection: only for services used in a single action. Multi-action services → constructor injection.
 - **Logging:** `ILogger<T>` injected via constructor — never static `Log.*` calls.
+- **Language:** code comments, documentation, and all repository text must be in English. UI labels remain in German.
 
 #### Database
 - **No EF Core migrations.** Schema is created via `EnsureCreatedAsync`. Any model change (new field, new entity, changed type) requires a note in the commit message.

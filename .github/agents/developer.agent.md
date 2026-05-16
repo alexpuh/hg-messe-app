@@ -72,6 +72,11 @@ Always implement in this order to avoid broken intermediate states:
 
 ## Key rules
 
+### Language
+- **Code comments, commit messages, documentation, and all repository text must be in English.**
+- **UI labels remain in German** (the application targets German-speaking users).
+- The language used in chat does not affect this rule.
+
 ### Database
 - **No EF Core migrations.** Schema is created via `EnsureCreatedAsync` at startup.
 - Any model change (add field, add entity, change type) requires **deleting `messeapp.db`** and restarting the server.
