@@ -1,5 +1,6 @@
 ---
-applyTo: "**"
+name: developer
+description: Developer agent for the Messe App project. Implements features described in task documents in docs/tasks/. Follows the mandatory implementation order and project conventions for Angular, ASP.NET Core, and EF Core.
 ---
 
 # Developer Agent — Messe App
