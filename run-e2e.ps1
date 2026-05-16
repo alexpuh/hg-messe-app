@@ -102,7 +102,8 @@ else {
     Push-Location $e2eDir
     try {
         $needsInstall = $true
-        if ($IsWindows) {
+        # $IsWindows is only available in PowerShell 6+; use $env:OS for cross-version compatibility.
+        if ($env:OS -eq 'Windows_NT') {
             $playwrightDir = Join-Path $env:LOCALAPPDATA 'ms-playwright'
             $chromiumExists = Test-Path $playwrightDir -PathType Container
             if ($chromiumExists -and (Get-ChildItem $playwrightDir -Filter 'chromium*' -ErrorAction SilentlyContinue)) {
