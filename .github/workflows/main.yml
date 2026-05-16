@@ -120,10 +120,61 @@ jobs:
           name: hg-messe-app-app-${{ github.run_number }}
           path: publish-app
 
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [build-client, test-server]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Time Zone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneWindows: "W. Europe Standard Time"
+          timezoneLinux: "Europe/Berlin"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install client dependencies
+        run: |
+          pushd client
+          npm ci
+          popd
+
+      - name: Install E2E dependencies
+        run: |
+          pushd e2e
+          npm ci
+          popd
+
+      - name: Install Playwright browsers
+        run: npx --prefix e2e playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: |
+          pushd e2e
+          npm test
+          popd
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: e2e/playwright-report/
+          retention-days: 7
+
   create-release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/develop')
-    needs: [build-client, build-app, test-server]
+    needs: [build-client, build-app, test-server, e2e]
     steps:
       - name: Set Time Zone
         uses: szenius/set-timezone@v1.2

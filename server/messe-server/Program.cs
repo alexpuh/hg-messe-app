@@ -25,8 +25,11 @@ try
         .AddSignalR();
 
     // Configure SQLite Database
+    // Supports override via ConnectionStrings__DefaultConnection env var (used for E2E test isolation)
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=messeapp.db";
     builder.Services
-        .AddDbContext<MesseAppDbContext>(options => options.UseSqlite("Data Source=messeapp.db"));
+        .AddDbContext<MesseAppDbContext>(options => options.UseSqlite(connectionString));
 
     
     // Add services to the container.

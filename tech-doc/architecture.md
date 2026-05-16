@@ -68,6 +68,7 @@ See also: [Glossary (German / English)](./glossary.md)
 | `server/messe-server/` | ASP.NET Core 9 | REST API + SignalR + serial scanner |
 | `server/messe-app/` | WPF .NET 9 (Windows) | Desktop host |
 | `server/messe-server.Tests/` | xUnit test project | Backend unit tests |
+| `e2e/` | Playwright npm project | End-to-end tests |
 
 ### Port assignments
 
@@ -419,6 +420,27 @@ Returns a merged article list combining one Stand session and one Lager session.
 Download the combined view as `.xlsx`. Same parameter validation as above (`<= 0` → 400).
 - Worksheet tab and header cell: **"Messeabschluss"**
 - Columns: Art.Nr., Artikel, Gewicht, EAN, Stand Ist, Lager Ist, Gesamt, Soll, Fehlt.
+
+---
+
+### Debug (Development only)
+
+#### `POST /api/Debug/scan?ean={ean}`
+Simulates a barcode scan for the current active session. Intended for E2E testing only.
+
+**Only available when `ASPNETCORE_ENVIRONMENT=Development`.** Returns `404 Not Found` in Production (guarded by `DevelopmentOnlyAttribute` in `server/messe-server/Filters/DevelopmentOnlyAttribute.cs`).
+
+Internally replicates the physical scanner pipeline:
+1. Calls `ScanSessionService.GetCurrentScanSessionAsync()` — same "current session" the physical scanner would target.
+2. Calls `ScanSessionService.AddBarcodeAsync(sessionId, ean)`.
+3. Fires `SignalNotificationService.SendBarcodeScanned(ean)` on success, or `SendBarcodeError(ean, message)` on failure.
+
+| Response | Condition |
+|---|---|
+| `200 OK` `{ "message": "...", "ean": "...", "sessionId": N }` | Scan processed successfully |
+| `400 Bad Request` `"Keine aktive Session"` | No scan session exists |
+| `400 Bad Request` `{ "message": "Artikel mit EAN ... nicht gefunden", ... }` | EAN unknown |
+| `400 Bad Request` `"ean ist erforderlich."` | `ean` query param missing or blank |
 
 ---
 

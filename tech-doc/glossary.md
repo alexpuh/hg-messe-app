@@ -12,6 +12,7 @@ Domain terms used in the UI, documentation, and codebase.
 | Beladelisten | Dispatch sheets | `DispatchSheet[]` | Plural of Beladeliste |
 | Bestand | Stock / actual count | `count`, `QuantityUnits` | Number of units actually scanned |
 | Bestandsaufnahme | Inventory / stock count | `SessionType.Inventory` | Scan session to count stock; can be at Stand (free-form) or Lager (compared against a Beladeliste) |
+| Debug-Scan | Debug scan | `POST /api/Debug/scan` | Development-only endpoint that simulates a barcode scan for E2E testing |
 | Einheit | Unit | `ArticleUnit` | A single packaged variant of an article (weight, EAN) |
 | Fehlt | Missing | `Fehlt` (Excel column) | Required − actual (`Soll − Ist`); shown only when `Ist < Soll` |
 | Gesamt | Total | `total` | Combined count: Stand Ist + Lager Ist; used in combined view |

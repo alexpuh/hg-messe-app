@@ -1,0 +1,49 @@
+[
+  {
+    "id": 10096,
+    "artNr": "1100",
+    "name1": "Anis",
+    "name2": "ganz",
+    "displayName": "Anis ganz",
+    "isDisabled": false,
+    "units": [
+      {
+        "id": 1,
+        "articleId": 10096,
+        "weight": 50,
+        "price": 2.39,
+        "ean": "4260011990035",
+        "isDisabled": false,
+        "packagesInBox": 30
+      },
+      {
+        "id": 2,
+        "articleId": 10096,
+        "weight": 1000,
+        "price": 40.60,
+        "ean": "4260011990042",
+        "isDisabled": false,
+        "packagesInBox": 0
+      }
+    ]
+  },
+  {
+    "id": 10097,
+    "artNr": "1110",
+    "name1": "Anis",
+    "name2": "gemahlen",
+    "displayName": "Anis gemahlen",
+    "isDisabled": false,
+    "units": [
+      {
+        "id": 3,
+        "articleId": 10097,
+        "weight": 50,
+        "price": 2.39,
+        "ean": "4260011990059",
+        "isDisabled": false,
+        "packagesInBox": 30
+      }
+    ]
+  }
+]
