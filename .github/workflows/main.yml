@@ -177,6 +177,13 @@ jobs:
       - name: Create E2E temp directory
         run: mkdir -p e2e/tmp
 
+      - name: Build .NET server
+        # Pre-build the server so that `dotnet run` inside the Playwright webServer config
+        # only needs to launch the already-compiled binary. Without this, `dotnet run` would
+        # restore + compile on a cold runner and may exceed the 120s webServer timeout before
+        # port 5227 becomes available.
+        run: dotnet build server/messe-server/messe-server.csproj --no-restore
+
       - name: Run E2E tests
         # Uses `dotnet run` (Debug) + `npm start` (ng serve) rather than the production
         # build artifacts. This keeps the CI job simple and gives better stack traces on
