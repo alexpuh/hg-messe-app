@@ -41,12 +41,17 @@ npm run test:debug
 
 ## Test isolation
 
-All tests run serially (`workers: 1`). A fresh SQLite database (`e2e/tmp/messeapp-e2e.db`) is created for each test run — `globalSetup` deletes the file before the suite starts.
+All tests run serially (`workers: 1`). Before each test run, the SQLite database
+(`e2e/tmp/messeapp-e2e.db`) is deleted so every run starts from a clean state.
 
-To manually clean up the temp database:
+**When using `run-e2e.ps1`** (recommended on Windows), the script deletes the DB automatically
+before starting Playwright.
+
+**When running `npm test` directly**, delete the DB manually first:
 
 ```bash
-rm e2e/tmp/messeapp-e2e.db
+rm e2e/tmp/messeapp-e2e.db   # macOS / Linux
+Remove-Item e2e/tmp/messeapp-e2e.db  # PowerShell
 ```
 
 ## Articles fixture

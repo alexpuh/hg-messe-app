@@ -31,7 +31,7 @@ public class DebugController(
         var currentSession = await scanSessionService.GetCurrentScanSessionAsync();
         if (currentSession == null)
         {
-            logger.LogWarning("Debug scan: Keine aktive Session");
+            logger.LogWarning("Debug scan: no active session");
             return BadRequest("Keine aktive Session");
         }
 
@@ -40,13 +40,13 @@ public class DebugController(
         if (success)
         {
             await signalNotificationService.SendBarcodeScanned(ean);
-            logger.LogInformation("Debug scan erfolgreich: EAN={Ean}, SessionId={SessionId}", ean, currentSession.Id);
+            logger.LogInformation("Debug scan successful: EAN={Ean}, SessionId={SessionId}", ean, currentSession.Id);
             return Ok(new { Message = "Barcode erfolgreich verarbeitet", Ean = ean, SessionId = currentSession.Id });
         }
         else
         {
             await signalNotificationService.SendBarcodeError(ean, errorMessage);
-            logger.LogWarning("Debug scan fehlgeschlagen: EAN={Ean}, Error={Error}", ean, errorMessage);
+            logger.LogWarning("Debug scan failed: EAN={Ean}, Error={Error}", ean, errorMessage);
             return BadRequest(new { Message = errorMessage, Ean = ean });
         }
     }
