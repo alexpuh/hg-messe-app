@@ -55,14 +55,15 @@ public class ArticlesService(MesseAppDbContext dbContext, ILogger<ArticlesServic
             PropertyNameCaseInsensitive = true
         });
 
+        // Lösche alle vorhandenen Einträge (auch bei leerer Importliste, damit Import immer ersetzt)
+        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
+        dbContext.ChangeTracker.Clear();
+
         if (articles == null || articles.Count == 0)
         {
             logger.LogWarning("Keine Artikel in der JSON-Datei gefunden");
             return 0;
         }
-
-        // Lösche alle vorhandenen Einträge
-        await dbContext.Database.ExecuteSqlRawAsync("DELETE FROM ArticleUnits");
 
         var entities = articles
             .SelectMany(a => a.Units.Select(au => (article: a, unit: au)))

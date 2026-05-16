@@ -1,6 +1,6 @@
 # [TASK] Backend Unit Tests
 
-> **Status:** Draft  
+> **Status:** Implemented  
 > **Date:** 2026-05-16  
 > **Author:** alexpuh  
 > **Jira link:** *(fill in after creation)*
