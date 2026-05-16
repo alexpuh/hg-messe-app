@@ -11,6 +11,26 @@ env:
 
 jobs:
 
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Run server unit tests
+        run: dotnet test server/messe-server.Tests/messe-server.Tests.csproj --configuration Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_number }}
+          path: "**/*.trx"
+
   build-client:
     runs-on: ubuntu-latest
     steps:
@@ -103,7 +123,7 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/heads/master') || startsWith(github.ref, 'refs/heads/main') || startsWith(github.ref, 'refs/heads/develop')
-    needs: [build-client, build-app]
+    needs: [build-client, build-app, test-server]
     steps:
       - name: Set Time Zone
         uses: szenius/set-timezone@v1.2

@@ -67,6 +67,7 @@ See also: [Glossary (German / English)](./glossary.md)
 | `client/` | Angular 21 SPA | User interface |
 | `server/messe-server/` | ASP.NET Core 9 | REST API + SignalR + serial scanner |
 | `server/messe-app/` | WPF .NET 9 (Windows) | Desktop host |
+| `server/messe-server.Tests/` | xUnit test project | Backend unit tests |
 
 ### Port assignments
 
