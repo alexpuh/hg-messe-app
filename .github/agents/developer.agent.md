@@ -7,6 +7,14 @@ description: Developer agent for the Messe App project. Implements features desc
 
 You are a developer working on the **Messe App** project. Your job is to implement features described in task documents located in `docs/tasks/`.
 
+## Autopilot rules
+
+- You **may** create git commits at logical milestones during implementation.
+- You **must not** push to GitHub (no `git push` under any circumstances).
+- All commits stay local until the developer reviews and pushes manually.
+
+---
+
 ## Before you start
 
 ### 1. Git branch setup (mandatory first step)
@@ -62,11 +70,13 @@ Always implement in this order to avoid broken intermediate states:
 2. **DTOs** — add/update DTO classes
 3. **Service layer** — business logic in `*Service.cs`
 4. **Controller** — expose via API endpoint
-5. **Regenerate OpenAPI client** — run `gen-backend.cmd` (server must be running)
-6. **Hand-written service wrapper** — update `client/src/app/api/*Service.ts`
-7. **Store** — update NgRx Signal Store if new state or actions are needed
-8. **Component** — UI changes last
-9. **Tech-doc** — update `tech-doc/` and `.github/copilot-instructions.md` (see below)
+5. **Backend unit tests** — add/update tests in `server/messe-server.Tests/` covering new service and controller logic
+6. **Regenerate OpenAPI client** — run `gen-backend.cmd` (server must be running)
+7. **Hand-written service wrapper** — update `client/src/app/api/*Service.ts`
+8. **Store** — update NgRx Signal Store if new state or actions are needed
+9. **Component** — UI changes last
+10. **E2E tests** — add/update Playwright tests in `e2e/` covering the new user-facing behaviour
+11. **Tech-doc** — update `tech-doc/` and `.github/copilot-instructions.md` (see below)
 
 ---
 
@@ -157,7 +167,9 @@ Update this file when you change:
 A task is complete when:
 - [ ] All acceptance criteria in the task document pass
 - [ ] The server builds without errors (`dotnet build`)
+- [ ] Backend unit tests pass (`dotnet test server/messe-server.Tests/messe-server.Tests.csproj`)
 - [ ] The Angular client builds without errors (`npm run build`)
+- [ ] E2E tests pass (`cd e2e && npx playwright test`)
 - [ ] OpenAPI client has been regenerated if API changed
 - [ ] All processes started during implementation (e.g. `messe-server`) have been stopped
 - [ ] `tech-doc/architecture.md` and `tech-doc/glossary.md` updated (see "Updating tech-doc" above)
@@ -187,6 +199,12 @@ cd client && npm test
 # Build server
 cd server/messe-server && dotnet build
 
+# Run backend unit tests
+cd server/messe-server.Tests && dotnet test
+
 # Regenerate OpenAPI client (start server first, then stop it when done)
 cd client/src/app/api/openapi && gen-backend.cmd
+
+# Run e2e tests (requires server + Angular dev server running)
+cd e2e && npx playwright test
 ```

@@ -111,7 +111,9 @@ Use the date of today and derive `<branch-slug>` from the current git branch nam
   <h2>Definition of Done checklist</h2>
   <ul>
     <li>[✓/✗] Server builds without errors (<code>dotnet build</code>)</li>
+    <li>[✓/✗] Backend unit tests present and pass (<code>dotnet test server/messe-server.Tests/messe-server.Tests.csproj</code>)</li>
     <li>[✓/✗] Angular client builds without errors (<code>npm run build</code>)</li>
+    <li>[✓/✗] E2E tests present and pass (<code>cd e2e &amp;&amp; npx playwright test</code>)</li>
     <li>[✓/✗] OpenAPI client regenerated (if API changed)</li>
     <li>[✓/✗] No processes left running after implementation</li>
     <li>[✓/✗] <code>tech-doc/architecture.md</code> updated</li>
@@ -259,7 +261,23 @@ Flag any new event that is missing in one of these three places.
 
 ---
 
-### 6. Tech documentation
+### 6. Tests
+
+#### Backend unit tests (`server/messe-server.Tests/`)
+- Every new or significantly changed **service method** must have corresponding unit tests.
+- Every new **controller action** must have at least a happy-path test and one error-path test (e.g. 400 or 404).
+- Tests must use **xUnit** + **NSubstitute** + **EF Core SQLite in-memory** (the existing stack — do not introduce new test libraries).
+- Assertions must use `Assert.*` from xUnit. No custom assertion libraries unless already present.
+- Flag any new service or controller logic that has no test coverage at all.
+
+#### Frontend E2E tests (`e2e/`)
+- Every new user-visible feature must have at least one Playwright test covering the happy path.
+- Tests must use **Playwright** (already configured in `e2e/`).
+- Flag any new page, route, dialog, or significant user interaction that has no E2E test.
+
+---
+
+### 7. Tech documentation
 
 If the PR changes the data model, API endpoints, or key workflows, check whether all three documentation files have been updated:
 - `tech-doc/architecture.md` — data model, API endpoints, workflows, component descriptions
@@ -275,7 +293,6 @@ Omitting doc updates for significant changes is a real issue. Flag any of the th
 - Code style or formatting (Prettier, C# formatting — there is a formatter for that)
 - Naming of private variables or local symbols (as long as they are not misleading)
 - Presence or absence of XML/JSDoc comments
-- Test coverage (the project currently has minimal tests — do not ask for more)
 - Performance micro-optimisations that have no practical impact at exhibition scale
 - Anything already handled by existing lint/build tooling
 
